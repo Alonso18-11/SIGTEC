@@ -1,0 +1,96 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Funciones de apoyo ----------
+    function autenticado() { return request.auth != null; }
+
+    function perfil() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.perfil;
+    }
+
+    function esJefe()    { return autenticado() && perfil() == 'JEFE'; }
+    function esTecnico() { return autenticado() && perfil() == 'TECNICO'; }
+
+    // El cambio solo toca los campos indicados
+    function soloCambia(campos) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(campos);
+    }
+
+    // ---------- Usuarios ----------
+    match /usuarios/{uid} {
+      allow read: if autenticado();
+      // Se crean desde la consola. La app solo mueve la carga del técnico,
+      // y nunca por encima de su límite: RF-06 también en el servidor.
+      allow update: if (esJefe() || request.auth.uid == uid)
+        && soloCambia(['incidenciasActivas'])
+        && request.resource.data.incidenciasActivas >= 0
+        && request.resource.data.incidenciasActivas <= resource.data.limiteAtencion;
+      allow create, delete: if false;
+    }
+
+    // ---------- Incidencias ----------
+    match /incidencias/{id} {
+      allow read: if autenticado();
+      // Nace sin asignar y a nombre de quien la registra
+      allow create: if autenticado()
+        && request.resource.data.registradoPorId == request.auth.uid
+        && request.resource.data.marca == 'SIN_ASIGNAR';
+      // La modifica el jefe (asignar, clasificar) o el técnico asignado (atender, cerrar)
+      allow update: if esJefe()
+        || (esTecnico() && resource.data.tecnicoAsignadoId == request.auth.uid);
+      allow delete: if false;
+    }
+
+    // ---------- Línea de tiempo: no se reescribe ----------
+    match /movimientos/{id} {
+      allow read, create: if autenticado();
+      allow update, delete: if false;
+    }
+
+    // ---------- Informe: solo el técnico asignado, con huella ----------
+    match /informes/{incidenciaId} {
+      allow read: if autenticado();
+      allow create: if esTecnico()
+        && get(/databases/$(database)/documents/incidencias/$(incidenciaId))
+             .data.tecnicoAsignadoId == request.auth.uid
+        && request.resource.data.confirmadoEn is timestamp;
+      allow update, delete: if false;
+    }
+
+    // ---------- Repuestos ----------
+    match /solicitudesRepuesto/{id} {
+      allow read: if autenticado();
+      allow create: if esTecnico() && request.resource.data.confirmadoEn is timestamp;
+      allow update: if esTecnico() && soloCambia(['estadoEntrega']);
+      allow delete: if false;
+    }
+
+    // ---------- IA ----------
+    match /sugerenciasIA/{id} {
+      allow read, create: if autenticado();
+      allow update: if autenticado() && soloCambia(['aceptada']);
+      allow delete: if false;
+    }
+
+    // ---------- Diccionario ----------
+    match /fallas/{id} {
+      allow read: if autenticado();
+      allow create: if esTecnico();
+      allow update, delete: if false;
+    }
+
+    // ---------- Catálogo ----------
+    match /equipos/{codigo} {
+      allow read: if autenticado();
+      allow write: if false;
+    }
+
+    // ---------- Numeración INC: solo de uno en uno ----------
+    match /contadores/incidencias {
+      allow read: if autenticado();
+      allow update: if autenticado()
+        && request.resource.data.ultimo == resource.data.ultimo + 1;
+    }
+  }
+}
