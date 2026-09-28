@@ -12,6 +12,9 @@
 /captures
 .externalNativeBuild
 .cxx
+.idea/gradle.xml
+.idea/workspace.xml
+.idea/misc.xml
 
 # Firma: si se pierde o se filtra, no hay actualizaciones en Play Store
 *.jks

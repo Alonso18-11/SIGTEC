@@ -29,7 +29,7 @@ class RegistrarIncidencia @Inject constructor(
         val quien = responsable.trim()
         // La pantalla ya no deja guardar con campos vacíos; esto cubre cualquier otro llamador
         if (codigo.isEmpty() || texto.isEmpty() || quien.isEmpty()) {
-            return Resultado.Error(ErrorDominio.Desconocido("Falta un campo obligatorio"))
+            return Resultado.Error(ErrorDominio.CampoObligatorio)
         }
 
         val incidencia = Incidencia(

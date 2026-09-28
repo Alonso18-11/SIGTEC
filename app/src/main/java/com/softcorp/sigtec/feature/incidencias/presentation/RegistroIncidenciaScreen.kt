@@ -78,8 +78,10 @@ fun RegistroIncidenciaScreen(
 ) {
     val editable = !estado.guardando
 
-    // La raíz ya aplica los márgenes de la barra de estado: aquí van en cero para no duplicarlos
+    // La raíz ya aplica los márgenes de la barra de estado: aquí van en cero para no duplicarlos.
+    // imePadding en el Scaffold: con el teclado abierto, la barra de "Guardar" queda sobre él.
     Scaffold(
+        modifier = Modifier.imePadding(),
         contentWindowInsets = WindowInsets(0),
         topBar = {
             TopAppBar(
@@ -98,7 +100,6 @@ fun RegistroIncidenciaScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(Espaciado.m),
             verticalArrangement = Arrangement.spacedBy(Espaciado.m)
@@ -114,7 +115,8 @@ fun RegistroIncidenciaScreen(
                         Icon(Icons.Outlined.PhotoCamera, contentDescription = "Escanear etiqueta")
                     }
                 },
-                supportingText = { Text("Leído desde la etiqueta con la cámara") },
+                // Neutral hasta la HU-09: el código también puede escribirse a mano
+                supportingText = { Text("Escríbelo o léelo de la etiqueta con la cámara") },
                 singleLine = true,
                 enabled = editable,
                 keyboardOptions = KeyboardOptions(
