@@ -2,6 +2,9 @@ package com.softcorp.sigtec.feature.incidencias.presentation
 
 import com.softcorp.sigtec.core.domain.model.Incidencia
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
+import com.softcorp.sigtec.core.domain.model.Prioridad
+import com.softcorp.sigtec.core.domain.model.TipoFalla
+import com.softcorp.sigtec.core.domain.model.TipoMovimiento
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -21,6 +24,29 @@ fun MarcaSeguimiento.etiqueta(): String = when (this) {
     MarcaSeguimiento.EN_ATENCION -> "En atención"
     MarcaSeguimiento.ESPERANDO_REPUESTO -> "Esperando repuesto"
     MarcaSeguimiento.CERRADA -> "Solucionado"
+}
+
+fun TipoFalla.etiqueta(): String = when (this) {
+    TipoFalla.HARDWARE -> "Hardware"
+    TipoFalla.SOFTWARE -> "Software"
+    TipoFalla.RED -> "Red"
+}
+
+fun Prioridad.etiqueta(): String = when (this) {
+    Prioridad.BAJA -> "Prioridad baja"
+    Prioridad.MEDIA -> "Prioridad media"
+    Prioridad.ALTA -> "Prioridad alta"
+}
+
+/** Título de cada punto de la línea de tiempo del detalle. */
+fun TipoMovimiento.titulo(): String = when (this) {
+    TipoMovimiento.REGISTRADA -> "Incidencia registrada"
+    TipoMovimiento.ASIGNADA -> "Asignada"
+    TipoMovimiento.REASIGNADA -> "Reasignada"
+    TipoMovimiento.ATENCION_INICIADA -> "Atención iniciada"
+    TipoMovimiento.REPUESTO_SOLICITADO -> "Repuesto solicitado"
+    TipoMovimiento.REPUESTO_RECIBIDO -> "Repuesto recibido"
+    TipoMovimiento.CERRADA -> "Incidencia cerrada"
 }
 
 /** Días completos desde que se registró; lo que muestra EtiquetaIncidencia en los casos demorados. */
