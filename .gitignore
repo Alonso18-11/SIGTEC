@@ -18,7 +18,7 @@
 *.keystore
 keystore.properties
 
-# Firebase (se comparte por fuera; en CI va como secreto)
+# Firebase (se comparte por fuera; en CI va como secreto))
 app/google-services.json
 
 local.properties
