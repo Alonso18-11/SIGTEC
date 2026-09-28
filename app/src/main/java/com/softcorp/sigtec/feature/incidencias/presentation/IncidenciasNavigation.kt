@@ -1,36 +1,20 @@
 package com.softcorp.sigtec.feature.incidencias.presentation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.softcorp.sigtec.core.navigation.EQUIPO_DEMO
-import com.softcorp.sigtec.core.navigation.INCIDENCIA_DEMO
 import com.softcorp.sigtec.core.navigation.Ruta
-import com.softcorp.sigtec.core.theme.Espaciado
-import com.softcorp.sigtec.core.ui.components.PantallaEnConstruccion
 
 // Mensaje que el registro deja al detalle recién abierto
 private const val CLAVE_AVISO = "aviso"
 
 fun NavGraphBuilder.incidenciasGraph(navController: NavController) {
     composable<Ruta.ListaIncidencias> {
-        PantallaEnConstruccion(
-            titulo = "Incidencias",
-            historia = "HU-04",
-            acciones = listOf(
-                "Ver INC-0124 (demo)" to { navController.navigate(Ruta.DetalleIncidencia(INCIDENCIA_DEMO)) },
-                "Registrar" to { navController.navigate(Ruta.RegistroIncidencia) }
-            )
+        ListaIncidenciasRoute(
+            alAbrir = { id -> navController.navigate(Ruta.DetalleIncidencia(id)) },
+            alRegistrar = { navController.navigate(Ruta.RegistroIncidencia) }
         )
     }
     composable<Ruta.RegistroIncidencia> {
@@ -49,26 +33,20 @@ fun NavGraphBuilder.incidenciasGraph(navController: NavController) {
         )
     }
     composable<Ruta.DetalleIncidencia> { entrada ->
-        val ruta = entrada.toRoute<Ruta.DetalleIncidencia>()
-        val avisos = remember { SnackbarHostState() }
-        LaunchedEffect(Unit) {
-            entrada.savedStateHandle.remove<String>(CLAVE_AVISO)?.let { avisos.showSnackbar(it) }
-        }
-        // TEMPORAL hasta la HU-04: solo el aviso del registro es real
-        Box(Modifier.fillMaxSize()) {
-            PantallaEnConstruccion(
-                titulo = "Detalle de ${ruta.incidenciaId}",
-                historia = "HU-04",
-                acciones = listOf(
-                    "Asignar técnico" to { navController.navigate(Ruta.AsignarIncidencia(ruta.incidenciaId)) },
-                    "Solicitar repuesto" to { navController.navigate(Ruta.SolicitarRepuesto(ruta.incidenciaId)) },
-                    "Cerrar con informe" to { navController.navigate(Ruta.RegistrarInforme(ruta.incidenciaId)) },
-                    "Agregar foto" to { navController.navigate(Ruta.CapturarEvidencia(ruta.incidenciaId)) },
-                    "Abrir asistente" to { navController.navigate(Ruta.Asistente(ruta.incidenciaId)) },
-                    "Ver historial del equipo" to { navController.navigate(Ruta.HistorialEquipo(EQUIPO_DEMO)) }
-                )
+        val id = entrada.toRoute<Ruta.DetalleIncidencia>().incidenciaId
+        // Se retira al leerlo: al volver a esta pantalla no se repite
+        val aviso = remember { entrada.savedStateHandle.remove<String>(CLAVE_AVISO) }
+        DetalleIncidenciaRoute(
+            aviso = aviso,
+            acciones = AccionesDetalle(
+                alVolver = { navController.popBackStack() },
+                alAsignar = { navController.navigate(Ruta.AsignarIncidencia(id)) },
+                alSolicitarRepuesto = { navController.navigate(Ruta.SolicitarRepuesto(id)) },
+                alCerrar = { navController.navigate(Ruta.RegistrarInforme(id)) },
+                alAgregarFoto = { navController.navigate(Ruta.CapturarEvidencia(id)) },
+                alAbrirAsistente = { navController.navigate(Ruta.Asistente(id)) },
+                alVerHistorial = { codigo -> navController.navigate(Ruta.HistorialEquipo(codigo)) }
             )
-            SnackbarHost(avisos, Modifier.align(Alignment.BottomCenter).padding(Espaciado.m))
-        }
+        )
     }
 }

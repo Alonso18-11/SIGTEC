@@ -5,6 +5,7 @@ import androidx.room.withTransaction
 import com.softcorp.sigtec.core.database.SigtecDatabase
 import com.softcorp.sigtec.core.database.dao.IncidenciaDao
 import com.softcorp.sigtec.core.database.dao.MovimientoDao
+import com.softcorp.sigtec.core.database.entity.toDomain
 import com.softcorp.sigtec.core.database.entity.toEntity
 import com.softcorp.sigtec.core.di.IoDispatcher
 import com.softcorp.sigtec.core.domain.ErrorDominio
@@ -14,6 +15,9 @@ import com.softcorp.sigtec.core.domain.model.Movimiento
 import com.softcorp.sigtec.feature.incidencias.domain.IncidenciaRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -44,6 +48,21 @@ class IncidenciaRepositoryImpl @Inject constructor(
                 Resultado.Error(ErrorDominio.Desconocido(e.message))
             }
         }
+
+    override fun observarTodas(): Flow<List<Incidencia>> =
+        incidenciaDao.observarTodas()
+            .map { lista -> lista.map { it.toDomain() } }
+            .flowOn(io)
+
+    override fun observarPorId(id: String): Flow<Incidencia?> =
+        incidenciaDao.observarPorId(id)
+            .map { it?.toDomain() }
+            .flowOn(io)
+
+    override fun observarMovimientos(incidenciaId: String): Flow<List<Movimiento>> =
+        movimientoDao.observarPorIncidencia(incidenciaId)
+            .map { lista -> lista.map { it.toDomain() } }
+            .flowOn(io)
 
     private companion object {
         const val TAG = "IncidenciaRepository"

@@ -4,7 +4,6 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.softcorp.sigtec.core.navigation.INCIDENCIA_DEMO
 import com.softcorp.sigtec.core.navigation.Ruta
 import com.softcorp.sigtec.core.ui.components.PantallaEnConstruccion
 
@@ -14,7 +13,6 @@ fun NavGraphBuilder.atencionGraph(navController: NavController) {
             titulo = "Mis tareas",
             historia = "HU-08",
             acciones = listOf(
-                "Atender INC-0124 (demo)" to { navController.navigate(Ruta.DetalleIncidencia(INCIDENCIA_DEMO)) },
                 "Repuestos" to { navController.navigate(Ruta.EstadoRepuestos) }
             )
         )
