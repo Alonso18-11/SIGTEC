@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
-// TEMPORAL hasta la HU-01: acepta cualquier contraseña para los usuarios de prueba.
 @Singleton
 class SesionRepositoryDemo @Inject constructor() : SesionRepository {
 

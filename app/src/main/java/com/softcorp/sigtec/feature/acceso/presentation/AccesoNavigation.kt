@@ -5,20 +5,9 @@ import androidx.navigation.compose.composable
 import com.softcorp.sigtec.core.navigation.Ruta
 import com.softcorp.sigtec.core.ui.components.PantallaEnConstruccion
 
-fun NavGraphBuilder.accesoGraph(
-    alIngresarDemo: (correo: String) -> Unit,
-    alCerrarSesion: () -> Unit
-) {
+fun NavGraphBuilder.accesoGraph(alCerrarSesion: () -> Unit) {
     composable<Ruta.Login> {
-        PantallaEnConstruccion(
-            titulo = "Inicio de sesión",
-            historia = "HU-01 · HU-02",
-            acciones = listOf(
-                "Carlos Mendoza · jefe" to { alIngresarDemo("cmendoza@softcorp.pe") },
-                "Luis Ramírez · técnico" to { alIngresarDemo("lramirez@softcorp.pe") },
-                "Pedro Cárdenas · personal de sistemas" to { alIngresarDemo("pcardenas@softcorp.pe") }
-            )
-        )
+        LoginRoute()
     }
     composable<Ruta.AjustesSeguridad> {
         PantallaEnConstruccion(

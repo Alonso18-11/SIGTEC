@@ -10,6 +10,8 @@ sealed interface ErrorDominio {
     data object SinConexion : ErrorDominio
     data object SinPermiso : ErrorDominio
     data object CredencialesInvalidas : ErrorDominio
+    data object DemasiadosIntentos : ErrorDominio
+    data object PerfilNoConfigurado : ErrorDominio
     data class LimiteAtencionAlcanzado(val tecnicoNombre: String) : ErrorDominio
     data object ConfirmacionRequerida : ErrorDominio
     data class Desconocido(val mensaje: String?) : ErrorDominio

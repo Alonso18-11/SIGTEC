@@ -12,16 +12,10 @@ import javax.inject.Inject
 @HiltViewModel
 class RaizViewModel @Inject constructor(
     observarUsuarioActual: ObservarUsuarioActual,
-    private val iniciarSesion: IniciarSesion,
     private val cerrarSesion: CerrarSesion
 ) : ViewModel() {
 
     val usuarioActual = observarUsuarioActual()
-
-    // TEMPORAL: la HU-01 mueve el ingreso a un LoginViewModel con correo y contraseña reales.
-    fun entrarDemo(correo: String) {
-        viewModelScope.launch { iniciarSesion(correo, contrasena = "") }
-    }
 
     fun salir() {
         viewModelScope.launch { cerrarSesion() }
