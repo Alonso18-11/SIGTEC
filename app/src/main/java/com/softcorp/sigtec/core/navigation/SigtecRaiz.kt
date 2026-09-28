@@ -7,7 +7,6 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -24,20 +23,33 @@ import com.softcorp.sigtec.feature.diccionario.presentation.diccionarioGraph
 import com.softcorp.sigtec.feature.incidencias.presentation.incidenciasGraph
 import com.softcorp.sigtec.feature.indicadores.presentation.indicadoresGraph
 import com.softcorp.sigtec.feature.inicio.presentation.inicioGraph
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
-fun SigtecRaiz() {
+fun SigtecRaiz(vm: RaizViewModel = hiltViewModel()) {
     val navController = rememberNavController()
-
-    // TEMPORAL hasta la HU-01: el perfil se elige en el login de prueba.
-    var perfil by rememberSaveable { mutableStateOf<Perfil?>(null) }
+    val usuario by vm.usuarioActual.collectAsStateWithLifecycle()
 
     val entradaActual by navController.currentBackStackEntryAsState()
     val destinoActual = entradaActual?.destination
-    val destinos = perfil?.let { DestinoPrincipal.para(it) }.orEmpty()
-
-    // La barra solo se muestra en las pantallas principales, no en los formularios
+    val destinos = usuario?.let { DestinoPrincipal.para(it.perfil) }.orEmpty()
     val mostrarBarra = destinos.any { destinoActual?.hasRoute(it.ruta::class) == true }
+
+    // La navegación sigue a la sesión: entrar lleva a Inicio; salir (o perderla) lleva al login.
+    // En ambos casos se limpia la pila, para que "atrás" nunca cruce la frontera de la sesión (HU-01).
+    LaunchedEffect(usuario, destinoActual) {
+        val destino = destinoActual ?: return@LaunchedEffect
+        val enLogin = destino.hasRoute(Ruta.Login::class)
+        when {
+            usuario != null && enLogin -> navController.navigate(Ruta.Inicio) {
+                popUpTo<Ruta.Login> { inclusive = true }
+            }
+            usuario == null && !enLogin -> navController.navigate(Ruta.Login) {
+                popUpTo(navController.graph.id) { inclusive = true }
+            }
+        }
+    }
 
     Scaffold(
         bottomBar = {
@@ -60,22 +72,7 @@ fun SigtecRaiz() {
             startDestination = Ruta.Login,
             modifier = Modifier.padding(innerPadding)
         ) {
-            accesoGraph(
-                alIngresar = { perfilElegido ->
-                    perfil = perfilElegido
-                    // Se quita el login de la pila: "atrás" no debe volver a él (HU-01)
-                    navController.navigate(Ruta.Inicio) {
-                        popUpTo<Ruta.Login> { inclusive = true }
-                    }
-                },
-                alCerrarSesion = {
-                    perfil = null
-                    // Se vacía toda la pila: "atrás" no debe volver a la sesión cerrada (HU-01)
-                    navController.navigate(Ruta.Login) {
-                        popUpTo(navController.graph.id) { inclusive = true }
-                    }
-                }
-            )
+            accesoGraph(alIngresarDemo = vm::entrarDemo, alCerrarSesion = vm::salir)
             inicioGraph(navController)
             incidenciasGraph(navController)
             asignacionGraph(navController)
