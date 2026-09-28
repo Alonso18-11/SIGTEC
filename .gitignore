@@ -1,0 +1,26 @@
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+
+# Firma: si se pierde o se filtra, no hay actualizaciones en Play Store
+*.jks
+*.keystore
+keystore.properties
+
+# Firebase (se comparte por fuera; en CI va como secreto)
+app/google-services.json
+
+local.properties
+
+
