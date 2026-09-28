@@ -72,7 +72,7 @@ fun SigtecRaiz(vm: RaizViewModel = hiltViewModel()) {
             startDestination = Ruta.Login,
             modifier = Modifier.padding(innerPadding)
         ) {
-            accesoGraph(alIngresarDemo = vm::entrarDemo, alCerrarSesion = vm::salir)
+            accesoGraph(alCerrarSesion = vm::salir)
             inicioGraph(navController)
             incidenciasGraph(navController)
             asignacionGraph(navController)

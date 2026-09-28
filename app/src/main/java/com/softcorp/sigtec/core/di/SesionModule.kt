@@ -1,6 +1,6 @@
 package com.softcorp.sigtec.core.di
 
-import com.softcorp.sigtec.core.data.SesionRepositoryDemo
+import com.softcorp.sigtec.core.data.SesionRepositoryFirebase
 import com.softcorp.sigtec.core.domain.repository.SesionRepository
 import dagger.Binds
 import dagger.Module
@@ -16,5 +16,5 @@ abstract class SesionModule {
     // Es el único cambio necesario; ninguna pantalla ni caso de uso se entera.
     @Binds
     @Singleton
-    abstract fun bindSesionRepository(impl: SesionRepositoryDemo): SesionRepository
+    abstract fun bindSesionRepository(impl: SesionRepositoryFirebase): SesionRepository
 }
