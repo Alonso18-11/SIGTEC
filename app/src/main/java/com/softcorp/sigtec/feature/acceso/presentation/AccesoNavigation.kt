@@ -2,12 +2,11 @@ package com.softcorp.sigtec.feature.acceso.presentation
 
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.softcorp.sigtec.core.domain.model.Perfil
 import com.softcorp.sigtec.core.navigation.Ruta
 import com.softcorp.sigtec.core.ui.components.PantallaEnConstruccion
 
 fun NavGraphBuilder.accesoGraph(
-    alIngresar: (Perfil) -> Unit,
+    alIngresarDemo: (correo: String) -> Unit,
     alCerrarSesion: () -> Unit
 ) {
     composable<Ruta.Login> {
@@ -15,9 +14,9 @@ fun NavGraphBuilder.accesoGraph(
             titulo = "Inicio de sesión",
             historia = "HU-01 · HU-02",
             acciones = listOf(
-                "Entrar como jefe" to { alIngresar(Perfil.JEFE) },
-                "Entrar como técnico" to { alIngresar(Perfil.TECNICO) },
-                "Entrar como personal de sistemas" to { alIngresar(Perfil.PERSONAL_SISTEMAS) }
+                "Carlos Mendoza · jefe" to { alIngresarDemo("cmendoza@softcorp.pe") },
+                "Luis Ramírez · técnico" to { alIngresarDemo("lramirez@softcorp.pe") },
+                "Pedro Cárdenas · personal de sistemas" to { alIngresarDemo("pcardenas@softcorp.pe") }
             )
         )
     }
