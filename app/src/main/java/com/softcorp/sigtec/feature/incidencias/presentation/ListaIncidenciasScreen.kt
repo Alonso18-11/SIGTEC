@@ -27,6 +27,7 @@ import com.softcorp.sigtec.core.domain.model.Incidencia
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
 import com.softcorp.sigtec.core.theme.Espaciado
 import com.softcorp.sigtec.core.theme.SigtecTheme
+import com.softcorp.sigtec.core.ui.components.AvisoConexion
 import com.softcorp.sigtec.core.ui.components.EtiquetaIncidencia
 import java.time.Duration
 import java.time.Instant
@@ -49,7 +50,8 @@ fun ListaIncidenciasRoute(
         alFiltrarEquipo = vm::alFiltrarEquipo,
         alLimpiar = vm::limpiar,
         alAbrir = alAbrir,
-        alRegistrar = alRegistrar
+        alRegistrar = alRegistrar,
+        aviso = { AvisoConexion() }   // HU-05
     )
 }
 
@@ -63,7 +65,9 @@ fun ListaIncidenciasScreen(
     alFiltrarEquipo: (String?) -> Unit,
     alLimpiar: () -> Unit,
     alAbrir: (String) -> Unit,
-    alRegistrar: () -> Unit
+    alRegistrar: () -> Unit,
+    // HU-05: aviso de conexión. En las vistas previas queda vacío (AvisoConexion usa hiltViewModel)
+    aviso: @Composable () -> Unit = {}
 ) {
     // La raíz ya aplica los márgenes de la barra de estado: aquí van en cero para no duplicarlos
     Scaffold(
@@ -86,6 +90,7 @@ fun ListaIncidenciasScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(Espaciado.s)
         ) {
+            item { aviso() }
             item { Buscador(estado.filtros.texto, alBuscar) }
             item {
                 Filtros(estado, alFiltrarMarca, alFiltrarTecnico, alFiltrarEquipo, alLimpiar)

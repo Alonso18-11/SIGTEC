@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SincronizacionDao {
+
     @Insert
     suspend fun registrar(ejecucion: SincronizacionEntity)
 
@@ -18,4 +19,13 @@ interface SincronizacionDao {
         ORDER BY ejecutadaEn DESC LIMIT 1
     """)
     fun observarUltimaExitosa(tipo: String): Flow<SincronizacionEntity?>
+
+    // Conserva solo las 20 ejecuciones más recientes de cada tarea
+    @Query("""
+        DELETE FROM sincronizaciones WHERE tipoTarea = :tipo AND id NOT IN (
+            SELECT id FROM sincronizaciones WHERE tipoTarea = :tipo
+            ORDER BY ejecutadaEn DESC LIMIT 20
+        )
+    """)
+    suspend fun recortar(tipo: String)
 }

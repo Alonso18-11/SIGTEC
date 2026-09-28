@@ -5,6 +5,7 @@ import androidx.room.Query
 import androidx.room.Upsert
 import com.softcorp.sigtec.core.database.entity.IncidenciaEntity
 import kotlinx.coroutines.flow.Flow
+import java.time.Instant
 
 @Dao
 interface IncidenciaDao {
@@ -37,4 +38,22 @@ interface IncidenciaDao {
     // Lo que el worker debe subir a Firestore (HU-17)
     @Query("SELECT * FROM incidencias WHERE pendienteSincronizar = 1")
     suspend fun pendientesDeSincronizar(): List<IncidenciaEntity>
+
+    // --- Sincronización (Alonso, HU-05) ---
+
+    @Query("SELECT * FROM incidencias WHERE id = :id")
+    suspend fun porId(id: String): IncidenciaEntity?
+
+    @Query("UPDATE incidencias SET numero = :numero WHERE id = :id")
+    suspend fun asignarNumero(id: String, numero: Int)
+
+    // Solo se marca como subida si nadie la modificó mientras se subía
+    @Query("""
+        UPDATE incidencias SET pendienteSincronizar = 0
+        WHERE id = :id AND actualizadoEn = :actualizadoEn
+    """)
+    suspend fun marcarSincronizada(id: String, actualizadoEn: Instant): Int
+
+    @Query("SELECT COUNT(*) FROM incidencias WHERE pendienteSincronizar = 1")
+    fun observarPendientes(): Flow<Int>
 }
