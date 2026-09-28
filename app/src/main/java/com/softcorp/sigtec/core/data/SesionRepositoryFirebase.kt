@@ -1,5 +1,6 @@
 package com.softcorp.sigtec.core.data
 
+import android.util.Log
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.FirebaseTooManyRequestsException
 import com.google.firebase.auth.FirebaseAuth
@@ -47,8 +48,14 @@ class SesionRepositoryFirebase @Inject constructor(
 
     override suspend fun iniciarSesion(correo: String, contrasena: String): Resultado<Usuario> {
         return try {
+            val uidAnterior = auth.currentUser?.uid
             val uid = auth.signInWithEmailAndPassword(correo, contrasena).await().user?.uid
                 ?: return Resultado.Error(ErrorDominio.CredencialesInvalidas)
+
+            // Entra otra persona: no debe ver lo que quedó guardado de quien estaba antes
+            if (uidAnterior != null && uidAnterior != uid) {
+                withContext(io) { baseLocal.clearAllTables() }
+            }
 
             val usuario = usuarios.document(uid).get().await().aUsuario()
             if (usuario == null) {
@@ -68,6 +75,7 @@ class SesionRepositoryFirebase @Inject constructor(
         } catch (e: CancellationException) {
             throw e   // nunca tragarse la cancelación de una corrutina
         } catch (e: Exception) {
+            Log.w(TAG, "Error no clasificado al iniciar sesión", e)
             Resultado.Error(ErrorDominio.Desconocido(e.message))
         }
     }
@@ -104,5 +112,9 @@ class SesionRepositoryFirebase @Inject constructor(
             cargo = getString("cargo").orEmpty(),
             perfil = perfil
         )
+    }
+
+    private companion object {
+        const val TAG = "SesionRepository"
     }
 }

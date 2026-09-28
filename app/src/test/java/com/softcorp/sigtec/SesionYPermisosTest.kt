@@ -1,6 +1,7 @@
 package com.softcorp.sigtec
 
 import com.softcorp.sigtec.core.data.SesionRepositoryDemo
+import com.softcorp.sigtec.core.domain.BloqueoApp
 import com.softcorp.sigtec.core.domain.ErrorDominio
 import com.softcorp.sigtec.core.domain.Resultado
 import com.softcorp.sigtec.core.domain.model.Permiso
@@ -44,7 +45,7 @@ class SesionYPermisosTest {
     fun `un correo desconocido es credencial invalida`() = runTest {
         assertEquals(
             Resultado.Error(ErrorDominio.CredencialesInvalidas),
-            IniciarSesion(sesion)("nadie@softcorp.pe", "x")
+            IniciarSesion(sesion, BloqueoApp())("nadie@softcorp.pe", "x")
         )
     }
 }
