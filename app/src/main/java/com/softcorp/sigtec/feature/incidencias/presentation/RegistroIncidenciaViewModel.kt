@@ -62,7 +62,9 @@ class RegistroIncidenciaViewModel @Inject constructor(
         formulario.update { it.copy(guardando = true, error = null) }
         viewModelScope.launch {
             when (val r = registrarIncidencia(actual.codigoEquipo, actual.descripcion, actual.responsable)) {
-                is Resultado.Exito -> formulario.update { it.copy(guardando = false, registradaId = r.valor.id) }
+                // "guardando" no vuelve a false: la pantalla se cierra al navegar al detalle,
+                // y así un segundo toque no puede registrar la misma incidencia dos veces
+                is Resultado.Exito -> formulario.update { it.copy(registradaId = r.valor.id) }
                 is Resultado.Error -> formulario.update { it.copy(guardando = false, error = r.causa) }
             }
         }

@@ -29,10 +29,12 @@ class DetalleIncidenciaViewModelTest {
     private val sesion = SesionRepositoryDemo()
     private val t0 = Instant.parse("2026-09-27T14:15:00Z")
 
+    // Asignada a Luis y en atención, como INC-0124 del prototipo
     private val incidencia = Incidencia(
         id = "c", numero = 124, codigoEquipo = "PC-CONT-014", descripcion = "No enciende",
         usuarioResponsable = "María Quispe", fechaRegistro = t0, registradoPorId = "demo-lramirez",
-        registradoPorNombre = "Luis Ramírez", marca = MarcaSeguimiento.EN_ATENCION
+        registradoPorNombre = "Luis Ramírez", marca = MarcaSeguimiento.EN_ATENCION,
+        tecnicoAsignadoId = "demo-lramirez", tecnicoAsignadoNombre = "Luis Ramírez"
     )
 
     // Cargados desordenados: el detalle debe mostrarlos del más reciente al más antiguo
@@ -43,8 +45,11 @@ class DetalleIncidenciaViewModelTest {
         Movimiento("x", "otra", TipoMovimiento.REGISTRADA, "Ana Torres", t0.plusSeconds(60 * 60))
     )
 
-    private fun TestScope.nuevoVm(id: String = "c"): DetalleIncidenciaViewModel {
-        val repo = IncidenciaRepositoryFalso().also { it.cargar(listOf(incidencia), movimientos) }
+    private fun TestScope.nuevoVm(
+        id: String = "c",
+        inc: Incidencia = incidencia
+    ): DetalleIncidenciaViewModel {
+        val repo = IncidenciaRepositoryFalso().also { it.cargar(listOf(inc), movimientos) }
         val vm = DetalleIncidenciaViewModel(
             SavedStateHandle(mapOf(DetalleIncidenciaViewModel.ARG_INCIDENCIA_ID to id)),
             ObservarDetalleIncidencia(repo),
@@ -65,21 +70,40 @@ class DetalleIncidenciaViewModelTest {
     }
 
     @Test
-    fun `solo el jefe ve asignar y solo el tecnico ve repuesto y cierre`() = runTest {
+    fun `el jefe asigna y el tecnico asignado atiende`() = runTest {
         sesion.iniciarSesion("cmendoza@softcorp.pe", "")
         val jefe = nuevoVm().estado.value
         assertTrue(jefe.puedeAsignar)
         assertFalse(jefe.puedeAtender)
 
         sesion.iniciarSesion("lramirez@softcorp.pe", "")
-        val tecnico = nuevoVm().estado.value
-        assertFalse(tecnico.puedeAsignar)
-        assertTrue(tecnico.puedeAtender)
+        val tecnicoAsignado = nuevoVm().estado.value
+        assertFalse(tecnicoAsignado.puedeAsignar)
+        assertTrue(tecnicoAsignado.puedeAtender)
 
         sesion.iniciarSesion("pcardenas@softcorp.pe", "")
         val sistemas = nuevoVm().estado.value
         assertFalse(sistemas.puedeAsignar)
         assertFalse(sistemas.puedeAtender)
+    }
+
+    @Test
+    fun `otro tecnico no puede atender una incidencia que no es suya`() = runTest {
+        sesion.iniciarSesion("atorres@softcorp.pe", "")
+        val ana = nuevoVm().estado.value
+        assertFalse(ana.puedeAtender)
+        assertFalse(ana.puedeAsignar)
+    }
+
+    @Test
+    fun `una incidencia solucionada no se asigna ni se atiende`() = runTest {
+        val solucionada = incidencia.copy(marca = MarcaSeguimiento.CERRADA)
+
+        sesion.iniciarSesion("cmendoza@softcorp.pe", "")
+        assertFalse(nuevoVm(inc = solucionada).estado.value.puedeAsignar)
+
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")
+        assertFalse(nuevoVm(inc = solucionada).estado.value.puedeAtender)
     }
 
     @Test

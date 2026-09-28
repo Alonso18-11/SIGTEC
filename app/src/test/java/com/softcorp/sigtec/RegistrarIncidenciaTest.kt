@@ -72,4 +72,12 @@ class RegistrarIncidenciaTest {
         val r = registrar("PC-CONT-014", "No enciende", "María Quispe")
         assertTrue(r is Resultado.Error)
     }
+
+    @Test
+    fun `un campo en blanco no registra nada`() = runTest {
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")
+        val r = registrar("PC-CONT-014", "   ", "María Quispe")
+        assertEquals(Resultado.Error(ErrorDominio.CampoObligatorio), r)
+        assertTrue(repo.incidencias.isEmpty() && repo.movimientos.isEmpty())
+    }
 }
