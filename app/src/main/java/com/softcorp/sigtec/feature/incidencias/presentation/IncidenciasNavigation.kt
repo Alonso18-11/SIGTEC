@@ -14,7 +14,6 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.softcorp.sigtec.core.navigation.EQUIPO_DEMO
-import com.softcorp.sigtec.core.navigation.INCIDENCIA_DEMO
 import com.softcorp.sigtec.core.navigation.Ruta
 import com.softcorp.sigtec.core.theme.Espaciado
 import com.softcorp.sigtec.core.ui.components.PantallaEnConstruccion
@@ -24,13 +23,9 @@ private const val CLAVE_AVISO = "aviso"
 
 fun NavGraphBuilder.incidenciasGraph(navController: NavController) {
     composable<Ruta.ListaIncidencias> {
-        PantallaEnConstruccion(
-            titulo = "Incidencias",
-            historia = "HU-04",
-            acciones = listOf(
-                "Ver INC-0124 (demo)" to { navController.navigate(Ruta.DetalleIncidencia(INCIDENCIA_DEMO)) },
-                "Registrar" to { navController.navigate(Ruta.RegistroIncidencia) }
-            )
+        ListaIncidenciasRoute(
+            alAbrir = { id -> navController.navigate(Ruta.DetalleIncidencia(id)) },
+            alRegistrar = { navController.navigate(Ruta.RegistroIncidencia) }
         )
     }
     composable<Ruta.RegistroIncidencia> {
