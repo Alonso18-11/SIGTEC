@@ -2,8 +2,6 @@ package com.softcorp.sigtec.core.ui
 
 import com.softcorp.sigtec.core.domain.ErrorDominio
 
-// El "when" es exhaustivo: si alguien agrega un ErrorDominio, esto no compila
-// hasta que le escriba su mensaje. Ningún error llega a la pantalla sin texto.
 fun ErrorDominio.mensaje(): String = when (this) {
     ErrorDominio.CredencialesInvalidas -> "Correo o contraseña incorrectos."
     ErrorDominio.SinConexion -> "Sin conexión. Revisa tu red e inténtalo de nuevo."

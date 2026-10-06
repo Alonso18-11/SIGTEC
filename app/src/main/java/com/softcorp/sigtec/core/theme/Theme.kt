@@ -53,7 +53,7 @@ fun SigtecTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    // Sin color dinámico: la paleta de SIGTEC se ve igual en todos los celulares.
+
     val esquema = if (darkTheme) EsquemaOscuro else EsquemaClaro
     val estados = if (darkTheme) EstadosOscuro else EstadosClaro
 
@@ -66,7 +66,6 @@ fun SigtecTheme(
     }
 }
 
-// Acceso a lo que Material 3 no trae: SigtecTheme.estados.critico
 object SigtecTheme {
     val estados: ColoresEstado
         @Composable @ReadOnlyComposable
