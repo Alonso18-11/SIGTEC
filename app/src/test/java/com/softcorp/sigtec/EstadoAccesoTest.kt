@@ -1,40 +1,25 @@
 package com.softcorp.sigtec
 
+import com.softcorp.sigtec.core.data.PreferenciasSeguridadFalsas
 import com.softcorp.sigtec.core.data.SesionRepositoryDemo
 import com.softcorp.sigtec.core.domain.BloqueoApp
 import com.softcorp.sigtec.core.domain.ErrorDominio
 import com.softcorp.sigtec.core.domain.Resultado
 import com.softcorp.sigtec.core.domain.model.EstadoAcceso
-import com.softcorp.sigtec.core.domain.model.PreferenciasHuella
-import com.softcorp.sigtec.core.domain.repository.PreferenciasSeguridadRepository
 import com.softcorp.sigtec.core.domain.usecase.BloquearApp
 import com.softcorp.sigtec.core.domain.usecase.CambiarIngresoConHuella
 import com.softcorp.sigtec.core.domain.usecase.CerrarSesion
 import com.softcorp.sigtec.core.domain.usecase.DesbloquearApp
 import com.softcorp.sigtec.core.domain.usecase.ObservarEstadoAcceso
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
 import org.junit.Test
 
-private class PreferenciasFalsas : PreferenciasSeguridadRepository {
-    private val estado = MutableStateFlow(PreferenciasHuella())
-    override val preferenciasHuella: Flow<PreferenciasHuella> = estado
-    override suspend fun asignarPropietario(id: String, nombre: String) =
-        estado.update { PreferenciasHuella(id, nombre, ofrecida = true) }
-    override suspend fun quitarPropietario() =
-        estado.update { it.copy(propietarioId = null, propietarioNombre = null) }
-    override suspend fun marcarOfrecida() = estado.update { it.copy(ofrecida = true) }
-    override suspend fun limpiar() = estado.update { PreferenciasHuella() }
-}
-
 class EstadoAccesoTest {
 
     private val sesion = SesionRepositoryDemo()
-    private val preferencias = PreferenciasFalsas()
+    private val preferencias = PreferenciasSeguridadFalsas()
     private val bloqueo = BloqueoApp()
 
     private val estado = ObservarEstadoAcceso(sesion, preferencias, bloqueo)
