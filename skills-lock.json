@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "skills": {
+    "android-clean-architecture": {
+      "source": "affaan-m/ecc",
+      "sourceType": "github",
+      "skillPath": "skills/android-clean-architecture/SKILL.md",
+      "computedHash": "80779b595f194a1ca3d59e36cbf4b29f426faaf90cf9c41dfd61a80442214890"
+    },
+    "compose-multiplatform-patterns": {
+      "source": "affaan-m/ecc",
+      "sourceType": "github",
+      "skillPath": "skills/compose-multiplatform-patterns/SKILL.md",
+      "computedHash": "d42483b2fcf3d9aec758a9605aab0041d1cdd1fe2813fe23b13c95c4dbe36fed"
+    },
+    "find-skills": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/find-skills/SKILL.md",
+      "computedHash": "b146008599c31057cef1c145774cea5d5afb30e8f43fa802e47a4b461419aaaf"
+    },
+    "firebase-ai-logic-basics": {
+      "source": "firebase/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/firebase-ai-logic-basics/SKILL.md",
+      "computedHash": "7216b1c10ad95dffff863fbfdf72a23ab79e70054227bcfec5466dfe0d0cef88"
+    },
+    "firebase-firestore": {
+      "source": "firebase/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/firebase-firestore/SKILL.md",
+      "computedHash": "c4fe907fd19a3265e87e02684a40dc343ea7215b68c0c18fed01ac19827db42b"
+    },
+    "firebase-security-rules-auditor": {
+      "source": "firebase/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/firebase-security-rules-auditor/SKILL.md",
+      "computedHash": "f926a700b3bbc08e888d9dc0624723ac4ff79a29d89e51602183f7f303055bdc"
+    },
+    "kotlin-coroutines-flows": {
+      "source": "affaan-m/ecc",
+      "sourceType": "github",
+      "skillPath": "skills/kotlin-coroutines-flows/SKILL.md",
+      "computedHash": "54bcdc709902f6befca567861a1e3ce7effa0214f9862cf9e492dc30c583e905"
+    },
+    "mobile-android-design": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/ui-design/skills/mobile-android-design/SKILL.md",
+      "computedHash": "143a60d6a0744a5058adf984e3a64b75cd2ef3714a15557f4ff6fd95e39ff23a"
+    },
+    "tdd": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/tdd/SKILL.md",
+      "computedHash": "0c09a435ba032b151d6ecc042eee25d4bd9951bfd19262f9aa317c9923d99756"
+    }
+  }
+}

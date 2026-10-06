@@ -2,29 +2,28 @@ package com.softcorp.sigtec.core.theme
 
 import androidx.compose.ui.graphics.Color
 
-// ===== Modo claro =====
-// Los marcados con (doc) vienen de la sección 12.1 del documento; el resto se derivó de la semilla #00677E.
-internal val PrimarioClaro = Color(0xFF00677E)               // (doc)
-internal val SobrePrimarioClaro = Color(0xFFFFFFFF)          // (doc)
-internal val ContenedorPrimarioClaro = Color(0xFFB3EBFF)     // (doc)
-internal val SobreContenedorPrimarioClaro = Color(0xFF001F28) // (doc)
-internal val SecundarioClaro = Color(0xFF4B6269)             // (doc)
+// Modo claro
+internal val PrimarioClaro = Color(0xFF00677E)
+internal val SobrePrimarioClaro = Color(0xFFFFFFFF)
+internal val ContenedorPrimarioClaro = Color(0xFFB3EBFF)
+internal val SobreContenedorPrimarioClaro = Color(0xFF001F28)
+internal val SecundarioClaro = Color(0xFF4B6269)
 internal val SobreSecundarioClaro = Color(0xFFFFFFFF)
-internal val ContenedorSecundarioClaro = Color(0xFFCEE7EF)   // (doc)
+internal val ContenedorSecundarioClaro = Color(0xFFCEE7EF)
 internal val SobreContenedorSecundarioClaro = Color(0xFF061F25)
-internal val TerciarioClaro = Color(0xFF565D7E)              // (doc)
+internal val TerciarioClaro = Color(0xFF565D7E)
 internal val SobreTerciarioClaro = Color(0xFFFFFFFF)
 internal val ContenedorTerciarioClaro = Color(0xFFDDE1FF)
 internal val SobreContenedorTerciarioClaro = Color(0xFF121A37)
-internal val ErrorClaro = Color(0xFFBA1A1A)                  // (doc)
+internal val ErrorClaro = Color(0xFFBA1A1A)
 internal val SobreErrorClaro = Color(0xFFFFFFFF)
-internal val ContenedorErrorClaro = Color(0xFFFFDAD6)        // (doc)
+internal val ContenedorErrorClaro = Color(0xFFFFDAD6)
 internal val SobreContenedorErrorClaro = Color(0xFF410002)
-internal val SuperficieClaro = Color(0xFFFBFCFE)             // (doc)
-internal val SobreSuperficieClaro = Color(0xFF191C1D)        // (doc)
+internal val SuperficieClaro = Color(0xFFFBFCFE)
+internal val SobreSuperficieClaro = Color(0xFF191C1D)
 internal val VarianteSuperficieClaro = Color(0xFFDBE4E8)
 internal val SobreVarianteSuperficieClaro = Color(0xFF40484C)
-internal val ContornoClaro = Color(0xFF70787C)               // (doc)
+internal val ContornoClaro = Color(0xFF70787C)
 internal val VarianteContornoClaro = Color(0xFFBFC8CC)
 internal val SuperficieInversaClaro = Color(0xFF2E3132)
 internal val SobreSuperficieInversaClaro = Color(0xFFEFF1F2)
@@ -35,7 +34,7 @@ internal val ContenedorClaro = Color(0xFFECF1F3)
 internal val ContenedorAltoClaro = Color(0xFFE6EBED)
 internal val ContenedorMasAltoClaro = Color(0xFFE0E5E7)
 
-// ===== Modo oscuro (mismos tonos de la semilla, invertidos según Material 3) =====
+// Modo oscuro
 internal val PrimarioOscuro = Color(0xFF5DD5FC)
 internal val SobrePrimarioOscuro = Color(0xFF003544)
 internal val ContenedorPrimarioOscuro = Color(0xFF004E5F)

@@ -27,3 +27,8 @@ app/google-services.json
 local.properties
 
 
+
+# Agentes de IA: skills descargadas (se reinstalan desde skills-lock.json) y ajustes personales
+.agents/
+.claude/skills/
+.claude/settings.local.json
