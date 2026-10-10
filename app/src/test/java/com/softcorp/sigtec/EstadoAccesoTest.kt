@@ -56,6 +56,18 @@ class EstadoAccesoTest {
     }
 
     @Test
+    fun `el dueno desactiva su huella sin verificacion y sin cerrar sesion`() = runTest {
+        entra("lramirez@softcorp.pe")
+        cambiarHuella(true)
+
+        val resultado = cambiarHuella(false)
+
+        assertEquals(Resultado.Exito(Unit), resultado)
+        assertFalse(preferencias.preferenciasHuella.first().activada)
+        assertTrue(estado().first() is EstadoAcceso.Activa)   // RF-21: no cierra su sesión
+    }
+
+    @Test
     fun `bloquear conserva la sesion del dueno`() = runTest {
         entra("lramirez@softcorp.pe")
         cambiarHuella(true)
