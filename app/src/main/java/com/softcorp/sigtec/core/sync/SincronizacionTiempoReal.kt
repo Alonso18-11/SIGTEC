@@ -4,16 +4,21 @@ import android.util.Log
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
+import com.softcorp.sigtec.core.database.SigtecDatabase
 import com.softcorp.sigtec.core.database.dao.IncidenciaDao
 import com.softcorp.sigtec.core.database.dao.MovimientoDao
 import com.softcorp.sigtec.core.database.dao.SincronizacionDao
 import com.softcorp.sigtec.core.database.entity.SincronizacionEntity
 import com.softcorp.sigtec.core.di.ApplicationScope
+import com.softcorp.sigtec.core.di.IoDispatcher
+import com.softcorp.sigtec.core.domain.debeBorrarDatosAlEntrar
 import com.softcorp.sigtec.core.domain.repository.SesionRepository
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.withContext
 import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,29 +26,42 @@ import javax.inject.Singleton
 @Singleton
 class SincronizacionTiempoReal @Inject constructor(
     private val firestore: FirebaseFirestore,
+    private val baseLocal: SigtecDatabase,
     private val sesion: SesionRepository,
     private val incidenciaDao: IncidenciaDao,
     private val movimientoDao: MovimientoDao,
     private val sincronizacionDao: SincronizacionDao,
     private val programador: ProgramadorSincronizacion,
+    @IoDispatcher private val io: CoroutineDispatcher,
     @ApplicationScope private val scope: CoroutineScope
 ) {
 
     /** Mientras haya sesión: baja los cambios de Firestore y programa la subida de los locales. */
     @OptIn(ExperimentalCoroutinesApi::class)
     fun iniciar() {
+        var duenoDatos: String? = null   // a quién pertenece lo guardado en Room
         sesion.usuarioActual
-            .map { it != null }
+            .map { it?.id }
             .distinctUntilChanged()
-            .flatMapLatest { conSesion ->
-                if (conSesion) {
-                    merge(
-                        escuchar("incidencias", ::guardarIncidencias),
-                        escuchar("movimientos", ::guardarMovimientos),
-                        vigilarPendientes()
-                    )
-                } else {
+            .flatMapLatest { uid ->
+                if (uid == null) {
                     emptyFlow()   // al cerrar sesión, se dejan de escuchar las colecciones
+                } else {
+                    flow {
+                        // RF-11 (D-12): de una persona a otra nunca hay null. Se borra aquí, antes de
+                        // volver a escuchar, para que la descarga completa llegue después del borrado.
+                        if (debeBorrarDatosAlEntrar(duenoDatos, uid)) {
+                            withContext(io) { baseLocal.clearAllTables() }
+                        }
+                        duenoDatos = uid
+                        emitAll(
+                            merge(
+                                escuchar("incidencias", ::guardarIncidencias),
+                                escuchar("movimientos", ::guardarMovimientos),
+                                vigilarPendientes()
+                            )
+                        )
+                    }
                 }
             }
             .launchIn(scope)

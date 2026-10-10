@@ -6,9 +6,12 @@ import com.softcorp.sigtec.core.data.SesionRepositoryDemo
 import com.softcorp.sigtec.core.domain.BloqueoApp
 import com.softcorp.sigtec.core.domain.ErrorDominio
 import com.softcorp.sigtec.core.domain.usecase.DesbloquearApp
+import com.softcorp.sigtec.core.domain.usecase.EvaluarIngresoDeOtraPersona
 import com.softcorp.sigtec.core.domain.usecase.IniciarSesion
 import com.softcorp.sigtec.core.domain.usecase.ObservarEstadoAcceso
+import com.softcorp.sigtec.core.domain.usecase.ObservarEstadoDatos
 import com.softcorp.sigtec.core.domain.usecase.ObservarPreferenciasHuella
+import com.softcorp.sigtec.core.sync.EstadoDatosRepositoryFalso
 import com.softcorp.sigtec.feature.acceso.presentation.LoginUiState
 import com.softcorp.sigtec.feature.acceso.presentation.LoginViewModel
 import kotlinx.coroutines.launch
@@ -33,12 +36,15 @@ class LoginViewModelTest {
     private val sesion = SesionRepositoryDemo()
     private val preferencias = PreferenciasSeguridadFalsas()
     private val bloqueo = BloqueoApp()
+    private val estadoDatos = EstadoDatosRepositoryFalso()
 
     private fun TestScope.nuevoVm(): LoginViewModel {
+        val observarEstadoAcceso = ObservarEstadoAcceso(sesion, preferencias, bloqueo)
         val vm = LoginViewModel(
             IniciarSesion(sesion, bloqueo),
             DesbloquearApp(bloqueo),
-            ObservarEstadoAcceso(sesion, preferencias, bloqueo),
+            EvaluarIngresoDeOtraPersona(observarEstadoAcceso, ObservarEstadoDatos(estadoDatos)),
+            observarEstadoAcceso,
             ObservarPreferenciasHuella(preferencias)
         )
         // WhileSubscribed necesita a alguien mirando; Unconfined lo pone a mirar de inmediato
@@ -167,5 +173,57 @@ class LoginViewModelTest {
         assertNull(vm.ui.avisoHuella)
         assertFalse(bloqueo.desbloqueada.value)
         assertNotNull(vm.ui.usuarioBloqueado)
+    }
+
+    @Test
+    fun `ingresar con otra cuenta y pendientes abre el dialogo y no inicia sesion`() = runTest {
+        preferencias.asignarPropietario("demo-lramirez", "Luis Ramírez")
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")   // dueño bloqueado
+        estadoDatos.fijarPendientes(2)
+        val vm = nuevoVm()
+        vm.alCambiarCorreo("atorres@softcorp.pe")
+        vm.alCambiarContrasena("clave")
+
+        vm.ingresar()
+
+        assertEquals(2, vm.ui.confirmarIngreso)
+        assertEquals("demo-lramirez", sesion.usuarioActual.value?.id)   // no se autenticó a la otra persona
+        assertFalse(vm.ui.cargando)
+    }
+
+    @Test
+    fun `confirmar el ingreso de otra cuenta si autentica`() = runTest {
+        preferencias.asignarPropietario("demo-lramirez", "Luis Ramírez")
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")
+        estadoDatos.fijarPendientes(2)
+        val vm = nuevoVm()
+        vm.alCambiarCorreo("atorres@softcorp.pe")
+        vm.alCambiarContrasena("clave")
+        vm.ingresar()
+        assertNotNull(vm.ui.confirmarIngreso)
+
+        vm.alConfirmarIngreso()
+
+        assertNull(vm.ui.confirmarIngreso)
+        assertEquals("demo-atorres", sesion.usuarioActual.value?.id)
+        assertNull(vm.ui.error)
+        assertFalse(vm.ui.cargando)
+    }
+
+    @Test
+    fun `cancelar el ingreso de otra cuenta no autentica y cierra el dialogo`() = runTest {
+        preferencias.asignarPropietario("demo-lramirez", "Luis Ramírez")
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")
+        estadoDatos.fijarPendientes(2)
+        val vm = nuevoVm()
+        vm.alCambiarCorreo("atorres@softcorp.pe")
+        vm.alCambiarContrasena("clave")
+        vm.ingresar()
+        assertNotNull(vm.ui.confirmarIngreso)
+
+        vm.alCancelarIngreso()
+
+        assertNull(vm.ui.confirmarIngreso)
+        assertEquals("demo-lramirez", sesion.usuarioActual.value?.id)   // sigue siendo el dueño bloqueado
     }
 }

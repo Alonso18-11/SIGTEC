@@ -8,6 +8,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Build
+import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.Lock
@@ -71,7 +72,9 @@ fun LoginRoute(vm: LoginViewModel = hiltViewModel()) {
         alCambiarContrasena = vm::alCambiarContrasena,
         alAlternarVisibilidad = vm::alternarVisibilidad,
         alIngresar = vm::ingresar,
-        alIngresarConHuella = pedirHuella
+        alIngresarConHuella = pedirHuella,
+        alConfirmarIngreso = vm::alConfirmarIngreso,
+        alCancelarIngreso = vm::alCancelarIngreso
     )
 }
 
@@ -82,7 +85,9 @@ fun LoginScreen(
     alCambiarContrasena: (String) -> Unit,
     alAlternarVisibilidad: () -> Unit,
     alIngresar: () -> Unit,
-    alIngresarConHuella: () -> Unit
+    alIngresarConHuella: () -> Unit,
+    alConfirmarIngreso: () -> Unit,
+    alCancelarIngreso: () -> Unit
 ) {
     val foco = LocalFocusManager.current
     val enviar = { foco.clearFocus(); alIngresar() }
@@ -269,6 +274,40 @@ fun LoginScreen(
         )
         Spacer(Modifier.height(Espaciado.l))
     }
+
+    estado.confirmarIngreso?.let { pendientes ->
+        DialogoConfirmarIngreso(
+            nombre = estado.usuarioBloqueado?.nombre?.substringBefore(' ') ?: "El usuario anterior",
+            pendientes = pendientes,
+            alConfirmar = alConfirmarIngreso,
+            alCancelar = alCancelarIngreso
+        )
+    }
+}
+
+/** Avisa de los cambios sin enviar del dueño bloqueado antes de dejar entrar a otra cuenta; tocar fuera cancela. */ // RF-11
+@Composable
+private fun DialogoConfirmarIngreso(
+    nombre: String,
+    pendientes: Int,
+    alConfirmar: () -> Unit,
+    alCancelar: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = alCancelar,
+        icon = { Icon(Icons.Outlined.CloudOff, contentDescription = null) },
+        title = { Text("¿Ingresar con otra cuenta?") },
+        text = {
+            Text("$nombre tiene ${textoCambiosSinEnviar(pendientes)} en este celular. Si ingresas, ${textoSePerdera(pendientes)}.")
+        },
+        confirmButton = {
+            TextButton(
+                onClick = alConfirmar,
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+            ) { Text("Ingresar de todos modos") }
+        },
+        dismissButton = { TextButton(onClick = alCancelar) { Text("Cancelar") } }
+    )
 }
 
 // ---------- Vistas previas: la pantalla se prueba sin Firebase ni ViewModel ----------
@@ -286,7 +325,7 @@ private val usuarioDePrueba = Usuario(
 @Composable
 private fun LoginVacio() = SigtecTheme {
     Surface {
-        LoginScreen(LoginUiState(), {}, {}, {}, {}, {})
+        LoginScreen(LoginUiState(), {}, {}, {}, {}, {}, {}, {})
     }
 }
 
@@ -300,7 +339,7 @@ private fun LoginConError() = SigtecTheme(darkTheme = true) {
                 contrasena = "123456",
                 error = ErrorDominio.CredencialesInvalidas
             ),
-            {}, {}, {}, {}, {}
+            {}, {}, {}, {}, {}, {}, {}
         )
     }
 }
@@ -309,7 +348,29 @@ private fun LoginConError() = SigtecTheme(darkTheme = true) {
 @Composable
 private fun LoginBloqueada() = SigtecTheme {
     Surface {
-        LoginScreen(LoginUiState(usuarioBloqueado = usuarioDePrueba), {}, {}, {}, {}, {})
+        LoginScreen(LoginUiState(usuarioBloqueado = usuarioDePrueba), {}, {}, {}, {}, {}, {}, {})
+    }
+}
+
+@Preview(name = "Diálogo de ingreso · claro", showBackground = true)
+@Composable
+private fun LoginDialogoIngresoClaro() = SigtecTheme(darkTheme = false) {
+    Surface {
+        LoginScreen(
+            LoginUiState(usuarioBloqueado = usuarioDePrueba, confirmarIngreso = 1),
+            {}, {}, {}, {}, {}, {}, {}
+        )
+    }
+}
+
+@Preview(name = "Diálogo de ingreso · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun LoginDialogoIngresoOscuro() = SigtecTheme(darkTheme = true) {
+    Surface {
+        LoginScreen(
+            LoginUiState(usuarioBloqueado = usuarioDePrueba, confirmarIngreso = 3),
+            {}, {}, {}, {}, {}, {}, {}
+        )
     }
 }
 
@@ -317,6 +378,6 @@ private fun LoginBloqueada() = SigtecTheme {
 @Composable
 private fun LoginRegresoDelDueno() = SigtecTheme {
     Surface {
-        LoginScreen(LoginUiState(propietarioHuella = "Luis Ramírez"), {}, {}, {}, {}, {})
+        LoginScreen(LoginUiState(propietarioHuella = "Luis Ramírez"), {}, {}, {}, {}, {}, {}, {})
     }
 }

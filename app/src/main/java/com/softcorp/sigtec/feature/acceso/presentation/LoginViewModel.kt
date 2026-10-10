@@ -3,11 +3,13 @@ package com.softcorp.sigtec.feature.acceso.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.softcorp.sigtec.core.biometric.ResultadoBiometrico
+import com.softcorp.sigtec.core.domain.DecisionBorrado
 import com.softcorp.sigtec.core.domain.ErrorDominio
 import com.softcorp.sigtec.core.domain.Resultado
 import com.softcorp.sigtec.core.domain.model.EstadoAcceso
 import com.softcorp.sigtec.core.domain.model.Usuario
 import com.softcorp.sigtec.core.domain.usecase.DesbloquearApp
+import com.softcorp.sigtec.core.domain.usecase.EvaluarIngresoDeOtraPersona
 import com.softcorp.sigtec.core.domain.usecase.IniciarSesion
 import com.softcorp.sigtec.core.domain.usecase.ObservarEstadoAcceso
 import com.softcorp.sigtec.core.domain.usecase.ObservarPreferenciasHuella
@@ -24,7 +26,9 @@ data class LoginUiState(
     val error: ErrorDominio? = null,
     val usuarioBloqueado: Usuario? = null,      // el dueño, esperando su huella
     val propietarioHuella: String? = null,      // sin sesión, pero el celular tiene dueño de huella
-    val avisoHuella: String? = null
+    val avisoHuella: String? = null,
+    // Evento de un solo uso: null = sin diálogo, N = mostrar diálogo con N pendientes del dueño bloqueado. // RF-11
+    val confirmarIngreso: Int? = null
 ) {
     val puedeIngresar: Boolean
         get() = correo.isNotBlank() && contrasena.isNotBlank() && !cargando
@@ -34,6 +38,7 @@ data class LoginUiState(
 class LoginViewModel @Inject constructor(
     private val iniciarSesion: IniciarSesion,
     private val desbloquearApp: DesbloquearApp,
+    private val evaluarIngresoDeOtraPersona: EvaluarIngresoDeOtraPersona,
     observarEstadoAcceso: ObservarEstadoAcceso,
     observarPreferenciasHuella: ObservarPreferenciasHuella
 ) : ViewModel() {
@@ -58,11 +63,33 @@ class LoginViewModel @Inject constructor(
     fun ingresar() {
         val actual = formulario.value
         if (!actual.puedeIngresar) return
+        // RF-2: deshabilita «Ingresar» de inmediato, antes de evaluar nada asíncrono (doble pulsación).
         formulario.update { it.copy(cargando = true, error = null) }
         viewModelScope.launch {
-            val resultado = iniciarSesion(actual.correo, actual.contrasena)
-            formulario.update { it.copy(cargando = false, error = (resultado as? Resultado.Error)?.causa) }
+            // RF-11: si hay un dueño bloqueado con cambios sin enviar y entra otra persona, se confirma antes.
+            when (val decision = evaluarIngresoDeOtraPersona(actual.correo)) {
+                is DecisionBorrado.Confirmar ->
+                    // Todavía no se autentica, solo se espera confirmación: no deja el formulario colgado.
+                    formulario.update { it.copy(cargando = false, confirmarIngreso = decision.pendientes) }
+                DecisionBorrado.SinRiesgo -> autenticar()
+            }
         }
+    }
+
+    private suspend fun autenticar() {
+        formulario.update { it.copy(cargando = true, error = null) }
+        val actual = formulario.value
+        val resultado = iniciarSesion(actual.correo, actual.contrasena)
+        formulario.update { it.copy(cargando = false, error = (resultado as? Resultado.Error)?.causa) }
+    }
+
+    fun alConfirmarIngreso() {
+        formulario.update { it.copy(confirmarIngreso = null) }
+        viewModelScope.launch { autenticar() }
+    }
+
+    fun alCancelarIngreso() {
+        formulario.update { it.copy(confirmarIngreso = null) }
     }
 
     fun alVerificarHuella(resultado: ResultadoBiometrico) {
