@@ -176,6 +176,23 @@ class LoginViewModelTest {
     }
 
     @Test
+    fun `al bloquearse el dueno se ofrece la huella una sola vez y no reaparece al recomponer`() = runTest {
+        preferencias.asignarPropietario("demo-lramirez", "Luis Ramírez")
+        val vm = nuevoVm()
+        assertNull(vm.ui.ofrecerHuellaParaId)   // sin sesión todavía, nada que ofrecer
+
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")   // transición real a Bloqueada
+
+        assertEquals("demo-lramirez", vm.ui.ofrecerHuellaParaId)
+
+        vm.alHuellaOfrecida()
+        assertNull(vm.ui.ofrecerHuellaParaId)
+
+        vm.alCambiarCorreo("x")   // fuerza otra recomposición del combine, sin un nuevo bloqueo
+        assertNull(vm.ui.ofrecerHuellaParaId)   // RF-29: el evento ya consumido no reaparece solo
+    }
+
+    @Test
     fun `ingresar con otra cuenta y pendientes abre el dialogo y no inicia sesion`() = runTest {
         preferencias.asignarPropietario("demo-lramirez", "Luis Ramírez")
         sesion.iniciarSesion("lramirez@softcorp.pe", "")   // dueño bloqueado
