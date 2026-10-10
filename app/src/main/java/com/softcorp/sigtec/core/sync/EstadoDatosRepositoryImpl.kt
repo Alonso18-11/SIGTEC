@@ -1,7 +1,6 @@
 package com.softcorp.sigtec.core.sync
 
 import com.softcorp.sigtec.core.database.dao.IncidenciaDao
-import com.softcorp.sigtec.core.database.dao.MovimientoDao
 import com.softcorp.sigtec.core.database.dao.SincronizacionDao
 import com.softcorp.sigtec.core.domain.model.EstadoDatos
 import com.softcorp.sigtec.core.domain.repository.EstadoDatosRepository
@@ -14,16 +13,16 @@ import javax.inject.Singleton
 class EstadoDatosRepositoryImpl @Inject constructor(
     monitor: MonitorConexion,
     sincronizacionDao: SincronizacionDao,
-    incidenciaDao: IncidenciaDao,
-    movimientoDao: MovimientoDao
+    incidenciaDao: IncidenciaDao
 ) : EstadoDatosRepository {
 
+    // RF-13 (HU-01): una por incidencia con algo sin subir. Sus movimientos no suman aparte:
+    // siempre se guardan en la misma transacción que la incidencia, que queda pendiente con ellos.
     override val estado: Flow<EstadoDatos> = combine(
         monitor.hayConexion,
         sincronizacionDao.observarUltimaExitosa(TAREA_BAJAR),
-        incidenciaDao.observarPendientes(),
-        movimientoDao.observarPendientes()
-    ) { enLinea, ultima, incidencias, movimientos ->
-        EstadoDatos(enLinea, ultima?.ejecutadaEn, incidencias + movimientos)
+        incidenciaDao.observarPendientes()
+    ) { enLinea, ultima, incidencias ->
+        EstadoDatos(enLinea, ultima?.ejecutadaEn, incidencias)
     }
 }

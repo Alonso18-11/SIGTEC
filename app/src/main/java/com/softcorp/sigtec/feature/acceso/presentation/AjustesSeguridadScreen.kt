@@ -10,6 +10,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.Logout
+import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Shield
@@ -68,7 +69,9 @@ fun AjustesSeguridadRoute(alVolver: () -> Unit, vm: AjustesSeguridadViewModel = 
                 .onFailure { context.startActivity(Intent(Settings.ACTION_SECURITY_SETTINGS)) }
         },
         alBloquear = vm::bloquear,
-        alCerrarSesion = vm::salir
+        alCerrarSesion = vm::alPulsarCerrarSesion,
+        alConfirmarSalida = vm::alConfirmarSalida,
+        alCancelarSalida = vm::alCancelarSalida
     )
 }
 
@@ -80,7 +83,9 @@ fun AjustesSeguridadScreen(
     alCambiarHuella: (Boolean) -> Unit,
     alRegistrarHuella: () -> Unit,
     alBloquear: () -> Unit,
-    alCerrarSesion: () -> Unit
+    alCerrarSesion: () -> Unit,
+    alConfirmarSalida: () -> Unit,
+    alCancelarSalida: () -> Unit
 ) {
     // La raíz ya aplica los márgenes de la barra de estado: aquí van en cero para no duplicarlos
     Scaffold(
@@ -188,6 +193,32 @@ fun AjustesSeguridadScreen(
             )
         }
     }
+
+    estado.confirmarSalida?.let { pendientes ->
+        DialogoConfirmarSalida(
+            pendientes = pendientes,
+            alConfirmar = alConfirmarSalida,
+            alCancelar = alCancelarSalida
+        )
+    }
+}
+
+/** Avisa de cambios sin enviar antes de cerrar sesión; tocar fuera cancela. */ // RF-13
+@Composable
+private fun DialogoConfirmarSalida(pendientes: Int, alConfirmar: () -> Unit, alCancelar: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = alCancelar,
+        icon = { Icon(Icons.Outlined.CloudOff, contentDescription = null) },
+        title = { Text("¿Cerrar sesión?") },
+        text = { Text("Tienes ${textoCambiosSinEnviar(pendientes)}. Si cierras sesión ahora, ${textoSePerdera(pendientes)}.") },
+        confirmButton = {
+            TextButton(
+                onClick = alConfirmar,
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+            ) { Text("Cerrar de todos modos") }
+        },
+        dismissButton = { TextButton(onClick = alCancelar) { Text("Cancelar") } }
+    )
 }
 
 @Composable
@@ -290,7 +321,7 @@ private fun AjustesDueno() = SigtecTheme {
     Surface {
         AjustesSeguridadScreen(
             AjustesUiState(luis, huellaDeLuis, DisponibilidadBiometrica.HUELLA),
-            {}, {}, {}, {}, {}
+            {}, {}, {}, {}, {}, {}, {}
         )
     }
 }
@@ -301,7 +332,29 @@ private fun AjustesOtraPersona() = SigtecTheme {
     Surface {
         AjustesSeguridadScreen(
             AjustesUiState(ana, huellaDeLuis, DisponibilidadBiometrica.HUELLA),
-            {}, {}, {}, {}, {}
+            {}, {}, {}, {}, {}, {}, {}
+        )
+    }
+}
+
+@Preview(name = "Diálogo de salida - claro", showBackground = true)
+@Composable
+private fun DialogoSalidaClaro() = SigtecTheme(darkTheme = false) {
+    Surface {
+        AjustesSeguridadScreen(
+            AjustesUiState(luis, huellaDeLuis, DisponibilidadBiometrica.HUELLA, confirmarSalida = 1),
+            {}, {}, {}, {}, {}, {}, {}
+        )
+    }
+}
+
+@Preview(name = "Diálogo de salida - oscuro", showBackground = true)
+@Composable
+private fun DialogoSalidaOscuro() = SigtecTheme(darkTheme = true) {
+    Surface {
+        AjustesSeguridadScreen(
+            AjustesUiState(luis, huellaDeLuis, DisponibilidadBiometrica.HUELLA, confirmarSalida = 3),
+            {}, {}, {}, {}, {}, {}, {}
         )
     }
 }

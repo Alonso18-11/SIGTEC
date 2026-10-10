@@ -25,7 +25,8 @@ Leyenda: 🆕 se crea · ✏️ se modifica · ✅ ya existe y no cambia · ⚠�
 ### Datos
 | Archivo | Responsabilidad | RF |
 |---|---|---|
-| ✏️⚠️ `core/data/SesionRepositoryFirebase.kt` | (a) Usa `perfilDesdeTexto` y `debeBorrarDatosAlEntrar`. (b) Si algo falla después de autenticarse, hace `signOut()` antes de devolver el error. (c) Traduce `FirebaseFirestoreException` con código `UNAVAILABLE` a `SinConexion`. (d) Si el perfil deja de ser válido con la sesión abierta, ejecuta el mismo cierre que `cerrarSesion()`. | RF-5, RF-7, RF-11, nuevo RF-15 (QA-16, QA-17) |
+| ✏️⚠️ `core/sync/SincronizacionTiempoReal.kt` | Vigila el **id** del usuario, no solo si hay sesión. Cuando entra una persona distinta de la dueña de los datos locales, detiene las escuchas, borra Room y vuelve a escuchar, con lo que descarga todo para quien entra (D-12). | RF-11 |
+| ✏️⚠️ `core/data/SesionRepositoryFirebase.kt` | (a) Usa `perfilDesdeTexto`; el borrado al entrar otra persona pasó a `core/sync` (D-12). (b) Si algo falla después de autenticarse, hace `signOut()` antes de devolver el error. (c) Traduce `FirebaseFirestoreException` con código `UNAVAILABLE` a `SinConexion`. (d) Si el perfil deja de ser válido con la sesión abierta, ejecuta el mismo cierre que `cerrarSesion()`. | RF-5, RF-7, RF-11, nuevo RF-15 (QA-16, QA-17) |
 
 ### Presentación
 | Archivo | Responsabilidad | RF |
@@ -66,7 +67,7 @@ Ninguna recibe `hoy`, porque ninguna depende del tiempo (ver sección 0).
 | 2.3 | `debeBorrarDatosAlEntrar(uidAnterior: String?, uidNuevo: String): Boolean` | `true` solo si `uidAnterior != null` y es distinto de `uidNuevo`. | RF-11 |
 | 2.4 | `esOtraPersona(correoBloqueado: String?, correoIngresado: String): Boolean` | `true` si hay un dueño bloqueado y su correo es distinto del ingresado ya normalizado. | RF-11 (QA-15) |
 | 2.5 | `evaluarBorrado(pendientes: Int): DecisionBorrado` | `pendientes > 0` → `Confirmar(pendientes)`; si no, `SinRiesgo`. Lo usan la salida y el ingreso de otra persona. | RF-13, RF-14 |
-| 2.6 | `textoCambiosSinEnviar(n: Int): String` (presentación) | `1` → «1 cambio sin enviar»; `n` → «n cambios sin enviar». Usa la misma palabra que `AvisoConexion` (D-4). | RF-13 (QA-10) |
+| 2.6 | `textoCambiosSinEnviar(n: Int): String` (presentación) | `1` → «1 cambio sin enviar»; `n` → «n cambios sin enviar». `textoSePerdera(n)`: `1` → «se perderá»; `n` → «se perderán», para que el verbo concuerde. Usa la misma palabra que `AvisoConexion` (D-4). | RF-13 (QA-10) |
 | ✅ | `LoginUiState.puedeIngresar` | Correo y contraseña sin quedar en blanco (`isNotBlank`), y sin un ingreso en curso. | RF-2 (QA-2) |
 | ✅ | `DestinoPrincipal.para(perfil)` | Filtra los destinos por permiso. | RF-8 |
 | ✅ | `Perfil.puede(permiso)` | Pertenencia al conjunto de permisos. | RF-9 |
@@ -98,7 +99,7 @@ iniciarSesion(correo, contrasena):
     uidAnterior = uid de la sesión actual de Firebase (o nulo)
     intentar:
         uid = autenticar(correo, contrasena)                    # puede fallar
-        si debeBorrarDatosAlEntrar(uidAnterior, uid): borrar Room      # RF-11
+        # RF-11: el borrado al cambiar de persona lo hace core/sync (sección 3.6, D-12)
         perfil = perfilDesdeTexto(leer usuarios/{uid}.perfil)   # puede fallar
         si perfil es nulo: signOut(); devolver PerfilNoConfigurado     # RF-7
         devolver Exito(usuario)
@@ -139,6 +140,17 @@ al recibir una nueva versión de usuarios/{uid}:
         ejecutar el mismo cierre que cerrarSesion()   # borra Room y hace signOut
 ```
 
+### 3.6 Cambio de persona en la sincronización (RF-11, D-12)
+```
+dueñoDatos = nulo                           # a quién pertenece lo guardado en Room
+al cambiar el id del usuario actual (uid):
+    si uid es nulo: dejar de escuchar        # cerrarSesion() ya borró
+    si no:
+        si debeBorrarDatosAlEntrar(dueñoDatos, uid): borrar Room
+        dueñoDatos = uid
+        escuchar incidencias y movimientos   # descarga completa para quien entra
+```
+
 ## 4. Cómo se pinta en la interfaz
 - **Diálogo de salida** (`AjustesSeguridadScreen`, RF-13): `AlertDialog` visible cuando `estado.confirmarSalida != null`.
   - Ícono `Icons.Outlined.CloudOff`.
@@ -160,7 +172,7 @@ al recibir una nueva versión de usuarios/{uid}:
 |---|---|---|---|
 | D-1 | La regla «¿hay que confirmar?» vive en `ReglasSesion` y en los casos de uso `Evaluar…`; el ViewModel solo la consulta. | Principio 3: reglas en `domain/`. Así se prueba sin Android. | Decidir en el ViewModel con `if (pendientes > 0)`. Mezcla regla y UI, y obliga a probarla con un ViewModel que hoy no se puede construir en la JVM (D-8). |
 | D-2 | Avisar y pedir confirmación, no sincronizar antes de cerrar. | Funciona sin conexión, es simple de entender y no deja al usuario esperando una subida que puede fallar. | Forzar la sincronización y bloquear la salida hasta que termine: falla en modo avión y añade estados de carga y error. |
-| D-3 | `pendientes` = incidencias + movimientos, lo que ya calcula `EstadoDatosRepositoryImpl`. | Un solo origen de verdad; no se toca `core/sync`. | Contar en Room desde `feature/acceso`: duplicaría la consulta y rompería la frontera con `core/sync`. |
+| D-3 | `pendientes` = incidencias con algo sin subir, calculado en `EstadoDatosRepositoryImpl` (antes sumaba también los movimientos). | El usuario piensa en incidencias, no en movimientos: una incidencia registrada es «1 cambio», no 2. Todo movimiento pendiente va en la misma transacción que su incidencia pendiente, así que no se pierde nada. Un solo origen de verdad: el aviso de conexión (HU-05) y los diálogos muestran el mismo número. | (1) Seguir sumando movimientos: «2 cambios» por una sola incidencia confunde. (2) Un campo aparte solo para los diálogos: el aviso y el diálogo mostrarían números distintos para lo mismo. (3) Contar en Room desde `feature/acceso`: rompería la frontera con `core/sync`. |
 | D-4 | El texto dice «cambios», no «registros». | Coincide con `AvisoConexion` («3 cambios por enviar»): el usuario ve la misma palabra en toda la app. | «Registros», como dice hoy la spec: dos palabras distintas para lo mismo. |
 | D-5 | Cualquier fallo después de autenticarse hace `signOut()`. | Evita la sesión a medias (QA-17), igual que RF-7. | Dejar la sesión abierta y reintentar el perfil: la app quedaría autenticada sin perfil ni permisos. |
 | D-6 | Un perfil revocado en vivo cierra la sesión y borra Room sin pedir confirmación (nuevo RF-15). | Quien ya no tiene perfil no debe conservar datos del área (principio 5). Lo decidió un administrador, no el usuario. | Conservar los datos hasta que entre otra persona: tras el `signOut`, `uidAnterior` sería nulo y RF-11 nunca los borraría. Quedarían expuestos. |
@@ -169,6 +181,7 @@ al recibir una nueva versión de usuarios/{uid}:
 | D-9 | La traducción de excepciones de Firebase a `ErrorDominio` sigue en `SesionRepositoryFirebase`. | Es traducción técnica, no regla de negocio. El dominio no puede importar Firebase (principio 3). | Mover la traducción a `domain/`: obligaría a importar clases de Firebase en Kotlin puro. |
 | D-10 | El dominio `@softcorp.pe` no se valida en la app (QA-4). | Las cuentas solo las crea el jefe en la consola de Firebase; una validación local repetiría esa regla en dos sitios. | Validar el dominio en la app: añade un mensaje y una regla más sin mejorar la seguridad. |
 | D-11 | Un campo con solo espacios cuenta como vacío (QA-2). | Es lo que hace `isNotBlank` y evita enviar algo que Firebase rechazará igual. | Permitir contraseñas de solo espacios: no se crean así en la consola. |
+| D-12 | El borrado de Room al entrar otra persona lo hace `SincronizacionTiempoReal`, que recuerda a quién pertenecen los datos locales y, al cambiar de persona, detiene las escuchas, borra y vuelve a escuchar. | Encontrado en T21: el repositorio borraba Room, pero la sincronización solo se reiniciaba al pasar de «sin sesión» a «con sesión». De una persona a otra nunca hay `null`, las escuchas seguían activas, Firestore no reenvía lo que no cambió y la lista quedaba vacía. Hacer el borrado y el reinicio en el mismo lugar garantiza el orden: primero se borra, después se descarga. | Dejar el borrado en el repositorio y reiniciar la sincronización cuando cambie el id: los dos ocurren casi a la vez y, si la descarga llega antes que el borrado (por ejemplo, con el perfil en caché), la lista vuelve a quedar vacía. |
 
 ## 6. Cambios que este plan exige en `spec.md` (antes de programar, principio 2)
 
@@ -214,7 +227,7 @@ Se usa `./gradlew testDebugUnitTest`, con JUnit 4, `kotlinx-coroutines-test` y d
 | RF-8 | `DestinoPrincipal.para` | `DestinoPrincipalTest` |
 | RF-9 | `VerificarPermiso`, `Perfil.puede` | `SesionYPermisosTest` |
 | RF-10 | `CerrarSesion`, `SesionRepositoryFirebase.cerrarSesion` | `EstadoAccesoTest` (huella) + manual |
-| RF-11 | `debeBorrarDatosAlEntrar`, `esOtraPersona`, `EvaluarIngresoDeOtraPersona` | `ReglasSesionTest`, `EvaluarIngresoDeOtraPersonaTest`, `LoginViewModelTest` |
+| RF-11 | `debeBorrarDatosAlEntrar`, `esOtraPersona`, `EvaluarIngresoDeOtraPersona`, `SincronizacionTiempoReal` (D-12) | `ReglasSesionTest`, `EvaluarIngresoDeOtraPersonaTest`, `LoginViewModelTest` |
 | RF-12 | `ObservarEstadoAcceso` | `EstadoAccesoTest` |
 | RF-13 | `evaluarBorrado`, `EvaluarCierreSesion`, diálogo de salida | `ReglasSesionTest`, `EvaluarCierreSesionTest`, `TextosSalidaTest` + manual |
 | RF-14 | `evaluarBorrado`, `EvaluarCierreSesion` | `ReglasSesionTest`, `EvaluarCierreSesionTest` |

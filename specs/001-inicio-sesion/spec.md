@@ -1,6 +1,6 @@
 # Spec 001 — Inicio de sesión y permisos por perfil (HU-01)
 
-> Spec escrita después de implementar la HU (PR #5), a partir del código en `main`. RF-1 a RF-12 describen lo que la app hace hoy, salvo los cambios marcados «(pendiente)»; RF-13, RF-14 y RF-15 están **pendientes de implementar**. El cómo está en `plan.md`.
+> Spec escrita después de implementar la HU (PR #5), a partir del código en `main`. RF-1 a RF-15 están implementados y verificados (pruebas unitarias y pruebas manuales T20 a T23 del 2026-10-08 al 2026-10-10). El cómo está en `plan.md`.
 
 ## Contexto y objetivo
 SIGTEC guarda incidencias de toda el área de Soporte y Sistemas, y cada perfil puede hacer cosas distintas: el jefe asigna, el técnico atiende, el personal de sistemas consulta. Sin una sesión que identifique a la persona y su perfil, cualquiera que tome el celular vería y cambiaría información que no le corresponde. Esta HU permite entrar con la cuenta institucional y limita lo que cada perfil puede hacer, tanto en el menú como en las reglas del dominio.
@@ -17,18 +17,18 @@ SIGTEC guarda incidencias de toda el área de Soporte y Sistemas, y cada perfil 
 - RF-2: MIENTRAS el correo o la contraseña estén vacíos, o haya un ingreso en curso, EL SISTEMA mantiene deshabilitado el botón «Ingresar».
 - RF-3: EL SISTEMA normaliza el correo (sin espacios y en minúsculas) antes de validarlo.
 - RF-4: SI el correo no existe o la contraseña es incorrecta, ENTONCES EL SISTEMA muestra «Correo o contraseña incorrectos.» sin indicar cuál de los dos falló.
-- RF-5: SI no hay conexión al autenticarse o al leer el perfil en `usuarios/{uid}`, ENTONCES EL SISTEMA muestra «Sin conexión. Revisa tu red e inténtalo de nuevo.». (pendiente: la falla al leer el perfil hoy muestra «Ocurrió un error inesperado»)
-- RF-5b (pendiente): SI algo falla después de autenticarse en Firebase, ENTONCES EL SISTEMA cierra la sesión de Firebase antes de mostrar el error, para no dejar una sesión sin perfil.
+- RF-5: SI no hay conexión al autenticarse o al leer el perfil en `usuarios/{uid}`, ENTONCES EL SISTEMA muestra «Sin conexión. Revisa tu red e inténtalo de nuevo.».
+- RF-5b: SI algo falla después de autenticarse en Firebase, ENTONCES EL SISTEMA cierra la sesión de Firebase antes de mostrar el error, para no dejar una sesión sin perfil.
 - RF-6: SI Firebase bloquea por demasiados intentos, ENTONCES EL SISTEMA muestra «Demasiados intentos. Espera unos minutos.».
 - RF-7: SI la cuenta existe pero no tiene perfil válido en `usuarios/{uid}`, ENTONCES EL SISTEMA cierra la sesión de Firebase y muestra «Tu cuenta no tiene un perfil asignado. Consulta al jefe del área.».
 - RF-8: EL SISTEMA muestra en el menú solo los destinos que el perfil puede usar (`DestinoPrincipal.para(perfil)`).
 - RF-9: CUANDO se ejecuta una acción protegida, EL SISTEMA verifica el permiso en el dominio con `VerificarPermiso` y devuelve `SinPermiso` si no hay sesión o el perfil no lo tiene, aunque el menú haya mostrado la opción.
 - RF-10: CUANDO el usuario pulsa «Cerrar sesión» y no hay cambios sin enviar, o confirma el cierre según RF-13, EL SISTEMA borra los datos locales del celular y vuelve a la pantalla de acceso. «Datos locales» son la base Room y, si quien sale es el dueño de la huella, sus preferencias de huella (HU-02). Las fotos se agregarán cuando exista la HU de captura.
-- RF-11: CUANDO inicia sesión una persona distinta de la que tenía la sesión anterior, EL SISTEMA borra los datos locales de la anterior antes de mostrar nada. (pendiente) SI la sesión anterior es de un dueño bloqueado con cambios sin enviar, ENTONCES EL SISTEMA muestra antes «{Nombre} tiene N cambios sin enviar en este celular. Si ingresas, se perderán.» con «Cancelar» e «Ingresar de todos modos», y solo continúa si el usuario confirma.
+- RF-11: CUANDO inicia sesión una persona distinta de la que tenía la sesión anterior, EL SISTEMA borra los datos locales de la anterior y vuelve a descargar del servidor los datos para quien entra, de modo que nunca quede con la lista vacía. SI la sesión anterior es de un dueño bloqueado con cambios sin enviar, ENTONCES EL SISTEMA muestra antes «{Nombre} tiene N cambios sin enviar en este celular. Si ingresas, se perderán.» (en singular con 1 cambio: «…1 cambio… se perderá.») con «Cancelar» e «Ingresar de todos modos», y solo continúa si el usuario confirma.
 - RF-12: CUANDO se abre la app con una sesión de Firebase vigente y sin huella vinculada, EL SISTEMA entra directo sin pedir la contraseña.
-- RF-13 (pendiente): SI el usuario pulsa «Cerrar sesión» y hay cambios sin enviar (`EstadoDatos.pendientesPorEnviar > 0`: incidencias y movimientos sin subir), ENTONCES EL SISTEMA muestra «Tienes N cambios sin enviar. Si cierras sesión ahora, se perderán.» («1 cambio» en singular) con las opciones «Cancelar» y «Cerrar de todos modos», y solo borra los datos locales si el usuario confirma. Cancelar, o tocar fuera del diálogo, deja al usuario en Ajustes de seguridad sin cambios.
-- RF-14 (pendiente): CUANDO el usuario pulsa «Cerrar sesión» y no hay cambios sin enviar, EL SISTEMA cierra la sesión sin pedir confirmación.
-- RF-15 (pendiente): SI el perfil de `usuarios/{uid}` se borra o deja de ser válido con la sesión abierta, ENTONCES EL SISTEMA cierra la sesión y borra los datos locales sin pedir confirmación, porque la decisión la tomó un administrador y quien ya no tiene perfil no debe conservar datos del área.
+- RF-13: SI el usuario pulsa «Cerrar sesión» y hay cambios sin enviar (`EstadoDatos.pendientesPorEnviar > 0`: cuenta una por cada incidencia con algo sin subir; sus movimientos no suman aparte), ENTONCES EL SISTEMA muestra «Tienes N cambios sin enviar. Si cierras sesión ahora, se perderán.» (con 1 cambio, todo en singular: «Tienes 1 cambio sin enviar. Si cierras sesión ahora, se perderá.») con las opciones «Cancelar» y «Cerrar de todos modos», y solo borra los datos locales si el usuario confirma. Cancelar, o tocar fuera del diálogo, deja al usuario en Ajustes de seguridad sin cambios.
+- RF-14: CUANDO el usuario pulsa «Cerrar sesión» y no hay cambios sin enviar, EL SISTEMA cierra la sesión sin pedir confirmación.
+- RF-15: SI el perfil de `usuarios/{uid}` se borra o deja de ser válido con la sesión abierta, ENTONCES EL SISTEMA cierra la sesión y borra los datos locales sin pedir confirmación, porque la decisión la tomó un administrador y quien ya no tiene perfil no debe conservar datos del área.
 
 ## Requisitos no funcionales
 - Seguridad: la contraseña solo se envía a Firebase Authentication; la app no la guarda en Room, DataStore ni registros.
@@ -37,6 +37,7 @@ SIGTEC guarda incidencias de toda el área de Soporte y Sistemas, y cada perfil 
 - Plataforma: Android 8.0 (minSdk 26) o superior.
 
 ## Casos límite
+- Entra otra persona sin cerrar antes la sesión anterior (por ejemplo, con el dueño bloqueado): se borran los datos de la anterior y se descargan de nuevo los del servidor (RF-11). Encontrado en la prueba manual T21: antes la lista quedaba vacía.
 - Correo con espacios o mayúsculas: se normaliza (RF-3).
 - Correo vacío enviado por código, aunque la UI lo impide: devuelve `CredencialesInvalidas` sin llamar a Firebase.
 - Perfil con un valor que no existe en `Perfil` (por ejemplo, un texto mal escrito en Firestore): se trata como sin perfil (RF-7).
@@ -59,7 +60,7 @@ SIGTEC guarda incidencias de toda el área de Soporte y Sistemas, y cada perfil 
 
 ## Criterios de finalización
 - RF-1 a RF-15 implementados.
-- Pruebas según la sección 7 de `plan.md`. Hoy existen `SesionYPermisosTest` (RF-4, RF-9), `EstadoAccesoTest` (RF-12) y `LoginViewModelTest` (RF-2, RF-3, RF-4). RF-5, RF-6, RF-7 y RF-15 se verifican a mano porque dependen de Firebase.
+- Pruebas: `SesionYPermisosTest` (RF-4, RF-9), `EstadoAccesoTest` (RF-12), `LoginViewModelTest` (RF-2, RF-3, RF-4, RF-11), `ReglasSesionTest` (RF-3, RF-7, RF-11, RF-13, RF-14, RF-15), `DestinoPrincipalTest` (RF-1, RF-8), `EvaluarCierreSesionTest` (RF-13, RF-14), `EvaluarIngresoDeOtraPersonaTest` (RF-11, RF-13) y `TextosSalidaTest` (RF-13). RF-5, RF-5b, RF-6, RF-7, RF-10 y RF-15 se verificaron a mano (T20 a T23) porque dependen de Firebase.
 - `./gradlew assembleDebug testDebugUnitTest lintDebug` en verde.
 - Prueba manual en celular: entrar con un usuario de cada perfil y comprobar su menú; contraseña incorrecta; modo avión al ingresar; cerrar sesión y entrar con otra cuenta sin ver datos de la anterior; registrar una incidencia en modo avión y comprobar el aviso al cerrar sesión.
 
