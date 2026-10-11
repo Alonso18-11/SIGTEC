@@ -5,6 +5,7 @@ import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
 import com.softcorp.sigtec.core.database.SigtecDatabase
+import com.softcorp.sigtec.core.database.dao.CatalogoDao
 import com.softcorp.sigtec.core.database.dao.IncidenciaDao
 import com.softcorp.sigtec.core.database.dao.MovimientoDao
 import com.softcorp.sigtec.core.database.dao.SincronizacionDao
@@ -30,6 +31,7 @@ class SincronizacionTiempoReal @Inject constructor(
     private val sesion: SesionRepository,
     private val incidenciaDao: IncidenciaDao,
     private val movimientoDao: MovimientoDao,
+    private val catalogoDao: CatalogoDao,
     private val sincronizacionDao: SincronizacionDao,
     private val programador: ProgramadorSincronizacion,
     @IoDispatcher private val io: CoroutineDispatcher,
@@ -58,6 +60,7 @@ class SincronizacionTiempoReal @Inject constructor(
                             merge(
                                 escuchar("incidencias", ::guardarIncidencias),
                                 escuchar("movimientos", ::guardarMovimientos),
+                                escuchar("equipos", ::guardarEquipos),
                                 vigilarPendientes()
                             )
                         )
@@ -101,6 +104,14 @@ class SincronizacionTiempoReal @Inject constructor(
             val remoto = cambio.document.aMovimientoEntity() ?: continue
             if (debeGuardarMovimiento(movimientoDao.porId(remoto.id))) movimientoDao.guardar(remoto)
         }
+    }
+
+    // RF-41: /equipos es de solo lectura, sin lógica de conflictos ni pendientes de sincronizar.
+    private suspend fun guardarEquipos(snap: QuerySnapshot) {
+        val nuevos = snap.documentChanges
+            .filter { it.type != DocumentChange.Type.REMOVED }
+            .mapNotNull { it.document.aEquipoEntity() }
+        if (nuevos.isNotEmpty()) catalogoDao.guardarEquipos(nuevos)
     }
 
     // Programa la subida solo cuando se pasa de "nada pendiente" a "hay pendientes".

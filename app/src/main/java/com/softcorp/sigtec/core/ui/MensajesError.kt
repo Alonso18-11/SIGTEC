@@ -10,6 +10,7 @@ fun ErrorDominio.mensaje(): String = when (this) {
     ErrorDominio.SinPermiso -> "No tienes permiso para esta acción."
     ErrorDominio.CampoObligatorio -> "Completa todos los campos obligatorios."
     ErrorDominio.ConfirmacionRequerida -> "Debes confirmar con tu huella."
+    ErrorDominio.EquipoNoEncontrado -> "El código de equipo no existe en el catálogo. Verifícalo e inténtalo de nuevo."
     is ErrorDominio.LimiteAtencionAlcanzado -> "$tecnicoNombre alcanzó su límite de atención."
     is ErrorDominio.Desconocido -> "Ocurrió un error inesperado. Inténtalo de nuevo."
 }

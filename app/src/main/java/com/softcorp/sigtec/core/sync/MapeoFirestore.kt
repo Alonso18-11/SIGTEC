@@ -2,6 +2,7 @@ package com.softcorp.sigtec.core.sync
 
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentSnapshot
+import com.softcorp.sigtec.core.database.entity.EquipoEntity
 import com.softcorp.sigtec.core.database.entity.IncidenciaEntity
 import com.softcorp.sigtec.core.database.entity.MovimientoEntity
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
@@ -72,5 +73,19 @@ internal fun DocumentSnapshot.aMovimientoEntity(): MovimientoEntity? = runCatchi
         fecha = getTimestamp("fecha")!!.toInstant(),
         detalle = getString("detalle"),
         pendienteSincronizar = false
+    )
+}.getOrNull()
+
+// ---------- Catálogo ----------
+
+// RF-41: /equipos es de solo lectura para la app, el id del documento es el código
+internal fun DocumentSnapshot.aEquipoEntity(): EquipoEntity? = runCatching {
+    EquipoEntity(
+        codigo = id,
+        tipo = getString("tipo")!!,
+        marca = getString("marca")!!,
+        modelo = getString("modelo")!!,
+        oficina = getString("oficina")!!,
+        responsableNombre = getString("responsableNombre")!!
     )
 }.getOrNull()

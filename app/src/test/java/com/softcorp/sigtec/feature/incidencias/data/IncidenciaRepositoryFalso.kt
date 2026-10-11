@@ -19,6 +19,11 @@ class IncidenciaRepositoryFalso(var fallar: Boolean = false) : IncidenciaReposit
     private val _incidencias = MutableStateFlow<List<Incidencia>>(emptyList())
     private val _movimientos = MutableStateFlow<List<Movimiento>>(emptyList())
 
+    // RF-41: catálogo en memoria, con los 4 equipos de prueba reales por defecto.
+    private val equiposValidos: MutableSet<String> = mutableSetOf(
+        "PC-CONT-014", "PC-LOG-009", "PC-SIS-003", "IMP-RRHH-002"
+    )
+
     val incidencias: List<Incidencia> get() = _incidencias.value
     val movimientos: List<Movimiento> get() = _movimientos.value
 
@@ -26,6 +31,11 @@ class IncidenciaRepositoryFalso(var fallar: Boolean = false) : IncidenciaReposit
     fun cargar(incidencias: List<Incidencia> = emptyList(), movimientos: List<Movimiento> = emptyList()) {
         _incidencias.value = incidencias
         _movimientos.value = movimientos
+    }
+
+    /** Amplía el catálogo falso para pruebas que necesiten un código distinto a los 4 por defecto. */
+    fun agregarEquipo(codigo: String) {
+        equiposValidos.add(codigo)
     }
 
     override suspend fun registrar(incidencia: Incidencia, movimiento: Movimiento): Resultado<Unit> {
@@ -45,4 +55,6 @@ class IncidenciaRepositoryFalso(var fallar: Boolean = false) : IncidenciaReposit
         _movimientos.map { lista ->
             lista.filter { it.incidenciaId == incidenciaId }.sortedByDescending(Movimiento::fecha)
         }
+
+    override suspend fun existeEquipo(codigo: String): Boolean = codigo in equiposValidos
 }

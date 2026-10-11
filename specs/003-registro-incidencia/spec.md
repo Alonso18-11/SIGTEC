@@ -1,0 +1,63 @@
+# Spec 003 — Registrar una incidencia con fecha automática (HU-03)
+
+> Spec escrita después de implementar la HU (PR #7, commit `fea7683`, con ajustes del PR #9, commit `6420f40`), a partir del código en `main`. RF-30 a RF-40 ya estaban implementados; RF-41 se terminó de construir y probar en el plan de esta spec. El cómo está en `plan.md`.
+
+## Contexto y objetivo
+Cuando un equipo falla, el jefe, el técnico o el personal de sistemas necesitan dejar constancia de la incidencia lo antes posible, sin perder tiempo calculando la fecha ni copiando su propio nombre. Esta HU deja registrar una incidencia nueva con los datos mínimos del problema; el sistema pone la fecha y hora y la persona que la registra automáticamente, y la deja desde el primer momento en la línea de tiempo del caso, lista para que la HU-05 la suba a Firestore y le asigne su número visible.
+
+## Usuarios / actores
+- Jefe de Soporte y Sistemas, técnico y personal de sistemas: los tres perfiles tienen el permiso `REGISTRAR_INCIDENCIA` (`Perfil.kt`); ninguno queda excluido de registrar.
+- Room, como única fuente de verdad local: el registro se guarda ahí, nunca directo en Firestore.
+
+## Historias de usuario
+- HU-03: Como persona del área de Soporte y Sistemas quiero registrar una incidencia nueva con los datos del equipo y del problema, para que quede con su fecha y quién la registró sin tener que escribirlos a mano.
+
+## Requisitos funcionales (criterios de aceptación en EARS)
+- RF-30: CUANDO el usuario abre «Nueva incidencia», EL SISTEMA muestra un formulario con el código del equipo, el usuario responsable del equipo, la descripción del problema, y dos datos de solo lectura que no se editan: la fecha y hora actuales y el nombre de quien tiene la sesión abierta.
+- RF-31: MIENTRAS el código del equipo, el responsable o la descripción estén vacíos, o aún no se conozca quién tiene la sesión abierta, o haya un guardado en curso, EL SISTEMA mantiene deshabilitado el botón «Guardar incidencia».
+- RF-32: MIENTRAS la pantalla de registro esté abierta y sin guardar, EL SISTEMA actualiza la fecha y hora mostradas cada minuto, para que no se queden atrasadas si la persona tarda en completar el formulario.
+- RF-33: CUANDO el usuario pulsa «Guardar incidencia» con el formulario completo, EL SISTEMA verifica el permiso `REGISTRAR_INCIDENCIA` en el dominio (`VerificarPermiso`) y, si no hay sesión o el perfil no lo tiene, no guarda nada y devuelve `SinPermiso`, aunque la pantalla ya exige una sesión para mostrar el nombre de quien registra.
+- RF-34: CUANDO se registra la incidencia, EL SISTEMA recorta los espacios de los extremos del código del equipo, el responsable y la descripción, y además convierte el código del equipo a mayúsculas.
+- RF-35: SI después de recortar los espacios el código del equipo, el responsable o la descripción quedan vacíos, ENTONCES EL SISTEMA no guarda nada y devuelve `CampoObligatorio` («Completa todos los campos obligatorios.»), aunque el formulario de la pantalla ya le impide llegar a ese estado.
+- RF-36: CUANDO se registra la incidencia, EL SISTEMA le genera un identificador único en el celular (UUID), le pone la fecha y hora del momento exacto en que se ejecuta el registro, y el id y el nombre de quien tiene la sesión abierta (`registradoPorId`, `registradoPorNombre`; la incidencia no guarda el perfil de quien registra), y la crea con la marca `SIN_ASIGNAR` (estado Pendiente derivado, nunca persistido directamente).
+  > Nota de implementación: `RegistrarIncidencia` recibirá `ahora: Instant` como parámetro en vez de llamar a `Instant.now()` internamente, igual que ya hace `TextosIncidencia.kt` con su propio `ahora: Instant`. Es una convención observada en el propio módulo de incidencias, no una regla escrita en `CLAUDE.md`; el cambio no altera el comportamiento observable (la fecha sigue siendo la del instante del registro), solo permite fijar ese instante en una prueba. Se aplica en el plan de esta spec, junto con el ajuste de `RegistrarIncidenciaTest`.
+- RF-37: EL SISTEMA guarda la incidencia nueva junto con su primer movimiento de la línea de tiempo (tipo `REGISTRADA`, con la misma fecha y el nombre de quien registra) en una sola transacción de Room (`db.withTransaction`): nunca queda una incidencia sin su movimiento `REGISTRADA`, ni al revés.
+- RF-38: EL SISTEMA guarda la incidencia y su movimiento solo en Room, marcados como pendientes de sincronizar (`pendienteSincronizar = true`); nunca escribe directo en Firestore desde este registro. Subirlos y asignarles el número visible (`INC-0124`) es trabajo de la sincronización (HU-05, aún sin spec propia): mientras no se suban, la incidencia queda sin número.
+- RF-39: SI Room falla al guardar, ENTONCES EL SISTEMA no guarda ni la incidencia ni el movimiento y muestra «Ocurrió un error inesperado. Inténtalo de nuevo.» debajo del botón de guardar; el usuario puede corregir y reintentar sin perder lo escrito en el formulario.
+- RF-40: CUANDO el guardado termina con éxito, EL SISTEMA muestra «Incidencia registrada · Por sincronizar» y navega al detalle de la incidencia recién creada, reemplazando el formulario en la pila de navegación (de modo que «Volver» desde el detalle no regresa al formulario ya guardado).
+- RF-41: CUANDO el usuario pulsa «Guardar incidencia» con un código de equipo que, tras recortar espacios y pasar a mayúsculas (RF-34), no existe en el catálogo de equipos sincronizado localmente (`CatalogoDao.equipoPorCodigo`), EL SISTEMA no guarda la incidencia ni su movimiento y muestra un error de equipo no encontrado.
+  > Implementado: `core/sync/SincronizacionTiempoReal.kt` descarga la colección `/equipos` con el mismo `escuchar(...)` genérico usado para `incidencias`/`movimientos` y la mapea con `MapeoFirestore.aEquipoEntity()` hacia `CatalogoDao.guardarEquipos(...)`. `RegistrarIncidencia` consulta `IncidenciaRepository.existeEquipo(codigo)` (que a su vez usa `CatalogoDao.equipoPorCodigo`) antes de guardar y devuelve `ErrorDominio.EquipoNoEncontrado`, con su texto en `MensajesError.kt` («El código de equipo no existe en el catálogo. Verifícalo e inténtalo de nuevo.»). Probado con `RegistrarIncidenciaTest`, `RegistroIncidenciaViewModelTest` y de forma manual en el emulador (T20).
+
+## Requisitos no funcionales
+- Idioma: textos de UI y mensajes de error en español; cada error sale de `error.mensaje()`.
+- Consistencia: el botón «Guardar incidencia» queda deshabilitado mientras se guarda (no vuelve a habilitarse tras un éxito, porque la pantalla se cierra al navegar), de modo que un segundo toque no puede duplicar el registro.
+- Plataforma: Android 8.0 (minSdk 26) o superior.
+- Trazabilidad: `registradoPorId` y `registradoPorNombre` quedan fijos en la incidencia con los datos de quien la registró, independientemente de quién la atienda o asigne después.
+
+## Casos límite
+- Código del equipo en minúsculas o con espacios (`" pc-cont-014 "`): se guarda como `"PC-CONT-014"` (RF-34).
+- Rotación de pantalla o recomposición mientras se completa el formulario: el `ViewModel` sobrevive y conserva lo escrito.
+- Doble pulsación de «Guardar incidencia»: el botón queda deshabilitado desde el primer toque (RF-31) y no vuelve a habilitarse tras el éxito, así que no se puede duplicar el registro (ver RNF de consistencia).
+- Perfil sin la sesión activa que de algún modo llega a invocar el registro (por ejemplo, una sesión que se cierra justo antes): se rechaza en el dominio con `SinPermiso` (RF-33), igual que si el menú no hubiera mostrado la opción.
+- La incidencia recién guardada todavía no tiene `numero`: su código visible se muestra como «Por sincronizar» (`codigoParaMostrar()`), tanto en el aviso del detalle como en cualquier lista que la incluya (HU-04).
+- Código de equipo que no existe en el catálogo (por ejemplo `PC-CONT-14` en vez de `PC-CONT-014`, o `PC` a secas): el sistema no guarda la incidencia y muestra el error de equipo no encontrado (RF-41).
+
+## Fuera de alcance
+- Leer el código del equipo con la cámara (botón de cámara junto al campo «Código del equipo»): existe en el formulario actual (`alEscanear`, comentario «el escaneo es la HU-09» en `RegistroIncidenciaScreen.kt`), pero su funcionamiento es de la HU-09; aquí el campo también admite escribirlo a mano.
+- Dictar la descripción con el micrófono (botón de micrófono junto al campo «Descripción del problema»): existe en el formulario actual (`alDictar`, comentario «el dictado es la HU-10»), pero su funcionamiento es de la HU-10; aquí el campo también admite escribirlo a mano.
+- Elegir el responsable desde un directorio de personas: hoy es un campo de texto libre; el directorio es la HU-12.
+- Clasificar el tipo de falla o la prioridad, sugerirlos con IA, asignar la incidencia a un técnico o cerrarla: son de otras HU (asignación, atención, diccionario).
+- Subir la incidencia a Firestore y asignarle su número visible (`INC-0124`): es la HU-05 (aún sin spec propia); esta spec solo referencia ese resultado («Por sincronizar»).
+- La lista de incidencias y la pantalla de detalle en sí (más allá del aviso y la navegación que deja el registro al llegar a ella): son la HU-04.
+- Cerrar sesión con esta incidencia sin enviar, y el aviso de cambios sin enviar: ya definidos en HU-01 (`specs/001-inicio-sesion`).
+
+## Criterios de finalización
+- RF-30 a RF-41 implementados. RF-41 (validar el código del equipo contra el catálogo) se construyó en el plan de esta spec y quedó probado de forma automatizada y manual (T20).
+- Pruebas: `RegistrarIncidenciaTest` cubre RF-33 (sin sesión no registra), RF-34 (recorta espacios y mayúsculas), RF-35 (campo en blanco no registra), RF-36 (nace sin asignar, sin número y a nombre de quien registra, con `ahora: Instant` recibido como parámetro y fijado en un caso nuevo), RF-37 (el movimiento REGISTRADA queda con la misma incidencia), RF-39 (si Room falla, devuelve el error) y RF-41 (código fuera del catálogo falso devuelve `EquipoNoEncontrado` sin guardar nada). `TextosIncidenciaTest` cubre el «Por sincronizar» de RF-38/RF-40 a nivel de `codigoParaMostrar()`. `RegistroIncidenciaViewModelTest` (nuevo) cubre RF-30/RF-31 (botón deshabilitado sin sesión o con campos vacíos, habilitado al completarlos), RF-32 (la fecha mostrada avanza con el reloj), RF-40 (evento de un solo uso `registradaId` y su limpieza con `alNavegarAlDetalle()`) y el error de RF-41 a nivel de `ViewModel`.
+- `./gradlew assembleDebug testDebugUnitTest lintDebug` en verde.
+- Prueba manual en celular: abrir «Nueva incidencia» con cada perfil y comprobar que los tres pueden registrar; dejar un campo vacío y comprobar que el botón sigue deshabilitado; completar el formulario, esperar más de un minuto sin guardar y comprobar que la fecha mostrada avanza; guardar y comprobar el aviso «Incidencia registrada · Por sincronizar» y que «Volver» desde el detalle no regresa al formulario; registrar en modo avión y comprobar que la incidencia queda pendiente de sincronizar. La prueba de RF-41 (código de equipo válido e inválido) y la de que la fecha guardada es la del instante de «Guardar» (RF-33/RF-36) se verificaron en el emulador (T20 y T21).
+
+## Dudas abiertas
+- Resuelto e implementado: `RegistrarIncidencia.kt` ya no llama a `Instant.now()` por dentro; recibe la fecha como parámetro (`ahora: Instant`) desde quien lo invoca (`RegistroIncidenciaViewModel.guardar()`, con `Instant.now()` pasado desde ahí), igual que ya hacía `TextosIncidencia.kt`. El hueco de testabilidad quedó cerrado: `RegistrarIncidenciaTest` fija el instante en un caso nuevo y comprueba que es exactamente el guardado, y la verificación manual (T21) confirmó que la fecha guardada es la del instante de «Guardar», no la de apertura del formulario.
+- Resuelto e implementado: el código del equipo ya se valida contra el catálogo. `RegistrarIncidencia.kt` consulta `IncidenciaRepository.existeEquipo(codigo)` tras recortar espacios y pasar a mayúsculas, y devuelve `ErrorDominio.EquipoNoEncontrado` si no existe; `core/sync` descarga `/equipos` a Room (`CatalogoDao`) para que la consulta tenga datos. En Firestore había incidencias con equipos como «PC» o «PC-CONT-14», que no coinciden con los 4 equipos de prueba reales (`PC-CONT-014`, `PC-LOG-009`, `PC-SIS-003`, `IMP-RRHH-002`); con RF-41 implementado esos códigos ya no pasan el registro. Verificado con `RegistrarIncidenciaTest`, `RegistroIncidenciaViewModelTest` y de forma manual (T20).
+- [NECESITA ACLARACIÓN] Enlazar RF-30 a RF-41 con los RF de la especificación del producto: falta saber qué RF del producto corresponden a la HU-03 (el documento no está en el repo), más allá de la referencia a RF-06 y RF-23 que ya cita `CLAUDE.md` para otras HU.

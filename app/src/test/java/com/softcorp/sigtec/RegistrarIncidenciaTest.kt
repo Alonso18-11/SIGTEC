@@ -15,22 +15,24 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.Instant
 
 class RegistrarIncidenciaTest {
 
     private val sesion = SesionRepositoryDemo()
     private val repo = IncidenciaRepositoryFalso()
     private val registrar = RegistrarIncidencia(VerificarPermiso(sesion), repo)
+    private val ahora = Instant.parse("2025-01-01T10:00:00Z")
 
-    private suspend fun registrarComoLuis(): Incidencia {
+    private suspend fun registrarComoLuis(ahora: Instant = this.ahora): Incidencia {
         sesion.iniciarSesion("lramirez@softcorp.pe", "")
-        val r = registrar("  pc-cont-014 ", "  No enciende tras el corte de luz  ", " María Quispe ")
+        val r = registrar("  pc-cont-014 ", "  No enciende tras el corte de luz  ", " María Quispe ", ahora)
         return (r as Resultado.Exito).valor
     }
 
     @Test
     fun `sin sesion no registra`() = runTest {
-        val r = registrar("PC-CONT-014", "No enciende", "María Quispe")
+        val r = registrar("PC-CONT-014", "No enciende", "María Quispe", ahora)
         assertEquals(Resultado.Error(ErrorDominio.SinPermiso), r)
         assertTrue(repo.incidencias.isEmpty() && repo.movimientos.isEmpty())
     }
@@ -69,15 +71,30 @@ class RegistrarIncidenciaTest {
     fun `si Room falla devuelve el error`() = runTest {
         sesion.iniciarSesion("pcardenas@softcorp.pe", "")
         repo.fallar = true
-        val r = registrar("PC-CONT-014", "No enciende", "María Quispe")
+        val r = registrar("PC-CONT-014", "No enciende", "María Quispe", ahora)
         assertTrue(r is Resultado.Error)
     }
 
     @Test
     fun `un campo en blanco no registra nada`() = runTest {
         sesion.iniciarSesion("lramirez@softcorp.pe", "")
-        val r = registrar("PC-CONT-014", "   ", "María Quispe")
+        val r = registrar("PC-CONT-014", "   ", "María Quispe", ahora)
         assertEquals(Resultado.Error(ErrorDominio.CampoObligatorio), r)
+        assertTrue(repo.incidencias.isEmpty() && repo.movimientos.isEmpty())
+    }
+
+    @Test
+    fun `la incidencia queda con el instante exacto que se pasa al registrar`() = runTest {
+        val instanteFijado = Instant.parse("2025-06-15T08:30:00Z")
+        val inc = registrarComoLuis(instanteFijado)
+        assertEquals(instanteFijado, inc.fechaRegistro)
+    }
+
+    @Test
+    fun `un equipo fuera del catalogo no registra nada`() = runTest {
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")
+        val r = registrar("PC-CONT-14", "No enciende", "María Quispe", ahora)
+        assertEquals(Resultado.Error(ErrorDominio.EquipoNoEncontrado), r)
         assertTrue(repo.incidencias.isEmpty() && repo.movimientos.isEmpty())
     }
 }

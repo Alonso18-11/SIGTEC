@@ -18,7 +18,7 @@ class RegistrarIncidencia @Inject constructor(
     private val repo: IncidenciaRepository
 ) {
     suspend operator fun invoke(
-        codigoEquipo: String, descripcion: String, responsable: String
+        codigoEquipo: String, descripcion: String, responsable: String, ahora: Instant
     ): Resultado<Incidencia> {
         val usuario = when (val r = verificarPermiso(Permiso.REGISTRAR_INCIDENCIA)) {
             is Resultado.Exito -> r.valor
@@ -31,6 +31,10 @@ class RegistrarIncidencia @Inject constructor(
         if (codigo.isEmpty() || texto.isEmpty() || quien.isEmpty()) {
             return Resultado.Error(ErrorDominio.CampoObligatorio)
         }
+        // RF-41: el código debe existir en el catálogo de equipos sincronizado
+        if (!repo.existeEquipo(codigo)) {
+            return Resultado.Error(ErrorDominio.EquipoNoEncontrado)
+        }
 
         val incidencia = Incidencia(
             id = UUID.randomUUID().toString(),
@@ -38,7 +42,7 @@ class RegistrarIncidencia @Inject constructor(
             codigoEquipo = codigo,
             descripcion = texto,
             usuarioResponsable = quien,
-            fechaRegistro = Instant.now(),          // automática, no editable
+            fechaRegistro = ahora,                  // automática, no editable
             registradoPorId = usuario.id,
             registradoPorNombre = usuario.nombre,
             marca = MarcaSeguimiento.SIN_ASIGNAR    // nace Pendiente
