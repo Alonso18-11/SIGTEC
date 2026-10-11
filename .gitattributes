@@ -1,0 +1,2 @@
+# Los scripts de Bash deben tener finales de línea LF: con CRLF fallan los hooks de .claude/hooks/
+*.sh text eol=lf
