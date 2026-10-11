@@ -35,7 +35,7 @@
   RF: RF-621, RF-624 (dependencia)
   Hecho cuando: la spec 005 describe los 6 puntos de 4.8 y Alonso confirma el texto en el PR.
 
-- [ ] **T06 · `FAILED_PRECONDITION` transitorio 🔶**
+- [x] **T06 · `FAILED_PRECONDITION` transitorio 🔶**
   Sacarlo de `CODIGOS_PERMANENTES` en `core/sync/ReglasSincronizacion.kt` y cambiar su caso en `ReglasSincronizacionTest` a `assertFalse`.
   RF: — (problema 4)
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*ReglasSincronizacionTest"` pasa.

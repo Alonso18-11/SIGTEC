@@ -79,8 +79,8 @@ class ReglasSincronizacionTest {
     }
 
     @Test
-    fun `precondicion fallida es un error permanente`() {
-        assertTrue(esCodigoPermanente("FAILED_PRECONDITION"))
+    fun `precondicion fallida no es un error permanente porque en una transaccion se reintenta`() {
+        assertFalse(esCodigoPermanente("FAILED_PRECONDITION"))
     }
 
     @Test

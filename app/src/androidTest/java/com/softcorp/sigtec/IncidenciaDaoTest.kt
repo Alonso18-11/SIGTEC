@@ -58,6 +58,22 @@ class IncidenciaDaoTest {
         assertEquals(listOf("x"), dao.pendientesDeSincronizar().map { it.id })
     }
 
+    @Test
+    fun un_rechazo_no_marca_una_version_editada_mientras_se_subia() = runTest {
+        val subida = Instant.parse("2026-10-11T10:00:00Z")
+        val editada = subida.plusSeconds(60)
+        dao.guardar(incidencia("x", MarcaSeguimiento.ASIGNADA, subida).toEntity(true, actualizadoEn = editada))
+
+        // RF-75: el rechazo llega para la versión que se subía, no para la editada
+        assertEquals(0, dao.marcarNecesitaAtencion("x", subida))
+        assertEquals(true, dao.porId("x")?.pendienteSincronizar)
+
+        assertEquals(1, dao.marcarNecesitaAtencion("x", editada))
+        val marcada = dao.porId("x")!!
+        assertEquals(false, marcada.pendienteSincronizar)
+        assertEquals(true, marcada.necesitaAtencion)
+    }
+
     private fun incidencia(id: String, marca: MarcaSeguimiento, fecha: Instant) = Incidencia(
         id = id, numero = null, codigoEquipo = "PC-CONT-014", descripcion = "No enciende",
         usuarioResponsable = "María Quispe", fechaRegistro = fecha, registradoPorId = "t1",

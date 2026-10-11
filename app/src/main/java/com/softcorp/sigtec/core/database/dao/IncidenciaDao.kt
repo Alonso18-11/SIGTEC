@@ -57,11 +57,12 @@ interface IncidenciaDao {
     @Query("SELECT COUNT(*) FROM incidencias WHERE pendienteSincronizar = 1")
     fun observarPendientes(): Flow<Int>
 
+    // RF-75: igual que marcarSincronizada, no marca una versión que se editó mientras se subía
     @Query("""
         UPDATE incidencias SET pendienteSincronizar = 0, necesitaAtencion = 1
-        WHERE id = :id
+        WHERE id = :id AND actualizadoEn = :actualizadoEn
     """)
-    suspend fun marcarNecesitaAtencion(id: String)
+    suspend fun marcarNecesitaAtencion(id: String, actualizadoEn: Instant): Int
 
     @Query("SELECT COUNT(*) FROM incidencias WHERE necesitaAtencion = 1")
     fun observarNecesitanAtencion(): Flow<Int>

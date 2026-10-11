@@ -34,7 +34,8 @@ internal fun esErrorPermanente(error: Throwable): Boolean =
  */
 internal fun esCodigoPermanente(codigo: String): Boolean = codigo in CODIGOS_PERMANENTES
 
-private val CODIGOS_PERMANENTES = setOf("PERMISSION_DENIED", "FAILED_PRECONDITION", "INVALID_ARGUMENT")
+// FAILED_PRECONDITION no está: en una transacción indica que otro celular cambió el dato (se reintenta)
+private val CODIGOS_PERMANENTES = setOf("PERMISSION_DENIED", "INVALID_ARGUMENT")
 
 /** No se intenta subir sin una red validada: evita gastar reintentos en vano (RF-78). */
 internal fun debeIntentarSubir(hayConexionValidada: Boolean): Boolean = hayConexionValidada

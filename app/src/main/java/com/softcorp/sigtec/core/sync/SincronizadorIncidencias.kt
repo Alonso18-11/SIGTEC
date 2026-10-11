@@ -66,7 +66,7 @@ class SincronizadorIncidencias @Inject constructor(
     } catch (e: Exception) {
         Log.w(TAG, "No se pudo subir la incidencia ${local.id}", e)
         if (esErrorPermanente(e)) {
-            incidenciaDao.marcarNecesitaAtencion(local.id)
+            incidenciaDao.marcarNecesitaAtencion(local.id, local.actualizadoEn)
             true
         } else {
             false
