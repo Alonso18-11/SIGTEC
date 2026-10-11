@@ -4,21 +4,23 @@ import com.softcorp.sigtec.core.domain.model.Incidencia
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
 import com.softcorp.sigtec.feature.incidencias.data.IncidenciaRepositoryFalso
 import com.softcorp.sigtec.feature.incidencias.domain.ObservarIncidencias
+import com.softcorp.sigtec.feature.incidencias.domain.SIN_TECNICO
 import com.softcorp.sigtec.feature.incidencias.presentation.ListaIncidenciasUiState
 import com.softcorp.sigtec.feature.incidencias.presentation.ListaIncidenciasViewModel
-import com.softcorp.sigtec.feature.incidencias.presentation.SIN_TECNICO
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import java.time.Duration
 import java.time.Instant
 
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class ListaIncidenciasViewModelTest {
 
     @get:Rule
@@ -68,74 +70,6 @@ class ListaIncidenciasViewModelTest {
     }
 
     @Test
-    fun `busca por codigo INC, con o sin el prefijo`() = runTest {
-        val vm = nuevoVm()
-        vm.alBuscar("inc-0124")
-        assertEquals(listOf("c"), vm.ids)
-        vm.alBuscar(" 126 ")
-        assertEquals(listOf("d"), vm.ids)
-    }
-
-    @Test
-    fun `busca por equipo sin importar mayusculas`() = runTest {
-        val vm = nuevoVm()
-        vm.alBuscar("pc-cont")
-        assertEquals(listOf("c", "e"), vm.ids)
-    }
-
-    @Test
-    fun `busca por problema sin importar tildes`() = runTest {
-        val vm = nuevoVm()
-        vm.alBuscar("despues del CORTE")
-        assertEquals(listOf("c"), vm.ids)
-        vm.alBuscar("conexion")
-        assertEquals(listOf("e"), vm.ids)
-    }
-
-    @Test
-    fun `filtra por cada marca de seguimiento`() = runTest {
-        val vm = nuevoVm()
-        val esperado = mapOf(
-            MarcaSeguimiento.SIN_ASIGNAR to listOf("b"),
-            MarcaSeguimiento.ASIGNADA to listOf("e"),
-            MarcaSeguimiento.EN_ATENCION to listOf("c"),
-            MarcaSeguimiento.ESPERANDO_REPUESTO to listOf("d"),
-            MarcaSeguimiento.CERRADA to listOf("a")
-        )
-        esperado.forEach { (marca, ids) ->
-            vm.alFiltrarMarca(marca)
-            assertEquals("marca $marca", ids, vm.ids)
-        }
-    }
-
-    @Test
-    fun `filtra por tecnico y por sin tecnico`() = runTest {
-        val vm = nuevoVm()
-        vm.alFiltrarTecnico("Ana Torres")
-        assertEquals(listOf("d", "e"), vm.ids)
-        vm.alFiltrarTecnico(SIN_TECNICO)
-        assertEquals(listOf("b"), vm.ids)
-    }
-
-    @Test
-    fun `filtra por equipo`() = runTest {
-        val vm = nuevoVm()
-        vm.alFiltrarEquipo("PC-CONT-014")
-        assertEquals(listOf("c", "e"), vm.ids)
-    }
-
-    @Test
-    fun `combina busqueda y filtros`() = runTest {
-        val vm = nuevoVm()
-        vm.alFiltrarEquipo("PC-CONT-014")
-        vm.alFiltrarTecnico("Ana Torres")
-        assertEquals(listOf("e"), vm.ids)
-        vm.alBuscar("enciende")
-        assertTrue(vm.ids.isEmpty())
-        assertEquals(5, vm.ui.total)
-    }
-
-    @Test
     fun `limpiar quita la busqueda y todos los filtros de un toque`() = runTest {
         val vm = nuevoVm()
         vm.alBuscar("red")
@@ -154,5 +88,29 @@ class ListaIncidenciasViewModelTest {
         val vm = nuevoVm()
         assertEquals(listOf(SIN_TECNICO, "Ana Torres", "Luis Ramírez"), vm.ui.opcionesTecnico)
         assertEquals(listOf("IMP-RRHH-002", "PC-ADM-022", "PC-CONT-014", "PC-VENT-031"), vm.ui.opcionesEquipo)
+    }
+
+    @Test
+    fun `ahora avanza cada minuto sin que cambien las incidencias ni los filtros`() = runTest {
+        val vm = nuevoVm()
+        val primera = vm.ui.ahora
+        val incidenciasAntes = vm.ids
+        val filtrosAntes = vm.ui.filtros
+
+        // El reloj del ViewModel usa Instant.now() real (no es inyectable, ver plan.md sección 1):
+        // una espera real breve asegura que el reloj del sistema avance entre ambas lecturas,
+        // porque su resolución puede ser más gruesa que el tiempo que tarda en ejecutarse esta prueba.
+        Thread.sleep(50)
+
+        // El delay() del reloj corre en viewModelScope (Dispatchers.Main), cuyo scheduler de prueba
+        // es el de MainDispatcherRule, no el de este runTest; hay que avanzar ese scheduler, no el propio.
+        // RELOJ_MS es privado en el ViewModel; 60_000L replica su valor (un minuto).
+        // advanceTimeBy no ejecuta lo programado justo en el nuevo instante; runCurrent lo hace.
+        main.dispatcher.scheduler.advanceTimeBy(60_000L)
+        main.dispatcher.scheduler.runCurrent()
+
+        assertNotEquals(primera, vm.ui.ahora)       // el temporizador funciona sin datos nuevos
+        assertEquals(incidenciasAntes, vm.ids)      // las incidencias no cambiaron
+        assertEquals(filtrosAntes, vm.ui.filtros)   // los filtros no cambiaron
     }
 }

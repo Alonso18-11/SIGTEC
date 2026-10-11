@@ -35,6 +35,8 @@ import com.softcorp.sigtec.core.theme.SigtecTheme
 import com.softcorp.sigtec.core.ui.components.EtiquetaEstado
 import com.softcorp.sigtec.core.ui.components.EtiquetaIncidencia
 import com.softcorp.sigtec.feature.incidencias.domain.DetalleIncidencia
+import com.softcorp.sigtec.feature.incidencias.domain.SIN_TECNICO
+import com.softcorp.sigtec.feature.incidencias.domain.codigoParaMostrar
 import java.time.Duration
 import java.time.Instant
 

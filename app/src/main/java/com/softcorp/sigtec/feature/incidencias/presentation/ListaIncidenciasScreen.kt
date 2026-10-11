@@ -29,6 +29,9 @@ import com.softcorp.sigtec.core.theme.Espaciado
 import com.softcorp.sigtec.core.theme.SigtecTheme
 import com.softcorp.sigtec.core.ui.components.AvisoConexion
 import com.softcorp.sigtec.core.ui.components.EtiquetaIncidencia
+import com.softcorp.sigtec.feature.incidencias.domain.FiltrosIncidencias
+import com.softcorp.sigtec.feature.incidencias.domain.SIN_TECNICO
+import com.softcorp.sigtec.feature.incidencias.domain.codigoParaMostrar
 import java.time.Duration
 import java.time.Instant
 
@@ -151,7 +154,7 @@ private fun Filtros(
         modifier = Modifier.horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(Espaciado.s)
     ) {
-        FiltroDesplegable("Estado", f.marca, MarcaSeguimiento.entries, { it.etiqueta() }, alFiltrarMarca)
+        FiltroDesplegable("Marca", f.marca, MarcaSeguimiento.entries, { it.etiqueta() }, alFiltrarMarca)
         FiltroDesplegable("Técnico", f.tecnico, estado.opcionesTecnico, { it }, alFiltrarTecnico)
         FiltroDesplegable("Equipo", f.equipo, estado.opcionesEquipo, { it }, alFiltrarEquipo)
         if (f.activos) {

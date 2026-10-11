@@ -10,13 +10,6 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
-/** «INC-0124», o «Por sincronizar» mientras la sincronización no le asigne número. */
-fun Incidencia.codigoParaMostrar(): String = codigoVisible ?: POR_SINCRONIZAR
-
-const val POR_SINCRONIZAR = "Por sincronizar"
-
-const val SIN_TECNICO = "Sin técnico"
-
 /** Nombre de cada marca en los filtros; coincide con el texto de EtiquetaIncidencia. */
 fun MarcaSeguimiento.etiqueta(): String = when (this) {
     MarcaSeguimiento.SIN_ASIGNAR -> "Sin asignar"

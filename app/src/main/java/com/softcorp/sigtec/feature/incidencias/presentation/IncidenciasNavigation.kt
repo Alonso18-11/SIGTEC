@@ -6,6 +6,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.softcorp.sigtec.core.navigation.Ruta
+import com.softcorp.sigtec.feature.incidencias.domain.POR_SINCRONIZAR
 
 // Mensaje que el registro deja al detalle recién abierto
 private const val CLAVE_AVISO = "aviso"
