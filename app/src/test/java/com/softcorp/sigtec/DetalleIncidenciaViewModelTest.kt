@@ -16,11 +16,13 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import java.time.Instant
 
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class DetalleIncidenciaViewModelTest {
 
     @get:Rule
@@ -111,5 +113,32 @@ class DetalleIncidenciaViewModelTest {
         val estado = nuevoVm(id = "no-existe").estado.value
         assertFalse(estado.cargando)
         assertTrue(estado.noEncontrada)
+    }
+
+    @Test
+    fun `ahora avanza cada minuto sin que cambien el detalle ni los permisos del usuario`() = runTest {
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")
+        val vm = nuevoVm()
+        val primera = vm.estado.value.ahora
+        val detalleAntes = vm.estado.value.detalle            // incluye los movimientos (línea de tiempo)
+        val puedeAsignarAntes = vm.estado.value.puedeAsignar
+        val puedeAtenderAntes = vm.estado.value.puedeAtender   // depende del usuario observado
+
+        // El reloj del ViewModel usa Instant.now() real (no es inyectable, ver plan.md sección 1):
+        // una espera real breve asegura que el reloj del sistema avance entre ambas lecturas,
+        // porque su resolución puede ser más gruesa que el tiempo que tarda en ejecutarse esta prueba.
+        Thread.sleep(50)
+
+        // El delay() del reloj corre en viewModelScope (Dispatchers.Main), cuyo scheduler de prueba
+        // es el de MainDispatcherRule, no el de este runTest; hay que avanzar ese scheduler, no el propio.
+        // RELOJ_MS es privado en el ViewModel; 60_000L replica su valor (un minuto).
+        // advanceTimeBy no ejecuta lo programado justo en el nuevo instante; runCurrent lo hace.
+        main.dispatcher.scheduler.advanceTimeBy(60_000L)
+        main.dispatcher.scheduler.runCurrent()
+
+        assertNotEquals(primera, vm.estado.value.ahora)   // el temporizador funciona sin datos nuevos
+        assertEquals(detalleAntes, vm.estado.value.detalle)
+        assertEquals(puedeAsignarAntes, vm.estado.value.puedeAsignar)
+        assertEquals(puedeAtenderAntes, vm.estado.value.puedeAtender)
     }
 }

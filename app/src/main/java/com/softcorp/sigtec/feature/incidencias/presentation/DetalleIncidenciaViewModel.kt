@@ -9,9 +9,11 @@ import com.softcorp.sigtec.core.domain.usecase.ObservarUsuarioActual
 import com.softcorp.sigtec.feature.incidencias.domain.DetalleIncidencia
 import com.softcorp.sigtec.feature.incidencias.domain.ObservarDetalleIncidencia
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import java.time.Instant
 import javax.inject.Inject
@@ -36,8 +38,16 @@ class DetalleIncidenciaViewModel @Inject constructor(
     // Ruta.DetalleIncidencia guarda su argumento con el nombre de la propiedad
     private val incidenciaId: String = checkNotNull(savedStateHandle[ARG_INCIDENCIA_ID])
 
+    // «Hoy» no debe quedar desactualizado si la pantalla queda abierta mucho tiempo sin cambios de datos
+    private val reloj = flow {
+        while (true) {
+            emit(Instant.now())
+            delay(RELOJ_MS)
+        }
+    }
+
     val estado: StateFlow<DetalleIncidenciaUiState> =
-        combine(observarDetalle(incidenciaId), observarUsuarioActual()) { detalle, usuario ->
+        combine(observarDetalle(incidenciaId), observarUsuarioActual(), reloj) { detalle, usuario, ahora ->
             val incidencia = detalle?.incidencia
             val pendiente = incidencia?.estado == EstadoIncidencia.PENDIENTE
             DetalleIncidenciaUiState(
@@ -52,11 +62,12 @@ class DetalleIncidenciaViewModel @Inject constructor(
                         usuario != null &&
                         usuario.perfil.puede(Permiso.ATENDER_INCIDENCIA) &&
                         incidencia?.tecnicoAsignadoId == usuario.id,
-                ahora = Instant.now()
+                ahora = ahora
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DetalleIncidenciaUiState())
 
     companion object {
         const val ARG_INCIDENCIA_ID = "incidenciaId"
+        private const val RELOJ_MS = 60_000L
     }
 }

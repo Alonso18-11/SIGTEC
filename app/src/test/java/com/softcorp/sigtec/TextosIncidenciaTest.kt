@@ -2,7 +2,7 @@ package com.softcorp.sigtec
 
 import com.softcorp.sigtec.core.domain.model.Incidencia
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
-import com.softcorp.sigtec.feature.incidencias.presentation.codigoParaMostrar
+import com.softcorp.sigtec.feature.incidencias.domain.codigoParaMostrar
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.time.Instant
