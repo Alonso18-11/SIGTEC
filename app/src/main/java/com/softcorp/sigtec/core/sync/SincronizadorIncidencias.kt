@@ -1,8 +1,11 @@
 package com.softcorp.sigtec.core.sync
 
 import android.util.Log
+import androidx.room.withTransaction
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import com.google.firebase.firestore.Source
+import com.softcorp.sigtec.core.database.SigtecDatabase
 import com.softcorp.sigtec.core.database.dao.IncidenciaDao
 import com.softcorp.sigtec.core.database.dao.MovimientoDao
 import com.softcorp.sigtec.core.database.dao.SincronizacionDao
@@ -19,6 +22,7 @@ import javax.inject.Singleton
 @Singleton
 class SincronizadorIncidencias @Inject constructor(
     private val firestore: FirebaseFirestore,
+    private val baseLocal: SigtecDatabase,
     private val incidenciaDao: IncidenciaDao,
     private val movimientoDao: MovimientoDao,
     private val sincronizacionDao: SincronizacionDao
@@ -66,11 +70,45 @@ class SincronizadorIncidencias @Inject constructor(
         throw e
     } catch (e: Exception) {
         Log.w(TAG, "No se pudo subir la incidencia ${local.id}", e)
-        if (esErrorPermanente(e)) {
-            incidenciaDao.marcarNecesitaAtencion(local.id, local.actualizadoEn)
-            true
-        } else {
-            false
+        // Un rechazo permanente ya no se reintenta; uno pasajero sí
+        if (esErrorPermanente(e)) rechazar(local) else false
+    }
+
+    /**
+     * RF-75: marca la incidencia y sus movimientos pendientes juntos, para que ninguno suba,
+     * y deja en el celular la versión del servidor. Devuelve false solo si Room falló.
+     */
+    private suspend fun rechazar(local: IncidenciaEntity): Boolean = try {
+        val marcada = baseLocal.withTransaction {
+            // 0 filas: se editó mientras se subía y queda pendiente con la versión nueva
+            val marcada = incidenciaDao.marcarNecesitaAtencion(local.id, local.actualizadoEn) > 0
+            if (marcada) movimientoDao.marcarNecesitaAtencionDe(local.id)
+            marcada
+        }
+        if (marcada) traerVersionDelServidor(local.id)
+        true
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Log.w(TAG, "No se pudo marcar el rechazo de la incidencia ${local.id}", e)
+        false
+    }
+
+    /** Si falla, no pasa nada: la escucha en tiempo real traerá la misma versión y conserva la marca (RF-79). */
+    private suspend fun traerVersionDelServidor(id: String) {
+        try {
+            val remota = incidencias.document(id).get(Source.SERVER).await().aIncidenciaEntity() ?: return
+            baseLocal.withTransaction {
+                // Solo si sigue rechazada: una edición hecha justo después no se pisa
+                val actual = incidenciaDao.porId(id)
+                if (actual != null && actual.necesitaAtencion && !actual.pendienteSincronizar) {
+                    incidenciaDao.guardar(remota.copy(necesitaAtencion = true))
+                }
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.w(TAG, "No se pudo traer la versión del servidor de la incidencia $id", e)
         }
     }
 

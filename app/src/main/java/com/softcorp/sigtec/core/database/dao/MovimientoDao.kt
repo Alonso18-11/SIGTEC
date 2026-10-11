@@ -44,6 +44,13 @@ interface MovimientoDao {
     """)
     suspend fun marcarNecesitaAtencion(id: String)
 
+    // RF-75, RF-79: los pendientes de una incidencia rechazada ya nunca se suben
+    @Query("""
+        UPDATE movimientos SET pendienteSincronizar = 0, necesitaAtencion = 1
+        WHERE incidenciaId = :incidenciaId AND pendienteSincronizar = 1
+    """)
+    suspend fun marcarNecesitaAtencionDe(incidenciaId: String)
+
     @Query("SELECT COUNT(*) FROM movimientos WHERE necesitaAtencion = 1")
     fun observarNecesitanAtencion(): Flow<Int>
 }

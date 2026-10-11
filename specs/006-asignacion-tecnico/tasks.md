@@ -50,7 +50,7 @@
   RF: — (problema 1)
   Hecho cuando: compila y, con una incidencia que falla al subir, su movimiento sigue pendiente (prueba manual en T15).
 
-- [ ] **T09 · Rechazo permanente: marca, movimientos y versión del servidor 🔶**
+- [x] **T09 · Rechazo permanente: marca, movimientos y versión del servidor 🔶**
   En `subir(local)`, ante un error permanente: en una transacción de Room se marca la incidencia con guarda y, si se marcó, sus movimientos. Luego se lee el documento del servidor y, si existe, se guarda con `necesitaAtencion = true`.
   RF: RF-621 (dependencia)
   Hecho cuando: compila y `SincronizadorIncidencias.kt` no marca una incidencia que se editó mientras subía.

@@ -57,6 +57,22 @@ class MovimientoDaoTest {
         assertEquals(listOf("m-sin-incidencia", "m-subida"), listos)
     }
 
+    @Test
+    fun una_incidencia_rechazada_bloquea_solo_sus_movimientos_pendientes() = runTest {
+        dao.guardar(movimiento("m1", "rechazada"))
+        dao.guardar(movimiento("m2", "rechazada", pendiente = false))
+        dao.guardar(movimiento("m3", "otra"))
+
+        // RF-75, RF-79
+        dao.marcarNecesitaAtencionDe("rechazada")
+
+        val m1 = dao.porId("m1")!!
+        assertEquals(false, m1.pendienteSincronizar)
+        assertEquals(true, m1.necesitaAtencion)
+        assertEquals(false, dao.porId("m2")!!.necesitaAtencion)   // ya estaba en el servidor
+        assertEquals(true, dao.porId("m3")!!.pendienteSincronizar)
+    }
+
     private fun incidencia(id: String, pendiente: Boolean, atencion: Boolean = false) = IncidenciaEntity(
         id = id, numero = 1, codigoEquipo = "PC-CONT-014", descripcion = "No enciende",
         usuarioResponsable = "María Quispe", fechaRegistro = ahora, registradoPorId = "t1",
