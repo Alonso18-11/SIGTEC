@@ -6,5 +6,6 @@ import java.time.Instant
 data class EstadoDatos(
     val enLinea: Boolean,
     val ultimaDescarga: Instant?,
-    val pendientesPorEnviar: Int
+    val pendientesPorEnviar: Int,
+    val necesitanAtencion: Int
 )

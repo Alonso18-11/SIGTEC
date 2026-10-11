@@ -22,6 +22,9 @@ class MonitorConexion @Inject constructor(@ApplicationContext context: Context) 
         conectividad.getNetworkCapabilities(conectividad.activeNetwork)
             ?.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED) == true
 
+    // RF-78: lectura puntual para los lugares que no pueden suscribirse al Flow
+    fun hayConexionAhora(): Boolean = conexionActual()
+
     val hayConexion: Flow<Boolean> = callbackFlow {
         val callback = object : ConnectivityManager.NetworkCallback() {
             override fun onCapabilitiesChanged(red: Network, capacidades: NetworkCapabilities) {

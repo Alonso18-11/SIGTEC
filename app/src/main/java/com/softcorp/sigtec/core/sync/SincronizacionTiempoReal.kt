@@ -20,7 +20,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.withContext
-import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -34,6 +33,7 @@ class SincronizacionTiempoReal @Inject constructor(
     private val catalogoDao: CatalogoDao,
     private val sincronizacionDao: SincronizacionDao,
     private val programador: ProgramadorSincronizacion,
+    private val reloj: Reloj,
     @IoDispatcher private val io: CoroutineDispatcher,
     @ApplicationScope private val scope: CoroutineScope
 ) {
@@ -126,7 +126,7 @@ class SincronizacionTiempoReal @Inject constructor(
 
     private suspend fun registrarDescarga() {
         sincronizacionDao.registrar(
-            SincronizacionEntity(tipoTarea = TAREA_BAJAR, ejecutadaEn = Instant.now(), exitosa = true)
+            SincronizacionEntity(tipoTarea = TAREA_BAJAR, ejecutadaEn = reloj.ahora(), exitosa = true)
         )
         sincronizacionDao.recortar(TAREA_BAJAR)
     }

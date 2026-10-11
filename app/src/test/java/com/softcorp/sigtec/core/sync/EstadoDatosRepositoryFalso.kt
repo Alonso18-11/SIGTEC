@@ -11,11 +11,18 @@ import javax.inject.Singleton
 @Singleton
 class EstadoDatosRepositoryFalso @Inject constructor() : EstadoDatosRepository {
 
-    private val _estado = MutableStateFlow(EstadoDatos(enLinea = true, ultimaDescarga = null, pendientesPorEnviar = 0))
+    private val _estado = MutableStateFlow(
+        EstadoDatos(enLinea = true, ultimaDescarga = null, pendientesPorEnviar = 0, necesitanAtencion = 0)
+    )
     override val estado: Flow<EstadoDatos> = _estado
 
     /** Fija los cambios sin enviar que leerán `EvaluarCierreSesion` y `EvaluarIngresoDeOtraPersona`. */
     fun fijarPendientes(pendientes: Int) {
         _estado.value = _estado.value.copy(pendientesPorEnviar = pendientes)
+    }
+
+    /** HU-05: fija los cambios que necesitan atención (error permanente al subir). */
+    fun fijarNecesitanAtencion(n: Int) {
+        _estado.value = _estado.value.copy(necesitanAtencion = n)
     }
 }

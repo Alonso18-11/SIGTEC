@@ -1,5 +1,6 @@
 package com.softcorp.sigtec.core.ui.components
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CloudUpload
+import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.WifiOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -55,15 +57,11 @@ fun AvisoConexion(modifier: Modifier = Modifier, vm: AvisoConexionViewModel = hi
 
 @Composable
 fun AvisoConexionContenido(estado: EstadoDatos, modifier: Modifier = Modifier) {
-    val pendientes = estado.pendientesPorEnviar
-    val texto = when {
-        !estado.enLinea -> buildString {
-            append("Sin conexión")
-            estado.ultimaDescarga?.let { append(" · mostrando lo descargado a las ${it.horaLocal()}") }
-            if (pendientes > 0) append(" · ${cambios(pendientes)} por enviar")
-        }
-        pendientes > 0 -> "Enviando ${cambios(pendientes)}…"
-        else -> return
+    val texto = textoAviso(estado) ?: return
+    val icono = when {
+        !estado.enLinea -> Icons.Outlined.WifiOff
+        estado.necesitanAtencion > 0 -> Icons.Outlined.ErrorOutline
+        else -> Icons.Outlined.CloudUpload
     }
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -71,17 +69,35 @@ fun AvisoConexionContenido(estado: EstadoDatos, modifier: Modifier = Modifier) {
         modifier = modifier.fillMaxWidth()
     ) {
         Row(Modifier.padding(Espaciado.m), verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                if (!estado.enLinea) Icons.Outlined.WifiOff else Icons.Outlined.CloudUpload,
-                contentDescription = null
-            )
+            Icon(icono, contentDescription = null)
             Spacer(Modifier.width(Espaciado.s))
             Text(texto, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
 
+/**
+ * HU-05 (RF-76, RF-77). Función pura para poder probarla sin Compose.
+ * Orden de prioridad: sin conexión, necesita atención (RF-75), enviando, o nada (no se reserva espacio).
+ */
+internal fun textoAviso(estado: EstadoDatos): String? {
+    val pendientes = estado.pendientesPorEnviar
+    return when {
+        !estado.enLinea -> buildString {
+            append("Sin conexión")
+            estado.ultimaDescarga?.let { append(" · mostrando lo descargado a las ${it.horaLocal()}") }
+            if (pendientes > 0) append(" · ${cambios(pendientes)} por enviar")
+        }
+        estado.necesitanAtencion > 0 -> "${cambios(estado.necesitanAtencion)} ${necesita(estado.necesitanAtencion)} tu atención"
+        pendientes > 0 -> "Enviando ${cambios(pendientes)}…"
+        else -> null
+    }
+}
+
 private fun cambios(n: Int) = if (n == 1) "1 cambio" else "$n cambios"
+
+/** El verbo concuerda con el número de cambios, igual que `textoSePerdera` (HU-01, D-4). */
+private fun necesita(n: Int) = if (n == 1) "necesita" else "necesitan"
 
 private fun Instant.horaLocal(): String =
     DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.systemDefault()).format(this)
@@ -90,7 +106,7 @@ private fun Instant.horaLocal(): String =
 @Composable
 private fun AvisoSinConexionPreview() = SigtecTheme {
     AvisoConexionContenido(
-        EstadoDatos(enLinea = false, ultimaDescarga = Instant.now(), pendientesPorEnviar = 2),
+        EstadoDatos(enLinea = false, ultimaDescarga = Instant.now(), pendientesPorEnviar = 2, necesitanAtencion = 0),
         Modifier.padding(Espaciado.m)
     )
 }
@@ -99,7 +115,25 @@ private fun AvisoSinConexionPreview() = SigtecTheme {
 @Composable
 private fun AvisoEnviandoPreview() = SigtecTheme {
     AvisoConexionContenido(
-        EstadoDatos(enLinea = true, ultimaDescarga = Instant.now(), pendientesPorEnviar = 1),
+        EstadoDatos(enLinea = true, ultimaDescarga = Instant.now(), pendientesPorEnviar = 1, necesitanAtencion = 0),
+        Modifier.padding(Espaciado.m)
+    )
+}
+
+@Preview(name = "Necesita atención", showBackground = true)
+@Composable
+private fun AvisoNecesitaAtencionPreview() = SigtecTheme {
+    AvisoConexionContenido(
+        EstadoDatos(enLinea = true, ultimaDescarga = Instant.now(), pendientesPorEnviar = 0, necesitanAtencion = 2),
+        Modifier.padding(Espaciado.m)
+    )
+}
+
+@Preview(name = "Necesita atención · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun AvisoNecesitaAtencionOscuroPreview() = SigtecTheme {
+    AvisoConexionContenido(
+        EstadoDatos(enLinea = true, ultimaDescarga = Instant.now(), pendientesPorEnviar = 0, necesitanAtencion = 2),
         Modifier.padding(Espaciado.m)
     )
 }

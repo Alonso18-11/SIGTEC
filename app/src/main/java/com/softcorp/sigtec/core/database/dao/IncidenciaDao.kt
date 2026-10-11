@@ -56,4 +56,13 @@ interface IncidenciaDao {
 
     @Query("SELECT COUNT(*) FROM incidencias WHERE pendienteSincronizar = 1")
     fun observarPendientes(): Flow<Int>
+
+    @Query("""
+        UPDATE incidencias SET pendienteSincronizar = 0, necesitaAtencion = 1
+        WHERE id = :id
+    """)
+    suspend fun marcarNecesitaAtencion(id: String)
+
+    @Query("SELECT COUNT(*) FROM incidencias WHERE necesitaAtencion = 1")
+    fun observarNecesitanAtencion(): Flow<Int>
 }

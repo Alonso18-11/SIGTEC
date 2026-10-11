@@ -15,7 +15,9 @@ data class MovimientoEntity(
     val autorNombre: String,
     val fecha: Instant,
     val detalle: String?,
-    val pendienteSincronizar: Boolean
+    val pendienteSincronizar: Boolean,
+    // Firestore lo rechazó de forma permanente (RF-75): deja de reintentarse y espera revisión manual (RF-76)
+    val necesitaAtencion: Boolean = false
 )
 
 fun MovimientoEntity.toDomain() = Movimiento(id, incidenciaId, tipo, autorNombre, fecha, detalle)

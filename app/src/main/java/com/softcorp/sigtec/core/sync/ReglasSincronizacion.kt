@@ -1,5 +1,6 @@
 package com.softcorp.sigtec.core.sync
 
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.softcorp.sigtec.core.database.entity.IncidenciaEntity
 import com.softcorp.sigtec.core.database.entity.MovimientoEntity
 
@@ -19,3 +20,21 @@ internal fun debeReemplazarLocal(local: IncidenciaEntity?, remota: IncidenciaEnt
 /** Los movimientos no se editan: solo se agregan si faltan. */
 internal fun debeGuardarMovimiento(local: MovimientoEntity?): Boolean =
     local == null || !local.pendienteSincronizar
+
+/** Siguiente número del contador `contadores/incidencias` para armar `INC-0124` (RF-69). */
+internal fun siguienteNumero(ultimoActual: Long?): Long = (ultimoActual ?: 0L) + 1
+
+/** Un error permanente no se reintenta: pasa a necesitar atención manual (RF-75). */
+internal fun esErrorPermanente(error: Throwable): Boolean =
+    error is FirebaseFirestoreException && esCodigoPermanente(error.code.name)
+
+/**
+ * La regla trabaja con el nombre del código de Firestore y no con el enum: así se prueba en la JVM
+ * sin inicializar clases de Firebase que dependen de Android (RF-75).
+ */
+internal fun esCodigoPermanente(codigo: String): Boolean = codigo in CODIGOS_PERMANENTES
+
+private val CODIGOS_PERMANENTES = setOf("PERMISSION_DENIED", "FAILED_PRECONDITION", "INVALID_ARGUMENT")
+
+/** No se intenta subir sin una red validada: evita gastar reintentos en vano (RF-78). */
+internal fun debeIntentarSubir(hayConexionValidada: Boolean): Boolean = hayConexionValidada

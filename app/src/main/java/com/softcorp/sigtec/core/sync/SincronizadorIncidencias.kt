@@ -28,7 +28,7 @@ class SincronizadorIncidencias @Inject constructor(
     private val contador get() = firestore.collection("contadores").document("incidencias")
 
     /** Sube todo lo pendiente. Devuelve false si algo debe reintentarse. */
-    suspend fun subirPendientes(): Boolean {
+    suspend fun subirPendientes(ahora: Instant): Boolean {
         var todoBien = true
         for (incidencia in incidenciaDao.pendientesDeSincronizar()) {
             todoBien = subir(incidencia) && todoBien
@@ -37,7 +37,7 @@ class SincronizadorIncidencias @Inject constructor(
             todoBien = subir(movimiento) && todoBien
         }
         sincronizacionDao.registrar(
-            SincronizacionEntity(tipoTarea = TAREA_SUBIR, ejecutadaEn = Instant.now(), exitosa = todoBien)
+            SincronizacionEntity(tipoTarea = TAREA_SUBIR, ejecutadaEn = ahora, exitosa = todoBien)
         )
         sincronizacionDao.recortar(TAREA_SUBIR)
         return todoBien
@@ -65,7 +65,12 @@ class SincronizadorIncidencias @Inject constructor(
         throw e
     } catch (e: Exception) {
         Log.w(TAG, "No se pudo subir la incidencia ${local.id}", e)
-        false
+        if (esErrorPermanente(e)) {
+            incidenciaDao.marcarNecesitaAtencion(local.id)
+            true
+        } else {
+            false
+        }
     }
 
     /**
@@ -80,8 +85,9 @@ class SincronizadorIncidencias @Inject constructor(
             if (existente.exists()) {
                 return@runTransaction existente.getLong("numero")!!.toInt()
             }
-            val numero = (tx.get(contador).getLong("ultimo") ?: 0L).toInt() + 1
-            tx.update(contador, "ultimo", numero)
+            val ultimoActual = tx.get(contador).getLong("ultimo")
+            val numero = siguienteNumero(ultimoActual).toInt()
+            tx.set(contador, mapOf("ultimo" to numero))
             tx.set(documento, local.aFirestore(numero))
             numero
         }.await()
@@ -96,7 +102,12 @@ class SincronizadorIncidencias @Inject constructor(
         throw e
     } catch (e: Exception) {
         Log.w(TAG, "No se pudo subir el movimiento ${movimiento.id}", e)
-        false
+        if (esErrorPermanente(e)) {
+            movimientoDao.marcarNecesitaAtencion(movimiento.id)
+            true
+        } else {
+            false
+        }
     }
 
     private companion object {
