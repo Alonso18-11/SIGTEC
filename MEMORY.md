@@ -22,7 +22,8 @@ Las reglas permanentes van en `CLAUDE.md`, no aquí.
   - HU-03 `specs/003-registro-incidencia`: completa (RF-30 a RF-41).
   - HU-04 `specs/004-lista-detalle-incidencias`: completa (RF-42 a RF-57).
   - HU-05 `specs/005-sincronizacion`: completa (RF-58 a RF-78): contador que se crea si no existe, errores permanentes que piden atención en vez de reintentar, red validada y reloj inyectado.
-  - HU-06 y HU-07 (Nina): pendientes. Bloques RF-601… y RF-701….
+  - HU-06 `specs/006-asignacion-tecnico` (Nina): spec aprobada (RF-601 a RF-625); código en los PR B a F (orden de fusión en el plan, sección 1).
+  - HU-07 (Nina): pendiente. Bloque RF-701….
   - HU-08, HU-09 y HU-10 (Alonso): pendientes. Bloques RF-801…, RF-901… y RF-1001….
 - `firestore.rules` con el `allow create` de `contadores/incidencias` (RF-69) probado en el Rules Playground y publicado (2026-10-11). No borrar el contador en el proyecto real: con incidencias ya numeradas, recrearlo desde 1 duplicaría INC-0001.
 - Clases de Firebase como `FirebaseFirestoreException.Code` no se inicializan en las pruebas JVM: las reglas puras trabajan con el nombre del código (`esCodigoPermanente`). No usar `isReturnDefaultValues` para taparlo.
