@@ -16,9 +16,12 @@ Las reglas permanentes van en `CLAUDE.md`, no aquí.
 
 ## Pendientes conocidos
 - Fotos: cuando exista la HU de captura, ampliar RF-10/RF-11 de `specs/001-inicio-sesion` para borrar también las fotos internas al cambiar de persona (D-7).
-- Specs SDD: HU-01 completa en `specs/001-inicio-sesion` (RF-1 a RF-15, pruebas manuales T20–T23 hechas en emulador); HU-02 completa en `specs/002-ingreso-huella` (RF-16 a RF-29, sin pendientes); HU-03 completa en `specs/003-registro-incidencia` (RF-30 a RF-41, sin pendientes); HU-04 completa en `specs/004-lista-detalle-incidencias` (RF-42 a RF-57: búsqueda y filtros en `domain/FiltrarIncidencias.kt`, lista y detalle con el mismo temporizador de un minuto que el registro); falta HU-05. Sus RF aún no se enlazan con los RF del producto (el documento no está en el repo).
+- Specs SDD completas (sin pendientes propios): HU-01 a HU-04. HU-05 (`specs/005-sincronizacion`) completa tras esta revisión de 5 correcciones: RF-69 (el contador `contadores/incidencias` se crea con `tx.set` si no existía; antes fallaba con `tx.update`), RF-75 (error permanente `PERMISSION_DENIED`/`FAILED_PRECONDITION`/`INVALID_ARGUMENT` al subir a Firestore se marca `necesitaAtencion` en Room y deja de reintentarse; el transitorio sigue reintentando), RF-76/77 (`AvisoConexion.kt` ya tiene un tercer estado "necesita atención"), RF-78 (`SubirCambiosWorker` exige salida a internet validada, no solo "conectada") y el reloj inyectado (`SincronizadorIncidencias`/`SincronizacionTiempoReal` ya no llaman a `Instant.now()`).
+- `firestore.rules` con el `allow create` de `contadores/incidencias` (RF-69) probado en el Rules Playground y publicado (2026-10-11). No borrar el contador en el proyecto real: con incidencias ya numeradas, recrearlo desde 1 duplicaría INC-0001.
+- Clases de Firebase como `FirebaseFirestoreException.Code` no se inicializan en las pruebas JVM: las reglas puras trabajan con el nombre del código (`esCodigoPermanente`). No usar `isReturnDefaultValues` para taparlo.
+- Doble `RelojFalso` (`app/src/test/.../core/sync/RelojFalso.kt`) listo pero sin usar: falta una prueba completa de `SincronizadorIncidencias`/`SincronizacionTiempoReal` que lo aproveche.
+- Room subió de `version = 1` a `version = 2` por `necesitaAtencion` en `IncidenciaEntity`/`MovimientoEntity`.
 - Reemplazar `fallbackToDestructiveMigration` por migraciones reales antes de publicar.
-- Las reglas de Firestore no se probaron en el Rules Playground; validarlas con el flujo real de cada HU.
 - Google Play (urgente): las cuentas personales nuevas necesitan una prueba cerrada con ~12 testers durante 14 días antes de publicar. Crear la cuenta y empezar la prueba al menos 3 semanas antes de la entrega; verificar la regla vigente en Play Console.
 - Issues, milestones y etiquetas de GitHub sin crear.
 
