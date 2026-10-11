@@ -89,6 +89,8 @@ service cloud.firestore {
     // ---------- Numeración INC: solo de uno en uno ----------
     match /contadores/incidencias {
       allow read: if autenticado();
+      // La primera incidencia de todo el proyecto crea el contador; después solo se incrementa de 1 en 1 (RF-69)
+      allow create: if autenticado() && request.resource.data.ultimo == 1;
       allow update: if autenticado()
         && request.resource.data.ultimo == resource.data.ultimo + 1;
     }

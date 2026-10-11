@@ -13,7 +13,7 @@ import com.softcorp.sigtec.core.database.entity.*
         SugerenciaIAEntity::class, TecnicoEntity::class, EquipoEntity::class,
         SincronizacionEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Convertidores::class)

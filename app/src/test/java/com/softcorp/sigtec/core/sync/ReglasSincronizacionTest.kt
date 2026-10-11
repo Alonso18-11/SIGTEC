@@ -4,9 +4,11 @@ import com.softcorp.sigtec.core.database.entity.IncidenciaEntity
 import com.softcorp.sigtec.core.database.entity.MovimientoEntity
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
 import com.softcorp.sigtec.core.domain.model.TipoMovimiento
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.io.IOException
 import java.time.Instant
 
 class ReglasSincronizacionTest {
@@ -54,5 +56,60 @@ class ReglasSincronizacionTest {
         assertTrue(debeGuardarMovimiento(null))
         assertTrue(debeGuardarMovimiento(movimiento(pendiente = false)))
         assertFalse(debeGuardarMovimiento(movimiento(pendiente = true)))
+    }
+
+    @Test
+    fun `sin contador previo el siguiente numero es 1`() {
+        assertEquals(1L, siguienteNumero(null))
+    }
+
+    @Test
+    fun `con contador en 0 el siguiente numero es 1`() {
+        assertEquals(1L, siguienteNumero(0L))
+    }
+
+    @Test
+    fun `con contador en 5 el siguiente numero es 6`() {
+        assertEquals(6L, siguienteNumero(5L))
+    }
+
+    @Test
+    fun `permiso denegado es un error permanente`() {
+        assertTrue(esCodigoPermanente("PERMISSION_DENIED"))
+    }
+
+    @Test
+    fun `precondicion fallida es un error permanente`() {
+        assertTrue(esCodigoPermanente("FAILED_PRECONDITION"))
+    }
+
+    @Test
+    fun `argumento invalido es un error permanente`() {
+        assertTrue(esCodigoPermanente("INVALID_ARGUMENT"))
+    }
+
+    @Test
+    fun `servicio no disponible no es un error permanente`() {
+        assertFalse(esCodigoPermanente("UNAVAILABLE"))
+    }
+
+    @Test
+    fun `tiempo de espera agotado no es un error permanente`() {
+        assertFalse(esCodigoPermanente("DEADLINE_EXCEEDED"))
+    }
+
+    @Test
+    fun `una excepcion que no es de firestore no es un error permanente`() {
+        assertFalse(esErrorPermanente(IOException("sin conexion")))
+    }
+
+    @Test
+    fun `con conexion validada se debe intentar subir`() {
+        assertTrue(debeIntentarSubir(hayConexionValidada = true))
+    }
+
+    @Test
+    fun `sin conexion validada no se debe intentar subir`() {
+        assertFalse(debeIntentarSubir(hayConexionValidada = false))
     }
 }

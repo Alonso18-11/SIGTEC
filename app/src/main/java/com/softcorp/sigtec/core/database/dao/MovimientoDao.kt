@@ -28,4 +28,13 @@ interface MovimientoDao {
 
     @Query("SELECT COUNT(*) FROM movimientos WHERE pendienteSincronizar = 1")
     fun observarPendientes(): Flow<Int>
+
+    @Query("""
+        UPDATE movimientos SET pendienteSincronizar = 0, necesitaAtencion = 1
+        WHERE id = :id
+    """)
+    suspend fun marcarNecesitaAtencion(id: String)
+
+    @Query("SELECT COUNT(*) FROM movimientos WHERE necesitaAtencion = 1")
+    fun observarNecesitanAtencion(): Flow<Int>
 }

@@ -27,7 +27,9 @@ data class IncidenciaEntity(
     val critica: Boolean,
     // Metadatos de sincronización: existen solo aquí, el dominio no los conoce
     val pendienteSincronizar: Boolean,
-    val actualizadoEn: Instant
+    val actualizadoEn: Instant,
+    // Firestore lo rechazó de forma permanente (RF-75): deja de reintentarse y espera revisión manual (RF-76)
+    val necesitaAtencion: Boolean = false
 )
 
 fun IncidenciaEntity.toDomain() = Incidencia(
