@@ -67,6 +67,7 @@ Paquete raíz `com.softcorp.sigtec`. Los paquetes técnicos van en inglés y los
 - **Pruebas:** los dobles de prueba viven en `app/src/test` con el mismo paquete que la clase real. Si una librería se usa en `test` y en `androidTest`, se declara dos veces.
 - **Ramas:** se nombran `tipo/descripcion-corta`, con `tipo` ∈ feat, fix, chore, test, docs, refactor. Ejemplo: `feat/asignacion-tecnico`.
 - **Commits y títulos de PR:** Conventional Commits en español, con la HU al final. Ámbitos: `core, acceso, inicio, incidencias, asignacion, atencion, captura, diccionario, indicadores, ci, firebase`. Ejemplo: `feat(incidencias): registrar con fecha automática (HU-03)`.
+- **Specs (SDD):** cada HU tiene `specs/NNN-nombre/`, con NNN = número de la HU, y la escribe quien tiene la HU antes del código (principio 2 de la constitución). Los RF usan el bloque propio de la HU para que no se repitan números entre specs escritas a la vez: HU-06 → RF-601, RF-602…; HU-10 → RF-1001…. Las HU-01 a HU-05 conservan RF-1 a RF-78. Modelo de formato: `specs/003-registro-incidencia/`.
 
 ## Reglas de dominio / trampas conocidas
 
@@ -93,6 +94,7 @@ Paquete raíz `com.softcorp.sigtec`. Los paquetes técnicos van en inglés y los
 
 - Una HU por rama y por PR. Abre el PR como borrador y márcalo «Ready for review» al terminar. Llena `.github/pull_request_template.md`, incluida la sección «Archivos compartidos que toca».
 - `main` está protegida: requiere 1 aprobación, el CI en verde, la rama al día y conversaciones resueltas, y solo admite squash. Si `main` avanzó, haz `git pull origin main` en tu rama. Si el PR anterior sigue en revisión, crea la siguiente rama desde la tuya (ramas apiladas).
+- Revisión cruzada: cada PR lo aprueba la otra persona del equipo antes de fusionarlo. No se fusiona un PR propio sin esa aprobación ni se usa la excepción del ruleset.
 - Planifica y espera el visto bueno antes de tocar código si el cambio afecta más de un módulo, una entidad de Room, `core/sync`, `firestore.rules`, el modelo de sesión o huella, o algún archivo compartido.
 - Construye de adentro hacia afuera: dominio con sus pruebas, luego repositorio y `@Binds`, después ViewModel y Route + Screen según el prototipo, y al final el reemplazo de `PantallaEnConstruccion` en el `Navigation.kt` del módulo.
 - Haz cambios pequeños y centrados en la HU. No refactorices ni actualices nada «de paso».
@@ -108,6 +110,7 @@ Paquete raíz `com.softcorp.sigtec`. Los paquetes técnicos van en inglés y los
 - Si algo se convierte en una regla permanente, propón moverlo a este `CLAUDE.md` en lugar de dejarlo en la memoria.
 - Nunca guardes datos sensibles: contraseñas de los usuarios de prueba, claves, tokens ni el contenido de `google-services.json`.
 - Edita solo las líneas que cambian, sin reordenar el archivo, para evitar conflictos de merge entre ramas.
+- El estado de las specs va en una línea por HU: cada quien edita solo la de sus HU. Antes de tocar `MEMORY.md`, haz `git pull origin main`; si al fusionar hay conflicto, se conservan las líneas de los dos.
 
 ## Límites
 
