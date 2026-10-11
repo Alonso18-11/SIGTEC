@@ -70,12 +70,12 @@
   RF: — (problema 2)
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*Evaluar*"` pasa.
 
-- [ ] **T13 · `DescartarCambiosRechazados` 🔶**
+- [x] **T13 · `DescartarCambiosRechazados` 🔶**
   Agregar `descartarRechazados()` a `EstadoDatosRepository` (interfaz), a su implementación (transacción de Room de 4.8, punto 5) y al doble falso, más el caso de uso en `core/domain/usecase` y su prueba.
   RF: — (problema 3)
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*DescartarCambiosRechazadosTest"` pasa.
 
-- [ ] **T14 · Aviso con «Entendido» 🔶**
+- [x] **T14 · Aviso con «Entendido» 🔶**
   En `AvisoConexion.kt`: texto «1 cambio no se pudo enviar» / «N cambios no se pudieron enviar», un `TextButton` «Entendido» que llama al caso de uso desde `AvisoConexionViewModel`, casos nuevos en `AvisoConexionTest` y previews en claro y oscuro.
   RF: — (problema 3)
   Hecho cuando: `AvisoConexionTest` pasa y las previews se ven en Android Studio.

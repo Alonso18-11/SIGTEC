@@ -74,4 +74,12 @@ interface IncidenciaDao {
         )
     """)
     fun observarAfectadasPorRechazo(): Flow<Int>
+
+    // RF-80: una rechazada sin número nunca llegó al servidor; se descarta del celular
+    @Query("DELETE FROM incidencias WHERE necesitaAtencion = 1 AND numero IS NULL")
+    suspend fun borrarRechazadasSinNumero()
+
+    // RF-80: las demás ya muestran la versión del servidor; solo queda quitar la marca
+    @Query("UPDATE incidencias SET necesitaAtencion = 0 WHERE necesitaAtencion = 1")
+    suspend fun quitarMarcaDeAtencion()
 }

@@ -10,9 +10,11 @@ import com.softcorp.sigtec.core.database.entity.IncidenciaEntity
 import com.softcorp.sigtec.core.database.entity.MovimientoEntity
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
 import com.softcorp.sigtec.core.domain.model.TipoMovimiento
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -73,8 +75,37 @@ class MovimientoDaoTest {
         assertEquals(true, dao.porId("m3")!!.pendienteSincronizar)
     }
 
-    private fun incidencia(id: String, pendiente: Boolean, atencion: Boolean = false) = IncidenciaEntity(
-        id = id, numero = 1, codigoEquipo = "PC-CONT-014", descripcion = "No enciende",
+    @Test
+    fun entendido_borra_lo_que_nunca_llego_al_servidor_y_desmarca_lo_demas() = runTest {
+        incidencias.guardar(incidencia("nunca-subio", pendiente = false, atencion = true, numero = null))
+        incidencias.guardar(incidencia("con-numero", pendiente = false, atencion = true))
+        incidencias.guardar(incidencia("normal", pendiente = false))
+        dao.guardar(movimiento("m-nunca-subio", "nunca-subio", pendiente = false).copy(necesitaAtencion = true))
+        dao.guardar(movimiento("m-nunca-subio-sin-marca", "nunca-subio"))
+        dao.guardar(movimiento("m-rechazado", "normal", pendiente = false).copy(necesitaAtencion = true))
+        dao.guardar(movimiento("m-normal", "normal", pendiente = false))
+
+        // RF-80, en el mismo orden que EstadoDatosRepositoryImpl.descartarRechazados()
+        dao.borrarRechazados()
+        incidencias.borrarRechazadasSinNumero()
+        incidencias.quitarMarcaDeAtencion()
+
+        assertEquals(null, incidencias.porId("nunca-subio"))
+        assertEquals(false, incidencias.porId("con-numero")!!.necesitaAtencion)
+        assertEquals(null, dao.porId("m-nunca-subio"))
+        assertEquals(null, dao.porId("m-nunca-subio-sin-marca"))
+        assertEquals(null, dao.porId("m-rechazado"))
+        assertNotNull(dao.porId("m-normal"))
+        assertEquals(0, incidencias.observarAfectadasPorRechazo().first())
+    }
+
+    private fun incidencia(
+        id: String,
+        pendiente: Boolean,
+        atencion: Boolean = false,
+        numero: Int? = 1
+    ) = IncidenciaEntity(
+        id = id, numero = numero, codigoEquipo = "PC-CONT-014", descripcion = "No enciende",
         usuarioResponsable = "María Quispe", fechaRegistro = ahora, registradoPorId = "t1",
         registradoPorNombre = "Luis Ramírez", marca = MarcaSeguimiento.ASIGNADA, tipoFalla = null,
         prioridad = null, tecnicoAsignadoId = "t1", tecnicoAsignadoNombre = "Luis Ramírez",
