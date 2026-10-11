@@ -98,3 +98,10 @@
   Commits en Conventional Commits en español con la HU al final, por ejemplo `refactor(incidencias): mover la busqueda y los filtros a domain (HU-04)`, `feat(incidencias): temporizador propio en lista y detalle (HU-04)` y `fix(incidencias): renombrar el chip de marca de seguimiento (HU-04)`, sin línea de coautoría. PR con `.github/pull_request_template.md`; la sección «Archivos compartidos que toca» queda vacía o dice «Ninguno», citando la sección 9 de `plan.md`.
   RF: todos
   Hecho cuando: el PR existe, el CI «compilar-y-probar» está en verde, y la descripción enlaza `specs/004-lista-detalle-incidencias/`.
+
+## Fase 7 — Corrección posterior al PR #15
+
+- [x] **T17 · Renombrar el chip «Marca» a «Etapa»**
+  En `ListaIncidenciasScreen.kt`, cambiar `FiltroDesplegable("Marca", ...)` a `FiltroDesplegable("Etapa", ...)`. Motivo en la sección «Dudas abiertas» de `spec.md` y en la corrección de la sección 3.3 de `plan.md`. Rama `fix/chip-etapa`.
+  RF: RF-44
+  Hecho cuando: `./gradlew assembleDebug testDebugUnitTest lintDebug` pasa, el chip se lee «Etapa» en claro y oscuro en el emulador, y no queda el literal `"Marca"` como título de chip en `app/src`.

@@ -199,6 +199,8 @@ No hay ninguna prueba automatizada que dependa del texto «Estado» (se confirm�
 |---|---|
 | «Seguimiento» en vez de «Marca». | Ambas palabras evitan la confusión con `EstadoIncidencia`; se prefiere «Marca» porque coincide literalmente con el nombre del tipo de dominio `MarcaSeguimiento` ya usado en `CLAUDE.md` y en esta misma spec, lo que facilita relacionar la palabra del chip con la regla de negocio. |
 
+> **Corrección (2026-10-11, T17):** tras fusionar el PR #15 se cambió a **«Etapa»**. «Marca» se confundía con la marca del equipo del catálogo (HU-03) y es un término interno que la persona no ve en ningún otro lugar. Se descartaron «Seguimiento» (correcta, pero larga para un chip junto a «Técnico» y «Equipo») y «Situación» (se parece demasiado a «Estado»).
+
 ## 4. Archivos
 
 Leyenda: ✏️ se modifica · 🆕 se crea. Ningún archivo de esta lista está en «archivos compartidos» de `CLAUDE.md`.

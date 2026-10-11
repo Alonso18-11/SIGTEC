@@ -154,7 +154,7 @@ private fun Filtros(
         modifier = Modifier.horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(Espaciado.s)
     ) {
-        FiltroDesplegable("Marca", f.marca, MarcaSeguimiento.entries, { it.etiqueta() }, alFiltrarMarca)
+        FiltroDesplegable("Etapa", f.marca, MarcaSeguimiento.entries, { it.etiqueta() }, alFiltrarMarca)
         FiltroDesplegable("Técnico", f.tecnico, estado.opcionesTecnico, { it }, alFiltrarTecnico)
         FiltroDesplegable("Equipo", f.equipo, estado.opcionesEquipo, { it }, alFiltrarEquipo)
         if (f.activos) {
