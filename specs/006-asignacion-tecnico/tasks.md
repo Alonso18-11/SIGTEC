@@ -55,7 +55,7 @@
   RF: RF-621 (dependencia)
   Hecho cuando: compila y `SincronizadorIncidencias.kt` no marca una incidencia que se editó mientras subía.
 
-- [ ] **T10 · `atencionAlBajar` y su uso al bajar 🔶**
+- [x] **T10 · `atencionAlBajar` y su uso al bajar 🔶**
   Función pura en `ReglasSincronizacion.kt` con 4 casos en `ReglasSincronizacionTest` (sin local; local con marca; local pendiente que pierde; local ya subido). `guardarIncidencias` la usa y marca los movimientos pendientes del cambio que pierde. `debeReemplazarLocal` no cambia.
   RF: RF-624 (dependencia)
   Hecho cuando: las pruebas pasan y `git diff` no muestra cambios en `debeReemplazarLocal`.

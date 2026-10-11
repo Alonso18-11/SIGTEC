@@ -17,6 +17,17 @@ internal fun debeReemplazarLocal(local: IncidenciaEntity?, remota: IncidenciaEnt
         !local.pendienteSincronizar ||
         remota.actualizadoEn.isAfter(local.actualizadoEn)
 
+/**
+ * RF-79: marca con que queda la incidencia al reemplazarla con la versión remota. Se conserva si ya
+ * estaba rechazada, y se pone si tenía un cambio sin subir que pierde frente a una remota más reciente,
+ * para que ese cambio no se pierda en silencio. No cambia la regla de conflictos (`debeReemplazarLocal`).
+ */
+internal fun atencionAlBajar(local: IncidenciaEntity?, remota: IncidenciaEntity): Boolean =
+    local != null && (
+        local.necesitaAtencion ||
+            (local.pendienteSincronizar && remota.actualizadoEn.isAfter(local.actualizadoEn))
+        )
+
 /** Los movimientos no se editan: solo se agregan si faltan. */
 internal fun debeGuardarMovimiento(local: MovimientoEntity?): Boolean =
     local == null || !local.pendienteSincronizar

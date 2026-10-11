@@ -1,6 +1,7 @@
 package com.softcorp.sigtec.core.sync
 
 import android.util.Log
+import androidx.room.withTransaction
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
@@ -92,8 +93,13 @@ class SincronizacionTiempoReal @Inject constructor(
             val documento = cambio.document
             if (documento.metadata.hasPendingWrites()) continue   // cambio propio aún sin confirmar
             val remota = documento.aIncidenciaEntity() ?: continue
-            if (debeReemplazarLocal(incidenciaDao.porId(remota.id), remota)) {
-                incidenciaDao.guardar(remota)
+            val local = incidenciaDao.porId(remota.id)
+            if (debeReemplazarLocal(local, remota)) {
+                baseLocal.withTransaction {
+                    incidenciaDao.guardar(remota.copy(necesitaAtencion = atencionAlBajar(local, remota)))
+                    // RF-79: si se pierde un cambio sin subir, ningún movimiento de ese intento debe subir
+                    if (local?.pendienteSincronizar == true) movimientoDao.marcarNecesitaAtencionDe(remota.id)
+                }
             }
         }
     }
