@@ -18,6 +18,15 @@ interface MovimientoDao {
     @Query("SELECT * FROM movimientos WHERE pendienteSincronizar = 1")
     suspend fun pendientesDeSincronizar(): List<MovimientoEntity>
 
+    // RF-68: solo los que ya pueden subir, porque su incidencia quedó en el servidor (o no está en el
+    // celular). Así un movimiento nunca llega a Firestore si su incidencia termina rechazada.
+    @Query("""
+        SELECT m.* FROM movimientos m LEFT JOIN incidencias i ON i.id = m.incidenciaId
+        WHERE m.pendienteSincronizar = 1
+          AND (i.id IS NULL OR (i.pendienteSincronizar = 0 AND i.necesitaAtencion = 0))
+    """)
+    suspend fun listosParaSubir(): List<MovimientoEntity>
+
     // --- Sincronización (Alonso, HU-05) ---
 
     @Query("SELECT * FROM movimientos WHERE id = :id")

@@ -33,7 +33,8 @@ class SincronizadorIncidencias @Inject constructor(
         for (incidencia in incidenciaDao.pendientesDeSincronizar()) {
             todoBien = subir(incidencia) && todoBien
         }
-        for (movimiento in movimientoDao.pendientesDeSincronizar()) {
+        // Después de las incidencias: los que esperan a una incidencia que no subió siguen pendientes (RF-68)
+        for (movimiento in movimientoDao.listosParaSubir()) {
             todoBien = subir(movimiento) && todoBien
         }
         sincronizacionDao.registrar(

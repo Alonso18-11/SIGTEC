@@ -45,7 +45,7 @@
   RF: — (problemas 1, 3 y 5)
   Hecho cuando: `./gradlew assembleDebug` compila y `connectedDebugAndroidTest` pasa en un celular.
 
-- [ ] **T08 · Subir los movimientos solo después de su incidencia 🔶**
+- [x] **T08 · Subir los movimientos solo después de su incidencia 🔶**
   `SincronizadorIncidencias.subirPendientes` usa `listosParaSubir()` en vez de `pendientesDeSincronizar()` para los movimientos.
   RF: — (problema 1)
   Hecho cuando: compila y, con una incidencia que falla al subir, su movimiento sigue pendiente (prueba manual en T15).
