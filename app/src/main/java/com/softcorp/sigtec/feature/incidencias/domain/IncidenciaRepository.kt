@@ -16,4 +16,8 @@ interface IncidenciaRepository {
 
     /** Línea de tiempo de la incidencia, del movimiento más reciente al más antiguo. */
     fun observarMovimientos(incidenciaId: String): Flow<List<Movimiento>>
+
+    // RF-41
+    /** True si el código ya existe en el catálogo de equipos sincronizado. */
+    suspend fun existeEquipo(codigo: String): Boolean
 }

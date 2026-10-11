@@ -15,5 +15,6 @@ sealed interface ErrorDominio {
     data object CampoObligatorio : ErrorDominio          // falta un dato requerido del formulario
     data class LimiteAtencionAlcanzado(val tecnicoNombre: String) : ErrorDominio
     data object ConfirmacionRequerida : ErrorDominio
+    data object EquipoNoEncontrado : ErrorDominio        // RF-41
     data class Desconocido(val mensaje: String?) : ErrorDominio
 }

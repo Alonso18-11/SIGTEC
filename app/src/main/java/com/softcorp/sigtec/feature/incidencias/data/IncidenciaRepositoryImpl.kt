@@ -3,6 +3,7 @@ package com.softcorp.sigtec.feature.incidencias.data
 import android.util.Log
 import androidx.room.withTransaction
 import com.softcorp.sigtec.core.database.SigtecDatabase
+import com.softcorp.sigtec.core.database.dao.CatalogoDao
 import com.softcorp.sigtec.core.database.dao.IncidenciaDao
 import com.softcorp.sigtec.core.database.dao.MovimientoDao
 import com.softcorp.sigtec.core.database.entity.toDomain
@@ -29,6 +30,7 @@ class IncidenciaRepositoryImpl @Inject constructor(
     private val db: SigtecDatabase,
     private val incidenciaDao: IncidenciaDao,
     private val movimientoDao: MovimientoDao,
+    private val catalogoDao: CatalogoDao,
     @IoDispatcher private val io: CoroutineDispatcher
 ) : IncidenciaRepository {
 
@@ -63,6 +65,10 @@ class IncidenciaRepositoryImpl @Inject constructor(
         movimientoDao.observarPorIncidencia(incidenciaId)
             .map { lista -> lista.map { it.toDomain() } }
             .flowOn(io)
+
+    // RF-41: true si el código ya existe en el catálogo de equipos sincronizado
+    override suspend fun existeEquipo(codigo: String): Boolean =
+        withContext(io) { catalogoDao.equipoPorCodigo(codigo) != null }
 
     private companion object {
         const val TAG = "IncidenciaRepository"
