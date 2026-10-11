@@ -16,7 +16,14 @@ Las reglas permanentes van en `CLAUDE.md`, no aquí.
 
 ## Pendientes conocidos
 - Fotos: cuando exista la HU de captura, ampliar RF-10/RF-11 de `specs/001-inicio-sesion` para borrar también las fotos internas al cambiar de persona (D-7).
-- Specs SDD completas (sin pendientes propios): HU-01 a HU-04. HU-05 (`specs/005-sincronizacion`) completa tras esta revisión de 5 correcciones: RF-69 (el contador `contadores/incidencias` se crea con `tx.set` si no existía; antes fallaba con `tx.update`), RF-75 (error permanente `PERMISSION_DENIED`/`FAILED_PRECONDITION`/`INVALID_ARGUMENT` al subir a Firestore se marca `necesitaAtencion` en Room y deja de reintentarse; el transitorio sigue reintentando), RF-76/77 (`AvisoConexion.kt` ya tiene un tercer estado "necesita atención"), RF-78 (`SubirCambiosWorker` exige salida a internet validada, no solo "conectada") y el reloj inyectado (`SincronizadorIncidencias`/`SincronizacionTiempoReal` ya no llaman a `Instant.now()`).
+- Specs SDD (una línea por HU; cada quien edita solo la de sus HU):
+  - HU-01 `specs/001-inicio-sesion`: completa (RF-1 a RF-15).
+  - HU-02 `specs/002-ingreso-huella`: completa (RF-16 a RF-29).
+  - HU-03 `specs/003-registro-incidencia`: completa (RF-30 a RF-41).
+  - HU-04 `specs/004-lista-detalle-incidencias`: completa (RF-42 a RF-57).
+  - HU-05 `specs/005-sincronizacion`: completa (RF-58 a RF-78): contador que se crea si no existe, errores permanentes que piden atención en vez de reintentar, red validada y reloj inyectado.
+  - HU-06 y HU-07 (Nina): pendientes. Bloques RF-601… y RF-701….
+  - HU-08, HU-09 y HU-10 (Alonso): pendientes. Bloques RF-801…, RF-901… y RF-1001….
 - `firestore.rules` con el `allow create` de `contadores/incidencias` (RF-69) probado en el Rules Playground y publicado (2026-10-11). No borrar el contador en el proyecto real: con incidencias ya numeradas, recrearlo desde 1 duplicaría INC-0001.
 - Clases de Firebase como `FirebaseFirestoreException.Code` no se inicializan en las pruebas JVM: las reglas puras trabajan con el nombre del código (`esCodigoPermanente`). No usar `isReturnDefaultValues` para taparlo.
 - Doble `RelojFalso` (`app/src/test/.../core/sync/RelojFalso.kt`) listo pero sin usar: falta una prueba completa de `SincronizadorIncidencias`/`SincronizacionTiempoReal` que lo aproveche.
