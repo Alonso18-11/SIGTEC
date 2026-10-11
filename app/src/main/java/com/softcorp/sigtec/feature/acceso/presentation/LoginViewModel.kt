@@ -28,7 +28,9 @@ data class LoginUiState(
     val propietarioHuella: String? = null,      // sin sesión, pero el celular tiene dueño de huella
     val avisoHuella: String? = null,
     // Evento de un solo uso: null = sin diálogo, N = mostrar diálogo con N pendientes del dueño bloqueado. // RF-11
-    val confirmarIngreso: Int? = null
+    val confirmarIngreso: Int? = null,
+    // Evento de un solo uso: null = nada que ofrecer, el id = lanzar la huella una vez. // RF-29
+    val ofrecerHuellaParaId: String? = null
 ) {
     val puedeIngresar: Boolean
         get() = correo.isNotBlank() && contrasena.isNotBlank() && !cargando
@@ -53,6 +55,20 @@ class LoginViewModel @Inject constructor(
             propietarioHuella = if (acceso is EstadoAcceso.SinSesion) prefs.propietarioNombre else null
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LoginUiState())
+
+    init {
+        // RF-29: ofrece la huella solo ante una transición real a Bloqueada, no en cada recomposición del combine.
+        viewModelScope.launch {
+            observarEstadoAcceso()
+                .map { (it as? EstadoAcceso.Bloqueada)?.usuario?.id }
+                .distinctUntilChanged()
+                .collect { idBloqueado ->
+                    if (idBloqueado != null) {
+                        formulario.update { it.copy(ofrecerHuellaParaId = idBloqueado) }
+                    }
+                }
+        }
+    }
 
     fun alCambiarCorreo(valor: String) = formulario.update { it.copy(correo = valor, error = null) }
 
@@ -99,4 +115,6 @@ class LoginViewModel @Inject constructor(
             ResultadoBiometrico.Cancelado -> Unit   // se queda en el acceso: puede reintentar o usar su contraseña
         }
     }
+
+    fun alHuellaOfrecida() = formulario.update { it.copy(ofrecerHuellaParaId = null) }
 }

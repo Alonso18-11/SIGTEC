@@ -61,9 +61,13 @@ fun LoginRoute(vm: LoginViewModel = hiltViewModel()) {
     }
 
     // Al abrir la app o al bloquearla, si el dueño de la huella tiene la sesión guardada,
-    // el diálogo aparece solo (sección 16.2, paso 4)
-    LaunchedEffect(estado.usuarioBloqueado?.id) {
-        if (estado.usuarioBloqueado != null) pedirHuella()
+    // el diálogo aparece solo (sección 16.2, paso 4). La key es el evento de un solo uso
+    // del ViewModel, no el id estático: así no se relanza al recrearse la Activity (RF-29)
+    LaunchedEffect(estado.ofrecerHuellaParaId) {
+        if (estado.ofrecerHuellaParaId != null) {
+            pedirHuella()
+            vm.alHuellaOfrecida()
+        }
     }
 
     LoginScreen(
