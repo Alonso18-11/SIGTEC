@@ -10,6 +10,8 @@ import com.softcorp.sigtec.core.database.entity.toDomain
 import com.softcorp.sigtec.core.database.entity.toEntity
 import com.softcorp.sigtec.core.domain.model.Incidencia
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
+import com.softcorp.sigtec.core.domain.model.Movimiento
+import com.softcorp.sigtec.core.domain.model.TipoMovimiento
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -73,6 +75,29 @@ class IncidenciaDaoTest {
         assertEquals(false, marcada.pendienteSincronizar)
         assertEquals(true, marcada.necesitaAtencion)
     }
+
+    @Test
+    fun los_rechazos_se_cuentan_por_incidencia_afectada() = runTest {
+        val ahora = Instant.parse("2026-10-11T10:00:00Z")
+        val movimientos = db.movimientoDao()
+        dao.guardar(incidencia("a", MarcaSeguimiento.ASIGNADA, ahora).toEntity(true, actualizadoEn = ahora))
+        movimientos.guardar(movimiento("a1", "a"))
+        movimientos.guardar(movimiento("a2", "a"))
+        movimientos.guardar(movimiento("b1", "b"))
+
+        // La incidencia "a" y sus dos movimientos son un solo rechazo; el movimiento suelto de "b", otro
+        dao.marcarNecesitaAtencion("a", ahora)
+        movimientos.marcarNecesitaAtencionDe("a")
+        movimientos.marcarNecesitaAtencion("b1")
+
+        // RF-76 (D-8 de la spec 005)
+        assertEquals(2, dao.observarAfectadasPorRechazo().first())
+    }
+
+    private fun movimiento(id: String, incidenciaId: String) = Movimiento(
+        id = id, incidenciaId = incidenciaId, tipo = TipoMovimiento.ASIGNADA,
+        autorNombre = "Carlos Mendoza", fecha = Instant.parse("2026-10-11T10:00:00Z")
+    ).toEntity(pendienteSincronizar = true)
 
     private fun incidencia(id: String, marca: MarcaSeguimiento, fecha: Instant) = Incidencia(
         id = id, numero = null, codigoEquipo = "PC-CONT-014", descripcion = "No enciende",

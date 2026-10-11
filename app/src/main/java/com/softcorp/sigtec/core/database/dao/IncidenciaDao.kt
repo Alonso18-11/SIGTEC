@@ -64,6 +64,14 @@ interface IncidenciaDao {
     """)
     suspend fun marcarNecesitaAtencion(id: String, actualizadoEn: Instant): Int
 
-    @Query("SELECT COUNT(*) FROM incidencias WHERE necesitaAtencion = 1")
-    fun observarNecesitanAtencion(): Flow<Int>
+    // RF-76: incidencias afectadas por un rechazo, propio o de alguno de sus movimientos;
+    // la unión cuenta una sola vez la incidencia rechazada junto con sus movimientos
+    @Query("""
+        SELECT COUNT(*) FROM (
+            SELECT id FROM incidencias WHERE necesitaAtencion = 1
+            UNION
+            SELECT incidenciaId FROM movimientos WHERE necesitaAtencion = 1
+        )
+    """)
+    fun observarAfectadasPorRechazo(): Flow<Int>
 }

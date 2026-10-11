@@ -23,4 +23,19 @@ class EvaluarCierreSesionTest {
         estadoDatos.fijarPendientes(3)
         assertEquals(DecisionBorrado.Confirmar(3), evaluar())
     }
+
+    @Test
+    fun `sin pendientes pero con un cambio rechazado pide confirmar`() = runTest {
+        // RF-81 (HU-05)
+        estadoDatos.fijarPendientes(0)
+        estadoDatos.fijarNecesitanAtencion(1)
+        assertEquals(DecisionBorrado.Confirmar(1), evaluar())
+    }
+
+    @Test
+    fun `suma los pendientes y los rechazados`() = runTest {
+        estadoDatos.fijarPendientes(2)
+        estadoDatos.fijarNecesitanAtencion(1)
+        assertEquals(DecisionBorrado.Confirmar(3), evaluar())
+    }
 }

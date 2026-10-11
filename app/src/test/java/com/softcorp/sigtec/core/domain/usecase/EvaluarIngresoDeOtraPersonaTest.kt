@@ -55,4 +55,13 @@ class EvaluarIngresoDeOtraPersonaTest {
         estadoDatos.fijarPendientes(2)
         assertEquals(DecisionBorrado.Confirmar(2), evaluar("atorres@softcorp.pe"))
     }
+
+    @Test
+    fun `otra persona con solo un cambio rechazado pide confirmar`() = runTest {
+        // RF-81 (HU-05)
+        luisBloqueado()
+        estadoDatos.fijarPendientes(0)
+        estadoDatos.fijarNecesitanAtencion(1)
+        assertEquals(DecisionBorrado.Confirmar(1), evaluar("atorres@softcorp.pe"))
+    }
 }

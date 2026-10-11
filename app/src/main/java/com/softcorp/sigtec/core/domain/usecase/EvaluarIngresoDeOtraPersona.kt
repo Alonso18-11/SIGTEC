@@ -19,7 +19,8 @@ class EvaluarIngresoDeOtraPersona @Inject constructor(
     suspend operator fun invoke(correoIngresado: String): DecisionBorrado {
         val correoBloqueado = (observarEstadoAcceso().first() as? EstadoAcceso.Bloqueada)?.usuario?.correo
         if (!esOtraPersona(correoBloqueado, correoIngresado)) return DecisionBorrado.SinRiesgo
-        val pendientes = observarEstadoDatos().first().pendientesPorEnviar
-        return evaluarBorrado(pendientes)
+        val estado = observarEstadoDatos().first()
+        // RF-81 (HU-05): lo rechazado también se perdería al borrar
+        return evaluarBorrado(estado.pendientesPorEnviar + estado.necesitanAtencion)
     }
 }

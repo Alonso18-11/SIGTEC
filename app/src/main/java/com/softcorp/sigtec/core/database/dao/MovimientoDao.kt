@@ -50,7 +50,4 @@ interface MovimientoDao {
         WHERE incidenciaId = :incidenciaId AND pendienteSincronizar = 1
     """)
     suspend fun marcarNecesitaAtencionDe(incidenciaId: String)
-
-    @Query("SELECT COUNT(*) FROM movimientos WHERE necesitaAtencion = 1")
-    fun observarNecesitanAtencion(): Flow<Int>
 }

@@ -60,12 +60,12 @@
   RF: RF-624 (dependencia)
   Hecho cuando: las pruebas pasan y `git diff` no muestra cambios en `debeReemplazarLocal`.
 
-- [ ] **T11 · Contar incidencias afectadas en `EstadoDatosRepositoryImpl` 🔶**
+- [x] **T11 · Contar incidencias afectadas en `EstadoDatosRepositoryImpl` 🔶**
   `necesitanAtencion` usa el conteo por incidencia afectada de T07 en vez de sumar filas (reemplaza D-6 de la spec 005).
   RF: — (problema 1)
   Hecho cuando: compila y una incidencia rechazada con 2 movimientos cuenta como 1.
 
-- [ ] **T12 · Contar los rechazos al cerrar sesión o al entrar otra persona ⚠️**
+- [x] **T12 · Contar los rechazos al cerrar sesión o al entrar otra persona ⚠️**
   `EvaluarCierreSesion` y `EvaluarIngresoDeOtraPersona` usan `pendientesPorEnviar + necesitanAtencion`. Agregar un caso a cada prueba con `EstadoDatosRepositoryFalso.fijarNecesitanAtencion(1)` y 0 pendientes, que debe pedir confirmación.
   RF: — (problema 2)
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*Evaluar*"` pasa.

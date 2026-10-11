@@ -11,6 +11,7 @@ class EvaluarCierreSesion @Inject constructor(
 ) {
     suspend operator fun invoke(): DecisionBorrado {
         val estado = observarEstadoDatos().first()
-        return evaluarBorrado(estado.pendientesPorEnviar)
+        // RF-81 (HU-05): lo rechazado también se perdería al borrar
+        return evaluarBorrado(estado.pendientesPorEnviar + estado.necesitanAtencion)
     }
 }
