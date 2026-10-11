@@ -16,7 +16,7 @@ Las reglas permanentes van en `CLAUDE.md`, no aquí.
 
 ## Pendientes conocidos
 - Fotos: cuando exista la HU de captura, ampliar RF-10/RF-11 de `specs/001-inicio-sesion` para borrar también las fotos internas al cambiar de persona (D-7).
-- Specs SDD: HU-01 completa en `specs/001-inicio-sesion` (RF-1 a RF-15, pruebas manuales T20–T23 hechas en emulador); HU-02 completa en `specs/002-ingreso-huella` (RF-16 a RF-29, sin pendientes); faltan HU-03 a HU-05. Sus RF aún no se enlazan con los RF del producto (el documento no está en el repo).
+- Specs SDD: HU-01 completa en `specs/001-inicio-sesion` (RF-1 a RF-15, pruebas manuales T20–T23 hechas en emulador); HU-02 completa en `specs/002-ingreso-huella` (RF-16 a RF-29, sin pendientes); HU-03 completa en `specs/003-registro-incidencia` (RF-30 a RF-41, sin pendientes); faltan HU-04 y HU-05. Sus RF aún no se enlazan con los RF del producto (el documento no está en el repo).
 - Reemplazar `fallbackToDestructiveMigration` por migraciones reales antes de publicar.
 - Las reglas de Firestore no se probaron en el Rules Playground; validarlas con el flujo real de cada HU.
 - Google Play (urgente): las cuentas personales nuevas necesitan una prueba cerrada con ~12 testers durante 14 días antes de publicar. Crear la cuenta y empezar la prueba al menos 3 semanas antes de la entrega; verificar la regla vigente en Play Console.
@@ -28,6 +28,7 @@ Las reglas permanentes van en `CLAUDE.md`, no aquí.
 - Emulador sin internet pero con Wi-Fi: es el DNS (el router da DNS solo IPv6). Abrirlo con `-dns-server 8.8.8.8,1.1.1.1` o fijar DNS privado `dns.google`.
 - Probar «Ingresar de todos modos» con pendientes es difícil: al volver la red, la subida le gana al ingreso.
 - Un `LaunchedEffect` keyed por un valor que no cambia entre recreaciones (rotación, tema) se relanza solo porque la composición se destruye y reconstruye; el evento de un solo uso debe vivir en el `ViewModel`, no en la key del efecto.
+- `core/sync` ya baja `/equipos` (catálogo, solo lectura, sin lógica de conflictos) con el mismo `escuchar(...)` genérico usado para `incidencias`/`movimientos`. Los casos de uso nunca inyectan un DAO directamente: pasan por el repositorio del módulo (`IncidenciaRepository.existeEquipo`, no `CatalogoDao` en `RegistrarIncidencia`).
 
 ## Próximos pasos
 - (por definir)
