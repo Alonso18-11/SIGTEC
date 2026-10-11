@@ -30,12 +30,12 @@
 
 ## PR B — rechazos de sincronización (`fix/sync-rechazos`, desde `main`, HU-05)
 
-- [ ] **T05 · Corregir la spec 005 primero**
+- [x] **T05 · Corregir la spec 005 primero**
   En `specs/005-sincronizacion/`: cambiar RF-68, RF-75 y RF-76, y agregar RF-79 (cambio local que pierde al bajar), RF-80 («Entendido») y RF-81 (contar rechazos al cerrar sesión), según `plan.md` sección 4.8. Actualizar su `plan.md` y `tasks.md`.
   RF: RF-621, RF-624 (dependencia)
   Hecho cuando: la spec 005 describe los 6 puntos de 4.8 y Alonso confirma el texto en el PR.
 
-- [ ] **T06 · `FAILED_PRECONDITION` transitorio 🔶**
+- [x] **T06 · `FAILED_PRECONDITION` transitorio 🔶**
   Sacarlo de `CODIGOS_PERMANENTES` en `core/sync/ReglasSincronizacion.kt` y cambiar su caso en `ReglasSincronizacionTest` a `assertFalse`.
   RF: — (problema 4)
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*ReglasSincronizacionTest"` pasa.
@@ -45,27 +45,27 @@
   RF: — (problemas 1, 3 y 5)
   Hecho cuando: `./gradlew assembleDebug` compila y `connectedDebugAndroidTest` pasa en un celular.
 
-- [ ] **T08 · Subir los movimientos solo después de su incidencia 🔶**
+- [x] **T08 · Subir los movimientos solo después de su incidencia 🔶**
   `SincronizadorIncidencias.subirPendientes` usa `listosParaSubir()` en vez de `pendientesDeSincronizar()` para los movimientos.
   RF: — (problema 1)
   Hecho cuando: compila y, con una incidencia que falla al subir, su movimiento sigue pendiente (prueba manual en T15).
 
-- [ ] **T09 · Rechazo permanente: marca, movimientos y versión del servidor 🔶**
+- [x] **T09 · Rechazo permanente: marca, movimientos y versión del servidor 🔶**
   En `subir(local)`, ante un error permanente: en una transacción de Room se marca la incidencia con guarda y, si se marcó, sus movimientos. Luego se lee el documento del servidor y, si existe, se guarda con `necesitaAtencion = true`.
   RF: RF-621 (dependencia)
   Hecho cuando: compila y `SincronizadorIncidencias.kt` no marca una incidencia que se editó mientras subía.
 
-- [ ] **T10 · `atencionAlBajar` y su uso al bajar 🔶**
+- [x] **T10 · `atencionAlBajar` y su uso al bajar 🔶**
   Función pura en `ReglasSincronizacion.kt` con 4 casos en `ReglasSincronizacionTest` (sin local; local con marca; local pendiente que pierde; local ya subido). `guardarIncidencias` la usa y marca los movimientos pendientes del cambio que pierde. `debeReemplazarLocal` no cambia.
   RF: RF-624 (dependencia)
   Hecho cuando: las pruebas pasan y `git diff` no muestra cambios en `debeReemplazarLocal`.
 
-- [ ] **T11 · Contar incidencias afectadas en `EstadoDatosRepositoryImpl` 🔶**
+- [x] **T11 · Contar incidencias afectadas en `EstadoDatosRepositoryImpl` 🔶**
   `necesitanAtencion` usa el conteo por incidencia afectada de T07 en vez de sumar filas (reemplaza D-6 de la spec 005).
   RF: — (problema 1)
   Hecho cuando: compila y una incidencia rechazada con 2 movimientos cuenta como 1.
 
-- [ ] **T12 · Contar los rechazos al cerrar sesión o al entrar otra persona ⚠️**
+- [x] **T12 · Contar los rechazos al cerrar sesión o al entrar otra persona ⚠️**
   `EvaluarCierreSesion` y `EvaluarIngresoDeOtraPersona` usan `pendientesPorEnviar + necesitanAtencion`. Agregar un caso a cada prueba con `EstadoDatosRepositoryFalso.fijarNecesitanAtencion(1)` y 0 pendientes, que debe pedir confirmación.
   RF: — (problema 2)
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*Evaluar*"` pasa.

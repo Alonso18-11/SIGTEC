@@ -59,6 +59,32 @@ class ReglasSincronizacionTest {
     }
 
     @Test
+    fun `una incidencia nueva que baja no queda marcada`() {
+        assertFalse(atencionAlBajar(null, incidencia(false, antes, "remota")))
+    }
+
+    @Test
+    fun `lo ya sincronizado se reemplaza sin marca`() {
+        assertFalse(atencionAlBajar(incidencia(false, antes, "local"), incidencia(false, despues, "remota")))
+    }
+
+    @Test
+    fun `un cambio local sin subir que pierde frente a una remota mas reciente queda marcado`() {
+        assertTrue(atencionAlBajar(incidencia(true, antes, "local"), incidencia(false, despues, "remota")))
+    }
+
+    @Test
+    fun `un cambio local sin subir no se marca si la remota no es mas reciente`() {
+        assertFalse(atencionAlBajar(incidencia(true, despues, "local"), incidencia(false, antes, "remota")))
+    }
+
+    @Test
+    fun `una incidencia ya rechazada conserva la marca al bajar la version remota`() {
+        val rechazada = incidencia(false, despues, "local").copy(necesitaAtencion = true)
+        assertTrue(atencionAlBajar(rechazada, incidencia(false, antes, "remota")))
+    }
+
+    @Test
     fun `sin contador previo el siguiente numero es 1`() {
         assertEquals(1L, siguienteNumero(null))
     }
@@ -79,8 +105,8 @@ class ReglasSincronizacionTest {
     }
 
     @Test
-    fun `precondicion fallida es un error permanente`() {
-        assertTrue(esCodigoPermanente("FAILED_PRECONDITION"))
+    fun `precondicion fallida no es un error permanente porque en una transaccion se reintenta`() {
+        assertFalse(esCodigoPermanente("FAILED_PRECONDITION"))
     }
 
     @Test
