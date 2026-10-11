@@ -156,10 +156,10 @@
 Las tareas detalladas son T05 a T15 de `specs/006-asignacion-tecnico/tasks.md`. Rama `fix/sync-rechazos`, desde `main`.
 
 - [x] **T23 · Spec, plan y tareas de la segunda revisión** (T05 de la spec 006). RF-68, RF-75 y RF-76 corregidos; RF-79 a RF-81 nuevos; `plan.md` §12.
-- [ ] **T24 · `FAILED_PRECONDITION` transitorio y guarda de `actualizadoEn`** (T06, T07). RF-75.
-- [ ] **T25 · Movimientos solo después de su incidencia** (T07, T08). RF-68.
-- [ ] **T26 · Rechazo permanente: marca, movimientos y versión del servidor** (T09). RF-75.
-- [ ] **T27 · Cambio local que pierde al bajar** (T10). RF-79.
-- [ ] **T28 · Contar rechazos por incidencia y al cerrar sesión** (T11, T12). RF-76, RF-81.
-- [ ] **T29 · «Entendido» en el aviso** (T13, T14). RF-76, RF-80.
+- [x] **T24 · `FAILED_PRECONDITION` transitorio y guarda de `actualizadoEn`** (T06, T07). RF-75.
+- [x] **T25 · Movimientos solo después de su incidencia** (T07, T08). RF-68.
+- [x] **T26 · Rechazo permanente: marca, movimientos y versión del servidor** (T09). RF-75.
+- [x] **T27 · Cambio local que pierde al bajar** (T10). RF-79.
+- [x] **T28 · Contar rechazos por incidencia y al cerrar sesión** (T11, T12). RF-76, RF-81.
+- [x] **T29 · «Entendido» en el aviso** (T13, T14). RF-76, RF-80.
 - [ ] **T30 · Verificación** (T15): `./gradlew assembleDebug testDebugUnitTest lintDebug`, instrumentadas en un celular y prueba manual descrita en el PR.

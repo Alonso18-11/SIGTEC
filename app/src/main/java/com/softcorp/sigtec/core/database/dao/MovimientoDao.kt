@@ -50,4 +50,12 @@ interface MovimientoDao {
         WHERE incidenciaId = :incidenciaId AND pendienteSincronizar = 1
     """)
     suspend fun marcarNecesitaAtencionDe(incidenciaId: String)
+
+    // RF-80: los rechazados nunca llegaron al servidor, y tampoco los de una incidencia
+    // rechazada sin número, que se borra con ellos (se llama antes de borrar esas incidencias)
+    @Query("""
+        DELETE FROM movimientos WHERE necesitaAtencion = 1
+           OR incidenciaId IN (SELECT id FROM incidencias WHERE necesitaAtencion = 1 AND numero IS NULL)
+    """)
+    suspend fun borrarRechazados()
 }

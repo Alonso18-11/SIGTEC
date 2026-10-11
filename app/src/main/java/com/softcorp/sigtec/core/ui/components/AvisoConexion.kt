@@ -14,6 +14,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -24,6 +25,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.softcorp.sigtec.core.domain.model.EstadoDatos
+import com.softcorp.sigtec.core.domain.usecase.DescartarCambiosRechazados
 import com.softcorp.sigtec.core.domain.usecase.ObservarEstadoDatos
 import com.softcorp.sigtec.core.theme.Espaciado
 import com.softcorp.sigtec.core.theme.SigtecTheme
@@ -31,6 +33,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -38,10 +41,16 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AvisoConexionViewModel @Inject constructor(
-    observarEstadoDatos: ObservarEstadoDatos
+    observarEstadoDatos: ObservarEstadoDatos,
+    private val descartarCambiosRechazados: DescartarCambiosRechazados
 ) : ViewModel() {
     val estado: StateFlow<EstadoDatos?> = observarEstadoDatos()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    // RF-80: si Room falla, la marca sigue y el aviso no desaparece; se puede volver a pulsar
+    fun alEntendido() {
+        viewModelScope.launch { descartarCambiosRechazados() }
+    }
 }
 
 /**
@@ -52,11 +61,15 @@ class AvisoConexionViewModel @Inject constructor(
 @Composable
 fun AvisoConexion(modifier: Modifier = Modifier, vm: AvisoConexionViewModel = hiltViewModel()) {
     val estado by vm.estado.collectAsStateWithLifecycle()
-    estado?.let { AvisoConexionContenido(it, modifier) }
+    estado?.let { AvisoConexionContenido(it, modifier, alEntendido = vm::alEntendido) }
 }
 
 @Composable
-fun AvisoConexionContenido(estado: EstadoDatos, modifier: Modifier = Modifier) {
+fun AvisoConexionContenido(
+    estado: EstadoDatos,
+    modifier: Modifier = Modifier,
+    alEntendido: () -> Unit = {}
+) {
     val texto = textoAviso(estado) ?: return
     val icono = when {
         !estado.enLinea -> Icons.Outlined.WifiOff
@@ -71,14 +84,17 @@ fun AvisoConexionContenido(estado: EstadoDatos, modifier: Modifier = Modifier) {
         Row(Modifier.padding(Espaciado.m), verticalAlignment = Alignment.CenterVertically) {
             Icon(icono, contentDescription = null)
             Spacer(Modifier.width(Espaciado.s))
-            Text(texto, style = MaterialTheme.typography.bodyMedium)
+            Text(texto, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+            if (puedeDescartar(estado)) {
+                TextButton(onClick = alEntendido) { Text("Entendido") }
+            }
         }
     }
 }
 
 /**
  * HU-05 (RF-76, RF-77). Función pura para poder probarla sin Compose.
- * Orden de prioridad: sin conexión, necesita atención (RF-75), enviando, o nada (no se reserva espacio).
+ * Orden de prioridad: sin conexión, rechazos (RF-75, RF-79), enviando, o nada (no se reserva espacio).
  */
 internal fun textoAviso(estado: EstadoDatos): String? {
     val pendientes = estado.pendientesPorEnviar
@@ -88,16 +104,22 @@ internal fun textoAviso(estado: EstadoDatos): String? {
             estado.ultimaDescarga?.let { append(" · mostrando lo descargado a las ${it.horaLocal()}") }
             if (pendientes > 0) append(" · ${cambios(pendientes)} por enviar")
         }
-        estado.necesitanAtencion > 0 -> "${cambios(estado.necesitanAtencion)} ${necesita(estado.necesitanAtencion)} tu atención"
+        estado.necesitanAtencion > 0 -> "${cambios(estado.necesitanAtencion)} no se ${pudo(estado.necesitanAtencion)} enviar"
         pendientes > 0 -> "Enviando ${cambios(pendientes)}…"
         else -> null
     }
 }
 
+/**
+ * RF-80: «Entendido» solo acompaña al texto de rechazos. Sin conexión el aviso habla de la
+ * conexión, y un botón que no corresponde al texto confundiría (D-11 de la spec 005).
+ */
+internal fun puedeDescartar(estado: EstadoDatos): Boolean = estado.enLinea && estado.necesitanAtencion > 0
+
 private fun cambios(n: Int) = if (n == 1) "1 cambio" else "$n cambios"
 
 /** El verbo concuerda con el número de cambios, igual que `textoSePerdera` (HU-01, D-4). */
-private fun necesita(n: Int) = if (n == 1) "necesita" else "necesitan"
+private fun pudo(n: Int) = if (n == 1) "pudo" else "pudieron"
 
 private fun Instant.horaLocal(): String =
     DateTimeFormatter.ofPattern("HH:mm").withZone(ZoneId.systemDefault()).format(this)
@@ -120,7 +142,7 @@ private fun AvisoEnviandoPreview() = SigtecTheme {
     )
 }
 
-@Preview(name = "Necesita atención", showBackground = true)
+@Preview(name = "No se pudo enviar", showBackground = true)
 @Composable
 private fun AvisoNecesitaAtencionPreview() = SigtecTheme {
     AvisoConexionContenido(
@@ -129,7 +151,7 @@ private fun AvisoNecesitaAtencionPreview() = SigtecTheme {
     )
 }
 
-@Preview(name = "Necesita atención · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "No se pudo enviar · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun AvisoNecesitaAtencionOscuroPreview() = SigtecTheme {
     AvisoConexionContenido(

@@ -2,6 +2,7 @@ package com.softcorp.sigtec.core.ui.components
 
 import com.softcorp.sigtec.core.domain.model.EstadoDatos
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -34,19 +35,42 @@ class AvisoConexionTest {
     }
 
     @Test
-    fun `con 1 cambio que necesita atencion el verbo va en singular`() {
+    fun `con 1 cambio rechazado el verbo va en singular`() {
         val texto = textoAviso(
             EstadoDatos(enLinea = true, ultimaDescarga = null, pendientesPorEnviar = 0, necesitanAtencion = 1)
         )
-        assertEquals("1 cambio necesita tu atención", texto)
+        assertEquals("1 cambio no se pudo enviar", texto)
     }
 
     @Test
-    fun `con 2 cambios que necesitan atencion el verbo va en plural`() {
+    fun `con 2 cambios rechazados el verbo va en plural`() {
         val texto = textoAviso(
             EstadoDatos(enLinea = true, ultimaDescarga = null, pendientesPorEnviar = 0, necesitanAtencion = 2)
         )
-        assertEquals("2 cambios necesitan tu atención", texto)
+        assertEquals("2 cambios no se pudieron enviar", texto)
+    }
+
+    @Test
+    fun `entendido se ofrece con conexion y algo rechazado`() {
+        // RF-80
+        assertTrue(
+            puedeDescartar(EstadoDatos(enLinea = true, ultimaDescarga = null, pendientesPorEnviar = 1, necesitanAtencion = 1))
+        )
+    }
+
+    @Test
+    fun `entendido no se ofrece sin conexion aunque haya algo rechazado`() {
+        // El texto habla de la conexión: el botón no le correspondería (D-11 de la spec 005)
+        assertFalse(
+            puedeDescartar(EstadoDatos(enLinea = false, ultimaDescarga = null, pendientesPorEnviar = 0, necesitanAtencion = 1))
+        )
+    }
+
+    @Test
+    fun `entendido no se ofrece si no hay nada rechazado`() {
+        assertFalse(
+            puedeDescartar(EstadoDatos(enLinea = true, ultimaDescarga = null, pendientesPorEnviar = 2, necesitanAtencion = 0))
+        )
     }
 
     @Test
