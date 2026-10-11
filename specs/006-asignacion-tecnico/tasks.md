@@ -30,7 +30,7 @@
 
 ## PR B — rechazos de sincronización (`fix/sync-rechazos`, desde `main`, HU-05)
 
-- [ ] **T05 · Corregir la spec 005 primero**
+- [x] **T05 · Corregir la spec 005 primero**
   En `specs/005-sincronizacion/`: cambiar RF-68, RF-75 y RF-76, y agregar RF-79 (cambio local que pierde al bajar), RF-80 («Entendido») y RF-81 (contar rechazos al cerrar sesión), según `plan.md` sección 4.8. Actualizar su `plan.md` y `tasks.md`.
   RF: RF-621, RF-624 (dependencia)
   Hecho cuando: la spec 005 describe los 6 puntos de 4.8 y Alonso confirma el texto en el PR.

@@ -148,3 +148,18 @@
   4. Conectarse a un Wi-Fi sin salida real a internet (o simular con `adb shell cmd connectivity airplane-mode enable` seguido de una red falsa, según lo que permita el dispositivo) y comprobar que el aviso muestra «Sin conexión» y que el trabajo en segundo plano no llega a intentar subir (RF-78). Si el dispositivo de prueba no permite simular esto de forma confiable, documentarlo en el PR como limitación de la prueba manual, igual que ya reconoce `spec.md`.
   Capturas en claro y oscuro de los 3 estados del aviso, en el scratchpad (nunca en el repo), según el punto 6 de «Verificación» de `CLAUDE.md`.
   Resultado (2026-10-11): pasos 1 y 3 verificados. El paso 2 no se hizo en el proyecto real (borrar el contador duplicaría INC-0001); RF-69 quedó cubierto por el Rules Playground (M01) y `siguienteNumero`. El error permanente del paso 3 se provocó con `allow create: if false` temporal en `incidencias`, porque revocar el perfil dispara RF-15 de la HU-01 y borra el pendiente antes de subirlo. El paso 4 (Wi-Fi sin internet) quedó opcional y no se ejecutó.
+
+---
+
+## Fase 8 — Segunda revisión (PR B de la HU-06)
+
+Las tareas detalladas son T05 a T15 de `specs/006-asignacion-tecnico/tasks.md`. Rama `fix/sync-rechazos`, desde `main`.
+
+- [x] **T23 · Spec, plan y tareas de la segunda revisión** (T05 de la spec 006). RF-68, RF-75 y RF-76 corregidos; RF-79 a RF-81 nuevos; `plan.md` §12.
+- [ ] **T24 · `FAILED_PRECONDITION` transitorio y guarda de `actualizadoEn`** (T06, T07). RF-75.
+- [ ] **T25 · Movimientos solo después de su incidencia** (T07, T08). RF-68.
+- [ ] **T26 · Rechazo permanente: marca, movimientos y versión del servidor** (T09). RF-75.
+- [ ] **T27 · Cambio local que pierde al bajar** (T10). RF-79.
+- [ ] **T28 · Contar rechazos por incidencia y al cerrar sesión** (T11, T12). RF-76, RF-81.
+- [ ] **T29 · «Entendido» en el aviso** (T13, T14). RF-76, RF-80.
+- [ ] **T30 · Verificación** (T15): `./gradlew assembleDebug testDebugUnitTest lintDebug`, instrumentadas en un celular y prueba manual descrita en el PR.
