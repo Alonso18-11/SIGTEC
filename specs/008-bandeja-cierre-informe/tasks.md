@@ -346,7 +346,7 @@
 
 ## PR F — verificación de punta a punta y cierre (`docs/hu08-cierre`, apilada sobre E)
 
-- [ ] **T38 · Prueba manual — NO automática: iniciar atención y cerrar con informe**
+- [x] **T38 · Prueba manual — NO automática: iniciar atención y cerrar con informe**
   **Detenerse aquí si no hay celular o emulador.**
   Como el técnico asignado: abrir «Mis tareas», tocar una incidencia Asignada, «Iniciar atención» (pasa a En
   atención y desaparece el botón), «Cerrar con informe» con los cuatro campos, confirmar con huella o PIN/patrón
@@ -356,16 +356,20 @@
   bloqueo de pantalla configurado (o simulando `SIN_SEGURIDAD`) y comprobar que no deja confirmar.
   RF: RF-801–RF-821, RF-827
   Hecho cuando: todo coincide con la spec.
+  > Probado por el usuario el 2026-10-12 en el emulador (Luis): todo coincide con la spec. El primer intento
+  > falló porque los commits de los PR C y D no habían llegado a `main` (el informe no subía y el servidor
+  > rechazaba el cierre sin la resta de carga); se corrigió en el PR #34 y la prueba se repitió completa.
 
-- [ ] **T39 · Prueba manual — NO automática: carga del técnico en la consola al cerrar**
+- [x] **T39 · Prueba manual — NO automática: carga del técnico en la consola al cerrar**
   **Detenerse aquí si no hay celular o emulador.**
   Antes de cerrar, anotar `incidenciasActivas` del técnico en la consola. Cerrar una incidencia (T38) y
   comprobar que bajó 1 en la consola tras sincronizar. Repetir sin conexión (modo avión): cerrar, ver el aviso
   de «1 cambio por enviar», desactivar el modo avión y comprobar que sube y la carga baja igual.
   RF: RF-822, RF-823, RF-824
   Hecho cuando: la carga de la consola coincide con las incidencias pendientes asignadas en ambos casos.
+  > Probado por el usuario el 2026-10-12, con y sin conexión: la carga bajó 1 en la consola en ambos casos.
 
-- [ ] **T40 · Prueba manual — NO automática: conflicto completo de RF-624 (HU-06) y RF-825**
+- [x] **T40 · Prueba manual — NO automática: conflicto completo de RF-624 (HU-06) y RF-825**
   **Detenerse aquí si no hay dos dispositivos y un jefe disponible.**
   Con el técnico anterior sin conexión en un celular: iniciar atención y cerrar con informe (queda pendiente
   de sincronizar). Mientras tanto, el jefe reasigna la misma incidencia a otro técnico desde otro dispositivo
@@ -377,10 +381,14 @@
   RF: RF-624 (HU-06), RF-825, RF-826
   Hecho cuando: ningún movimiento ni informe queda huérfano en la consola y el celular muestra la verdad del
   servidor.
+  > Probado por el usuario el 2026-10-12 con el celular (Luis, sin conexión) y el emulador (jefe): el cierre
+  > se rechazó, la consola no quedó con movimiento `CERRADA` ni informe huérfanos y el celular mostró la
+  > versión reasignada. Con esto queda cerrada también la prueba pendiente de RF-624 (HU-06, T44).
 
-- [ ] **T41 · Cierre: spec, `MEMORY.md` y PR F**
+- [x] **T41 · Cierre: spec, `MEMORY.md` y PR F**
   En `spec.md`, cambiar «Estado: borrador» a «Estado: completa», con la fecha y qué se probó (T38 a T40). En
   `MEMORY.md` (después de `git pull origin main`), actualizar solo la línea de la HU-08: «completa (RF-801 a
   RF-829)». Hacer el commit de `plan.md` (PR F) y abrir el PR con capturas y las pruebas manuales T38 a T40.
   RF: todos
   Hecho cuando: CI en verde, aprobación de la otra persona del equipo, y el PR se fusiona al final.
+  > Spec y `MEMORY.md` actualizados el 2026-10-12 en la rama `docs/hu08-cierre`.
