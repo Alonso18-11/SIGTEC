@@ -9,12 +9,8 @@ import com.softcorp.sigtec.core.ui.components.PantallaEnConstruccion
 
 fun NavGraphBuilder.atencionGraph(navController: NavController) {
     composable<Ruta.MisTareas> {
-        PantallaEnConstruccion(
-            titulo = "Mis tareas",
-            historia = "HU-08",
-            acciones = listOf(
-                "Repuestos" to { navController.navigate(Ruta.EstadoRepuestos) }
-            )
+        MisTareasRoute(
+            alAbrir = { id -> navController.navigate(Ruta.DetalleIncidencia(id)) }
         )
     }
     composable<Ruta.SolicitarRepuesto> { entrada ->
@@ -25,16 +21,10 @@ fun NavGraphBuilder.atencionGraph(navController: NavController) {
             acciones = listOf("Enviar con huella" to { navController.popBackStack() })
         )
     }
-    composable<Ruta.RegistrarInforme> { entrada ->
-        val ruta = entrada.toRoute<Ruta.RegistrarInforme>()
-        PantallaEnConstruccion(
-            titulo = "Informe técnico · ${ruta.incidenciaId}",
-            historia = "HU-08 · HU-14",
-            acciones = listOf(
-                "Dictar notas" to { navController.navigate(Ruta.DictarTexto) },
-                "Abrir asistente" to { navController.navigate(Ruta.Asistente(ruta.incidenciaId)) },
-                "Confirmar cierre con huella" to { navController.popBackStack() }
-            )
+    composable<Ruta.RegistrarInforme> {
+        InformeTecnicoRoute(
+            alVolver = { navController.popBackStack() },
+            alCerrar = { navController.popBackStack() }
         )
     }
     composable<Ruta.EstadoRepuestos> {
