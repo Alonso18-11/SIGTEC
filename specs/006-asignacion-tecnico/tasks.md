@@ -207,7 +207,7 @@
   RF: RF-601–RF-607
   Hecho cuando: compila, las previews se ven en claro y oscuro, y no hay hexadecimales, `fontSize` ni `Dispatchers` en el archivo.
 
-- [ ] **T38 · Conectar la navegación y el aviso 🔶**
+- [x] **T38 · Conectar la navegación y el aviso 🔶**
   `CLAVE_AVISO` pasa a `internal` en `IncidenciasNavigation.kt`. `AsignacionNavigation.kt` reemplaza `PantallaEnConstruccion` por `AsignacionRoute`; al asignar, deja «Asignada a <nombre>» en `previousBackStackEntry` y hace `popBackStack()`.
   RF: RF-617
   Hecho cuando: compila y `AsignacionNavigation.kt` ya no importa `PantallaEnConstruccion`.
