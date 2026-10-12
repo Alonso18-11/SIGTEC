@@ -10,10 +10,11 @@
   RF: —
   Hecho cuando: `git branch --show-current` muestra `docs/hu07-tiempo-real-spec` sobre el `main` que ya incluye la HU-06 (#26).
 
-- [ ] **T02 · Visto bueno de la spec, el plan y las tareas**
+- [x] **T02 · Visto bueno de la spec, el plan y las tareas**
   El usuario revisa la división en PR, las decisiones D-1 a D-10 del plan y las 4 «Dudas abiertas» de la spec; cada cambio va primero a `spec.md`.
   RF: todos
   Hecho cuando: el usuario aprueba o los cambios pedidos ya están escritos, y la spec pasa a «Estado: aprobada».
+  > Aprobado por el usuario el 2026-10-11 (D-1 a D-9 y las 4 dudas resueltas en la spec).
 
 - [ ] **T03 · Commits, `MEMORY.md` y PR A7**
   Solo la línea de la HU-07 en `MEMORY.md` (después de `git pull origin main`). Hacer los 4 commits de `plan.md` (PR A7) sin coautoría, con push tras cada uno, y el PR en borrador con revisión de Alonso, marcado «no fusionar hasta T02».

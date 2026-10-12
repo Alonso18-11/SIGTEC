@@ -1,6 +1,6 @@
 # Spec 007 — Tiempo real y aviso de asignación (HU-07)
 
-> Estado: borrador
+> Estado: aprobada (2026-10-11)
 
 > Spec escrita antes del código (principio 2 de la constitución). Los requisitos usan el bloque propio de la HU-07 (RF-701…). Corresponde al RF-24 del producto: avisar al técnico con una notificación cuando se le asigna una incidencia. Criterio del curso: 3 (Firebase). La HU se entrega en cuatro PR pequeños; la división, los archivos y los commits están en `plan.md`.
 
@@ -67,7 +67,7 @@ Sin Firebase Cloud Messaging: enviar avisos desde un servidor exige Cloud Functi
 
 ## Fuera de alcance
 - Avisar con la app cerrada (revisión periódica cada 15 minutos con WorkManager): es la HU-17.
-- Avisar al jefe de casos demorados u otros eventos: es la HU-18.
+- Avisar al jefe de casos demorados u otros eventos: es la HU-18, que también deberá pedirle el permiso de notificaciones (dependencia anotada en «Dudas abiertas»).
 - Avisar al técnico cuando le quitan una incidencia, o a cualquiera cuando cambia la marca de un caso.
 - Firebase Cloud Messaging o cualquier aviso enviado desde un servidor.
 - Cerrar una incidencia (HU-08): RF-701 se verifica con cualquier cambio que haga otro celular; el cierre real se prueba cuando exista la HU-08.
@@ -80,7 +80,8 @@ Sin Firebase Cloud Messaging: enviar avisos desde un servidor exige Cloud Functi
 - Prueba manual en dos dispositivos (jefe y técnico), cuando el equipo la programe: asignar desde el celular del jefe y ver el aviso en el del técnico; tocarlo y llegar al detalle; con la app bloqueada, desbloquear y llegar al detalle; negar el permiso en Android 13+ y ver que la lista igual se actualiza; cambiar una incidencia desde otro celular y ver que la lista del jefe se actualiza sola.
 
 ## Dudas abiertas
-- [NECESITA ACLARACIÓN] ¿Avisar también al reabrir la app si la asignación ocurrió mientras estaba cerrada (caso límite 2)? La propuesta es sí, porque el cambio se detecta igual al bajar; la alternativa es avisar solo si la app ya estaba abierta en el momento de la asignación, lo que exige distinguir la primera descarga de las siguientes.
-- [NECESITA ACLARACIÓN] ¿Pedir el permiso de notificaciones solo a los técnicos (RF-710)? Cuando la HU-18 avise al jefe de casos demorados, habrá que pedírselo también a él.
-- [NECESITA ACLARACIÓN] La HU-07 figura a nombre de Alonso en el documento de contexto y de Nina en `MEMORY.md`. Como el PR C toca `core/sync`, conviene acordar quién lo implementa y quién lo revisa.
-- [NECESITA ACLARACIÓN] RF-701 con un cierre real necesita la HU-08. Propuesta: verificarlo ahora con cualquier cambio hecho desde otro celular (por ejemplo, una asignación) y repetirlo con el cierre cuando exista la HU-08.
+Ninguna. Resueltas al aprobar la spec (2026-10-11), junto con las decisiones D-1 a D-9 del plan:
+- Avisar al reabrir la app si la asignación ocurrió con la app cerrada: **sí** (caso límite 2). El cambio se detecta igual al bajar y el identificador estable (RF-704) evita duplicados cuando exista la HU-17.
+- Permiso de notificaciones solo para técnicos por ahora (RF-710). **Dependencia para la HU-18:** cuando avise al jefe de casos demorados, deberá pedirle también el permiso (ampliando `debePedirPermisoNotificaciones`).
+- La HU-07 completa la implementa Nina, por asignación de Alonso (también el PR C7, que toca `core/sync`). El documento de contexto externo (`SIGTEC_Contexto_Nina.pdf`, fuera del repo) todavía la pone a nombre de Alonso; en el repo, `MEMORY.md` ya dice Nina.
+- RF-701 se prueba ahora con cualquier cambio hecho desde otro celular (por ejemplo, una asignación) y se repite con el cierre real en la HU-08.
