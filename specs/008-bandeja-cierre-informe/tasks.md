@@ -189,18 +189,18 @@
 
 ## PR D — reglas de Firestore (`feat/reglas-cierre-informe`, apilada sobre C)
 
-- [ ] **T22 · Crear la rama apilada sobre C**
+- [x] **T22 · Crear la rama apilada sobre C**
   RF: —
   Hecho cuando: `git log` muestra los commits de A y C en la rama.
 
-- [ ] **T23 · Reglas de `incidencias` e `informes` ⚠️**
+- [x] **T23 · Reglas de `incidencias` e `informes` ⚠️**
   Aplicar el diff de `plan.md` sección 4.6 a `firebase/firestore.rules`: funciones `marcaAntes()`,
   `marcaDespues()`, `seCierra()`, `cargaRestadaAlCerrar()`; la rama del técnico en `incidencias.update` exige
   la resta cuando `seCierra()`; `informes.create` exige `diagnostico is string && diagnostico.size() > 0`.
   RF: RF-823, RNF trazabilidad
   Hecho cuando: `git diff` solo muestra esas funciones y esas dos condiciones nuevas.
 
-- [ ] **T24 · Rules Playground — a cargo del usuario, no de un agente**
+- [x] **T24 · Rules Playground — a cargo del usuario, no de un agente**
   Probar con usuarios reales: el técnico asignado cierra y resta su propia carga en la misma escritura
   (puede salir «error desconocido» si el Playground no simula `getAfter()`, igual que en la HU-06: se prueba
   desde la app en T39); el técnico cierra sin restar la carga (denegado); crear un informe con `diagnostico`
@@ -208,22 +208,32 @@
   RF: RF-823
   Hecho cuando: los 4 casos dan el resultado esperado (o, si el Playground no puede simularlo, se anota para
   probarse desde la app).
+  > Resultado del usuario: «P6 ok · P1–P5 no simulables: el Playground no reconoce como timestamp el
+  > `confirmadoEn` que construye · P7 (cerrar) no simulable por `getAfter()` · todos se verifican desde la
+  > app en T38 y T39».
 
-- [ ] **T25 · Verificar la carga en la consola — a cargo del usuario**
+- [x] **T25 · Verificar la carga en la consola — a cargo del usuario**
   Antes de publicar, comprobar para cada técnico que `usuarios/{uid}.incidenciasActivas` sigue coincidiendo
   con sus incidencias pendientes asignadas (igual que T24 de la HU-06).
   RF: RF-823
   Hecho cuando: la carga de cada técnico coincide con lo que muestra el filtro por técnico de la lista.
+  > Verificado por el usuario: la carga de cada técnico en la consola coincide con sus incidencias
+  > pendientes asignadas.
 
-- [ ] **T26 · Publicar las reglas — a cargo del usuario o de la otra persona del equipo**
+- [x] **T26 · Publicar las reglas — a cargo del usuario o de la otra persona del equipo**
   Pegar `firebase/firestore.rules` en la consola después de T24 y T25.
   RF: RF-823
   Hecho cuando: la consola muestra la versión publicada con la fecha, anotada en `MEMORY.md`.
+  > Publicado por el usuario: las reglas ya están publicadas en la consola de Firebase.
 
-- [ ] **T27 · Verificación y PR D**
+- [x] **T27 · Verificación y PR D**
   Correr el comando del CI (no toca código de la app, solo reglas). Hacer los 2 commits de `plan.md` (PR D).
   RF: RF-823
   Hecho cuando: CI en verde y aprobación de la otra persona del equipo.
+  > Implementado el 2026-10-12: `./gradlew assembleDebug testDebugUnitTest lintDebug` en verde antes de
+  > commitear. Los 2 commits de `plan.md` se hicieron en local, sin `git push` ni PR en GitHub (decisión
+  > explícita de esta sesión). La aprobación de la otra persona del equipo y el PR en GitHub quedan
+  > pendientes: esta sesión no abre PR.
 
 ## PR E — pantallas (`feat/hu08-pantallas`, apilada sobre B; necesita A y B fusionados)
 
