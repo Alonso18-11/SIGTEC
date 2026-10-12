@@ -197,7 +197,7 @@
   RF: RF-601, RF-605
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*TextosAsignacionTest"` pasa.
 
-- [ ] **T36 · `AsignacionViewModel` con su prueba**
+- [x] **T36 · `AsignacionViewModel` con su prueba**
   `AsignacionUiState` y sus derivados, `alElegir`, `alAsignar` (con `Instant.now()`) y `alNavegarAlDetalle`, más `AsignacionViewModelTest` con los casos de `plan.md` sección 7 (`MainDispatcherRule`, `SesionRepositoryDemo`, `AsignacionRepositoryFalso`).
   RF: RF-605, RF-607, RF-612, RF-616, RF-617
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*AsignacionViewModelTest"` pasa.
