@@ -197,27 +197,27 @@
 
 ## PR F — pantalla y detalle (`feat/asignacion-pantalla`, apilada sobre E; se fusiona después de C y D)
 
-- [ ] **T35 · `TextosAsignacion` y su prueba**
+- [x] **T35 · `TextosAsignacion` y su prueba**
   `iniciales(nombre)`, el texto del botón (asignar o reasignar) y la línea «La incidencia aparecerá en la bandeja de <nombre>», con `TextosAsignacionTest`.
   RF: RF-601, RF-605
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*TextosAsignacionTest"` pasa.
 
-- [ ] **T36 · `AsignacionViewModel` con su prueba**
+- [x] **T36 · `AsignacionViewModel` con su prueba**
   `AsignacionUiState` y sus derivados, `alElegir`, `alAsignar` (con `Instant.now()`) y `alNavegarAlDetalle`, más `AsignacionViewModelTest` con los casos de `plan.md` sección 7 (`MainDispatcherRule`, `SesionRepositoryDemo`, `AsignacionRepositoryFalso`).
   RF: RF-605, RF-607, RF-612, RF-616, RF-617
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*AsignacionViewModelTest"` pasa.
 
-- [ ] **T37 · `AsignacionScreen` según el prototipo 06**
+- [x] **T37 · `AsignacionScreen` según el prototipo 06**
   `AsignacionRoute` (`hiltViewModel()`, `collectAsStateWithLifecycle()`) y `AsignacionScreen` (solo dibuja), según `plan.md` sección 5, con las 4 previews en claro y oscuro dentro de `SigtecTheme`.
   RF: RF-601–RF-607
   Hecho cuando: compila, las previews se ven en claro y oscuro, y no hay hexadecimales, `fontSize` ni `Dispatchers` en el archivo.
 
-- [ ] **T38 · Conectar la navegación y el aviso 🔶**
+- [x] **T38 · Conectar la navegación y el aviso 🔶**
   `CLAVE_AVISO` pasa a `internal` en `IncidenciasNavigation.kt`. `AsignacionNavigation.kt` reemplaza `PantallaEnConstruccion` por `AsignacionRoute`; al asignar, deja «Asignada a <nombre>» en `previousBackStackEntry` y hace `popBackStack()`.
   RF: RF-617
   Hecho cuando: compila y `AsignacionNavigation.kt` ya no importa `PantallaEnConstruccion`.
 
-- [ ] **T39 · «Reasignar técnico» en el detalle 🔶**
+- [x] **T39 · «Reasignar técnico» en el detalle 🔶**
   En `DetalleIncidenciaScreen.kt`, el botón dice «Reasignar técnico» si `tecnicoAsignadoId != null`; se ajusta la preview del jefe.
   RF: RF-605
   Hecho cuando: compila y la preview muestra los dos textos.
@@ -226,31 +226,47 @@
   `./gradlew installDebug`, entrar como `cmendoza`, abrir una incidencia con número y «Asignar técnico». Capturas en el scratchpad (nunca en el repo) en claro y oscuro (`adb shell cmd uimode night yes|no`); revisar `adb logcat *:W`.
   RF: RF-601–RF-607
   Hecho cuando: la pantalla coincide con el prototipo 06 en ambos temas, sin doble margen en la barra superior y sin errores en Logcat.
+  > Pendiente (2026-10-11): por decisión del usuario, por ahora no se hacen pruebas manuales en el emulador.
 
 - [ ] **T41 · Prueba manual — NO automática: asignar y reasignar**
   **Detenerse aquí si no hay celular o emulador.**
   Asignar a un técnico disponible y comprobar el aviso, la marca, el técnico y el movimiento «A <técnico>, por Carlos Mendoza» en el detalle. En la consola, comprobar que la carga del técnico subió 1. Reasignar a otro y comprobar +1 y −1 en la consola, el movimiento «De … a …» y que la marca vuelve a Asignada. Intentar elegir a uno en su límite: no se puede, y se ve el motivo. La reasignación desde Esperando repuesto (RF-625) solo se cubre con pruebas unitarias hasta que la app pueda llegar a esa marca (HU-11).
   RF: RF-603, RF-605, RF-613–RF-617, RF-620, RF-622
   Hecho cuando: todo coincide con la spec y la carga de la consola coincide con el filtro por técnico de la lista.
+  > Pendiente (2026-10-11): por decisión del usuario, por ahora no se hacen pruebas manuales en el emulador.
 
 - [ ] **T42 · Prueba manual — NO automática: sin conexión, sin número y límite en el servidor**
   **Detenerse aquí si no hay celular o emulador.**
   (a) Modo avión: asignar, ver el aviso de cambio por enviar, desactivarlo y verlo subir. (b) Abrir la pantalla con una incidencia «Por sincronizar» y ver el motivo con el botón deshabilitado. (c) Para el límite en el servidor: en la consola, subir la carga de un técnico a su límite sin que baje al celular (modo avión), asignarle y quitar el modo avión. El cambio debe rechazarse, el celular debe mostrar la versión del servidor con el aviso «no se pudo enviar», y el movimiento no debe aparecer en la consola. Al final, dejar la carga como estaba.
   RF: RF-602, RF-607, RF-610, RF-621
   Hecho cuando: los tres casos se comportan como dice la spec.
+  > Pendiente (2026-10-11): por decisión del usuario, por ahora no se hacen pruebas manuales en el emulador.
 
 - [ ] **T43 · Prueba manual — NO automática: llegada al técnico (dos celulares)**
   **Detenerse aquí si no hay dos dispositivos.**
   Con el jefe en un dispositivo y el técnico elegido en otro: tras asignar, en el celular del técnico la incidencia aparece en el filtro por su nombre y su detalle le muestra «Solicitar repuesto» y «Cerrar con informe».
   RF: RF-618
   Hecho cuando: la incidencia llega en segundos sin refrescar nada.
+  > Pendiente (2026-10-11): por decisión del usuario, por ahora no se hacen pruebas manuales en el emulador.
 
 - [ ] **T44 · RF-624 — parte posible antes de la HU-08**
   Confirmar el caso «técnico anterior actualiza tras la reasignación → denegado» del Rules Playground (T23) y que T42 (c) deja el celular con la versión del servidor y sin movimiento huérfano. Anotar en la spec que la prueba completa (con «Iniciar atención») se repite en la HU-08, como se acordó en T03.
   RF: RF-624
   Hecho cuando: la spec dice qué parte de RF-624 quedó probada y cuál pasa a la HU-08.
+  > Pendiente (2026-10-11): por decisión del usuario, por ahora no se hacen pruebas manuales en el emulador.
 
 - [ ] **T45 · Cierre: spec, `MEMORY.md` y PR F**
   En `spec.md`, cambiar «Estado: aprobada» a «Estado: completa», con la nota de RF-624. En `MEMORY.md` (después de `git pull origin main`), actualizar solo la línea de la HU-06: «completa (RF-601 a RF-625)». Hacer los 5 commits de `plan.md` (PR F) y abrir el PR con capturas y las pruebas manuales T40–T44.
   RF: todos
   Hecho cuando: CI en verde, aprobación de Alonso, y el PR se fusiona después de C y D.
+  > Pendiente (2026-10-11): el código está completo en el #26 (con `assembleDebug testDebugUnitTest lintDebug` en verde: 173 pruebas JVM). La spec no pasa a «completa» hasta hacer T40 a T44 y los pasos de consola T23 a T25.
+
+---
+
+## Pendientes de la HU-06 (2026-10-11)
+
+El código de los PR B a F está hecho. Faltan, en este orden:
+
+1. **Consola de Firebase (usuario y Alonso):** T24 (confirmar que la carga de cada técnico coincide con sus incidencias pendientes asignadas), T23 (Rules Playground: los 6 casos de una sola escritura; asignar y reasignar con la carga movida se prueban desde la app) y T25 (publicar `firebase/firestore.rules`). Opcional: borrar el movimiento huérfano `movimientos/153959cf-d90e-4d50-a8b8-898d3f338bb7`.
+2. **Pruebas manuales en el emulador o celular:** T40 (capturas en claro y oscuro con `adb`), T41 (asignar y reasignar, carga en la consola), T42 (sin conexión, sin número y límite en el servidor), T43 (llegada al técnico en dos dispositivos) y T44 (parte de RF-624 posible antes de la HU-08).
+3. **Cierre (T45):** spec en «Estado: completa» y la línea de la HU-06 en `MEMORY.md`.
