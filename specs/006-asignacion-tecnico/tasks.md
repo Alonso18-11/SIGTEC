@@ -202,7 +202,7 @@
   RF: RF-605, RF-607, RF-612, RF-616, RF-617
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*AsignacionViewModelTest"` pasa.
 
-- [ ] **T37 · `AsignacionScreen` según el prototipo 06**
+- [x] **T37 · `AsignacionScreen` según el prototipo 06**
   `AsignacionRoute` (`hiltViewModel()`, `collectAsStateWithLifecycle()`) y `AsignacionScreen` (solo dibuja), según `plan.md` sección 5, con las 4 previews en claro y oscuro dentro de `SigtecTheme`.
   RF: RF-601–RF-607
   Hecho cuando: compila, las previews se ven en claro y oscuro, y no hay hexadecimales, `fontSize` ni `Dispatchers` en el archivo.
