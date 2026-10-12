@@ -22,7 +22,7 @@ Las reglas permanentes van en `CLAUDE.md`, no aquí.
   - HU-03 `specs/003-registro-incidencia`: completa (RF-30 a RF-41).
   - HU-04 `specs/004-lista-detalle-incidencias`: completa (RF-42 a RF-57).
   - HU-05 `specs/005-sincronizacion`: completa (RF-58 a RF-78): contador que se crea si no existe, errores permanentes que piden atención en vez de reintentar, red validada y reloj inyectado.
-  - HU-06 `specs/006-asignacion-tecnico` (Nina): spec aprobada (RF-601 a RF-625); código en `main` (#21 a #25) y la pantalla en el #26. Pendientes: consola (T23 a T25: Rules Playground, verificar carga, publicar reglas) y pruebas manuales (T40 a T44); ver el final de `tasks.md`.
+  - HU-06 `specs/006-asignacion-tecnico` (Nina): completa (RF-601 a RF-625). Reglas publicadas el 2026-10-12 (9:10). El Rules Playground no simula `getAfter()`: los casos que cambian el técnico dan «error desconocido» y se prueban desde la app. «Iniciar atención» de RF-624 se prueba en la HU-08.
   - HU-07 `specs/007-tiempo-real-aviso` (Nina): spec aprobada (RF-701 a RF-713); código en 4 PR (A7 a D7, ver el plan).
   - HU-08, HU-09 y HU-10 (Alonso): pendientes. Bloques RF-801…, RF-901… y RF-1001….
 - `firestore.rules` con el `allow create` de `contadores/incidencias` (RF-69) probado en el Rules Playground y publicado (2026-10-11). No borrar el contador en el proyecto real: con incidencias ya numeradas, recrearlo desde 1 duplicaría INC-0001.

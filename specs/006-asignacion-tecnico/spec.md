@@ -1,6 +1,6 @@
 # Spec 006 — Asignación de trabajo con carga y límite de atención (HU-06)
 
-> Estado: aprobada (2026-10-11)
+> Estado: completa (2026-10-12). Aprobada el 2026-10-11; pruebas de consola y manuales hechas el 2026-10-12 (`tasks.md`, T23 a T45).
 
 > Spec escrita antes del código (principio 2 de la constitución). La HU se entrega en seis PR pequeños (A a F); la división, los archivos y los commits de cada uno están en `plan.md`. Los requisitos usan el bloque propio de la HU-06 (RF-601…). Corresponde a los RF del producto RF-04 (consultar disponibilidad y carga de cada técnico), RF-05 (asignar y reasignar a un técnico disponible) y RF-06 (impedir asignar a quien alcanzó su límite de atención).
 
@@ -92,6 +92,8 @@ Hoy el jefe de Soporte y Sistemas reparte el trabajo sin saber cuántos casos ti
 - `./gradlew assembleDebug testDebugUnitTest lintDebug` en verde en cada PR.
 - Reglas de Firestore probadas en el Rules Playground (asignar, reasignar, exceder el límite, técnico que intenta cambiar el técnico asignado) y publicadas a mano por el usuario, después de verificar en la consola que la carga de cada técnico coincide con sus incidencias pendientes asignadas.
 - Prueba manual en celular, con el jefe y un técnico en dos celulares (o en el emulador y un celular): asignar a un técnico disponible y verlo en el filtro del técnico y en su detalle; intentar asignar a uno en su límite; reasignar y comprobar en la consola que la carga de ambos cambió en 1; asignar sin conexión y verlo subir al volver la señal; abrir la pantalla con una incidencia «Por sincronizar» y comprobar el motivo; capturas en claro y oscuro de la pantalla.
+
+- Verificación final (2026-10-12): reglas publicadas a las 9:10; RF-601 a RF-625 comprobados en el emulador y en un celular real (T40 a T43), y pruebas instrumentadas de Room en verde (11). En el Rules Playground, los casos que cambian el técnico (jefe sin mover la carga y técnico que cambia `tecnicoAsignadoId`) dan «error desconocido» porque la regla usa `getAfter()`, que el Playground no simula; se cubren con la asignación real (T41) y con el rechazo del servidor sobre el límite (T42 c). De RF-624 queda probado el rechazo al técnico anterior en el servidor y que un cambio rechazado no deja movimiento huérfano; el caso completo con «Iniciar atención» se prueba en la HU-08.
 
 ## Dudas abiertas
 Ninguna. Resueltas al aprobar la spec (2026-10-11):

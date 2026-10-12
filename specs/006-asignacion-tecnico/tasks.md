@@ -23,10 +23,11 @@
   Hecho cuando: ninguna duda queda sin respuesta, o la que quede está marcada como no bloqueante con su motivo.
   > Resueltas el 2026-10-11 (spec, «Dudas abiertas»). Esperando repuesto conserva la marca (nuevo RF-625). El cierre de la HU-08 queda como dependencia para Alonso.
 
-- [ ] **T04 · Commits, `MEMORY.md` y PR A en borrador**
+- [x] **T04 · Commits, `MEMORY.md` y PR A en borrador**
   Con `git pull origin main` antes de tocar `MEMORY.md`, separar la línea «HU-06 y HU-07 (Nina)» y dejar la de la HU-06 como «spec aprobada (RF-601 a RF-625); código en los PR B a F». Hacer los 4 commits de `plan.md` (PR A) sin línea de coautoría y abrir el PR en borrador con `.github/pull_request_template.md` («Archivos compartidos que toca: ninguno»), pidiendo revisión a Alonso.
   RF: —
   Hecho cuando: el PR existe con el CI «compilar-y-probar» en verde y Alonso lo aprueba.
+  > Hecho: PR #20 fusionado.
 
 ## PR B — rechazos de sincronización (`fix/sync-rechazos`, desde `main`, HU-05)
 
@@ -81,10 +82,11 @@
   RF: — (problema 3)
   Hecho cuando: `AvisoConexionTest` pasa y las previews se ven en Android Studio.
 
-- [ ] **T15 · Verificación, `MEMORY.md` y PR B**
+- [x] **T15 · Verificación, `MEMORY.md` y PR B**
   Correr el comando del CI. Hacer la prueba manual de la spec 005: rechazo provocado con una regla temporal en la consola, que el usuario pone y quita. Comprobar el aviso, que el movimiento no aparece en la consola, «Entendido» y el aviso al cerrar sesión. Proponer a Alonso el cambio de la línea de la HU-05 en `MEMORY.md`. Hacer los 7 commits de `plan.md` (PR B).
   RF: —
   Hecho cuando: CI en verde, prueba manual descrita en el PR y aprobación de Alonso.
+  > Hecho: PR #21 y #22 fusionados.
 
 ## PR C — bajar los técnicos (`feat/sync-tecnicos`, desde `main` con A)
 
@@ -127,30 +129,34 @@
   RF: RF-622, RF-623
   Hecho cuando: el archivo tiene las funciones de apoyo y el `allow update` nuevo, y `git diff` solo muestra el bloque de `incidencias` y sus funciones.
 
-- [ ] **T23 · Rules Playground — a cargo del usuario, no de un agente**
+- [x] **T23 · Rules Playground — a cargo del usuario, no de un agente**
   Probar con usuarios reales: el jefe asigna con la carga +1 (permitido); asigna sin mover la carga (denegado); reasigna con +1 y −1 (permitido); asigna sobre el límite (denegado por `usuarios`); el técnico asignado actualiza sin cambiar el técnico (permitido); el técnico cambia `tecnicoAsignadoId` (denegado); el técnico anterior actualiza tras la reasignación (denegado, RF-624).
   RF: RF-622, RF-623, RF-624
   Hecho cuando: los 7 casos dan el resultado esperado.
   > 2026-10-11: pendiente, a cargo del usuario y Alonso. Las reglas del PR D (#24) están solo en el repo; la consola las valida al pegarlas, porque en el equipo no hay Firebase CLI.
   > Ojo: el Rules Playground simula **una sola escritura**, así que `getAfter()` no ve el cambio en `/usuarios` que hace la transacción. En el Playground, «asigna con +1» y «reasigna con +1 y −1» salen **denegados aunque las reglas estén bien**: esos dos se prueban desde la app después de publicar (T41). En el Playground se prueban los otros 5: asignar sin mover la carga (denegado), `/usuarios` sobre el límite (denegado), técnico que actualiza sin cambiar el técnico (permitido), técnico que cambia `tecnicoAsignadoId` (denegado) y técnico anterior tras la reasignación (denegado); y además, jefe que actualiza sin cambiar el técnico (permitido).
+  > Resultado (2026-10-12, Alonso): ✅ P2 `usuarios` sobre el límite → denegado; P3 dentro del límite → permitido; P4 jefe cambia `prioridad` sin tocar el técnico → permitido; P5 técnica asignada (Ana) cambia la marca → permitido; P7 técnico anterior (Luis) tras la reasignación → denegado (RF-624). P1 (jefe cambia el técnico sin mover la carga) y P6 (técnica asignada cambia `tecnicoAsignadoId`) dan «error desconocido» en el Playground: al cambiar el técnico la regla evalúa `cargaMovida()`, que usa `getAfter()`, y el Playground no lo simula. Quedan cubiertos por T41 (la asignación real mueve la carga y el servidor la acepta) y T42 (c) (el servidor rechaza la que pasa el límite); RF-623 por P5, P7 y la condición `!cambiaTecnico()` de la regla.
 
-- [ ] **T24 · Verificar la carga en la consola — a cargo del usuario**
+- [x] **T24 · Verificar la carga en la consola — a cargo del usuario**
   Antes de publicar, comprobar para cada técnico que `usuarios/{uid}.incidenciasActivas` coincide con el número de incidencias pendientes (no cerradas) que tiene asignadas en `incidencias`. Nadie asignó a mano, así que se espera que coincidan; si alguna no coincide, corregirla en la consola y anotarlo en el PR.
   RF: RF-622
   Hecho cuando: la carga de cada técnico coincide con lo que muestra el filtro por técnico de la lista.
   > 2026-10-11: revisado en la copia de Room del emulador (sesión del usuario, colección `incidencias` completa): 11 incidencias, todas Sin asignar y con número, ninguna con técnico, así que la carga 0 de los 4 técnicos cuadra. Falta confirmarlo en la consola antes de publicar. Aparte: hay 1 movimiento `REGISTRADA` huérfano en el servidor (incidencia `fb047fae…`, Luis Ramírez, 2026-10-11 09:42), de la prueba manual del #17 previa al PR B; no afecta la carga.
+  > Resultado (2026-10-12): en la consola, la carga de los 4 técnicos era 0 y ninguna incidencia tenía técnico asignado; coincide.
 
-- [ ] **T25 · Publicar las reglas — a cargo del usuario o de Alonso**
+- [x] **T25 · Publicar las reglas — a cargo del usuario o de Alonso**
   Pegar `firebase/firestore.rules` en la consola después de T23 y T24.
   RF: RF-622, RF-623
   Hecho cuando: la consola muestra la versión publicada con la fecha, anotada en `MEMORY.md`.
   > 2026-10-11: sin publicar (decisión del usuario: se coordina con Alonso).
+  > Resultado: reglas publicadas en la consola el 2026-10-12 a las 9:10.
 
-- [ ] **T26 · Verificación y PR D**
+- [x] **T26 · Verificación y PR D**
   Correr el comando del CI. La transacción real no se puede probar todavía, porque sin la pantalla de F no hay forma de asignar desde la app: se prueba en T41 y T42, y así se indica en «Cómo probarlo». Comprobar a mano que registrar y subir una incidencia sigue funcionando igual. Hacer los 4 commits de `plan.md` (PR D).
   RF: RF-620–RF-623
   Hecho cuando: CI en verde y aprobación de Alonso.
   > 2026-10-11: `assembleDebug testDebugUnitTest lintDebug` en verde en local (144 pruebas JVM; lint sin avisos nuevos). La transacción real queda para T41 y T42. Registrar y subir una incidencia nueva no pasa por la transacción de carga (sigue en `crearConNumero`); las ediciones sí, pero hoy la app no tiene ninguna.
+  > Hecho: PR #23 y #24 fusionados.
 
 ## PR E — dominio y datos (`feat/asignacion-dominio`, desde `main` con A)
 
@@ -189,11 +195,12 @@
   RF: RF-613, RF-616
   Hecho cuando: `./gradlew assembleDebug` compila (Hilt resuelve el repositorio).
 
-- [ ] **T34 · Verificación y PR E**
+- [x] **T34 · Verificación y PR E**
   Correr el comando del CI. Hacer los 6 commits de `plan.md` (PR E). El PR no cambia nada visible (la pantalla llega en F): así se indica en «Cómo probarlo».
   RF: RF-602, RF-608–RF-616
   Hecho cuando: CI en verde y aprobación de Alonso.
   > 2026-10-11: `assembleDebug testDebugUnitTest lintDebug` en verde en local (162 pruebas JVM; lint sin avisos nuevos) y `connectedDebugAndroidTest` 11 de 11 en el emulador Pixel_8 (incluye las consultas nuevas de `IncidenciaDaoTest` y `CatalogoDaoTest`).
+  > Hecho: PR #25 fusionado.
 
 ## PR F — pantalla y detalle (`feat/asignacion-pantalla`, apilada sobre E; se fusiona después de C y D)
 
@@ -222,48 +229,54 @@
   RF: RF-605
   Hecho cuando: compila y la preview muestra los dos textos.
 
-- [ ] **T40 · Verificación con `adb` en el emulador o celular**
+- [x] **T40 · Verificación con `adb` en el emulador o celular**
   `./gradlew installDebug`, entrar como `cmendoza`, abrir una incidencia con número y «Asignar técnico». Capturas en el scratchpad (nunca en el repo) en claro y oscuro (`adb shell cmd uimode night yes|no`); revisar `adb logcat *:W`.
   RF: RF-601–RF-607
   Hecho cuando: la pantalla coincide con el prototipo 06 en ambos temas, sin doble margen en la barra superior y sin errores en Logcat.
   > Pendiente (2026-10-11): por decisión del usuario, por ahora no se hacen pruebas manuales en el emulador.
+  > Resultado (2026-10-12, emulador Pixel 8, API 37.1): «Asignar incidencia» de INC-0003 muestra el resumen con la oficina del catálogo (Recursos Humanos), los 4 técnicos por nombre con iniciales, carga y «Disponible», el botón deshabilitado sin elección y, con Luis elegido, «Asignar a Luis Ramírez» y «La incidencia aparecerá en la bandeja de Luis Ramírez». Bien en claro y oscuro, sin doble margen y sin errores en `logcat`.
 
-- [ ] **T41 · Prueba manual — NO automática: asignar y reasignar**
+- [x] **T41 · Prueba manual — NO automática: asignar y reasignar**
   **Detenerse aquí si no hay celular o emulador.**
   Asignar a un técnico disponible y comprobar el aviso, la marca, el técnico y el movimiento «A <técnico>, por Carlos Mendoza» en el detalle. En la consola, comprobar que la carga del técnico subió 1. Reasignar a otro y comprobar +1 y −1 en la consola, el movimiento «De … a …» y que la marca vuelve a Asignada. Intentar elegir a uno en su límite: no se puede, y se ve el motivo. La reasignación desde Esperando repuesto (RF-625) solo se cubre con pruebas unitarias hasta que la app pueda llegar a esa marca (HU-11).
   RF: RF-603, RF-605, RF-613–RF-617, RF-620, RF-622
   Hecho cuando: todo coincide con la spec y la carga de la consola coincide con el filtro por técnico de la lista.
   > Pendiente (2026-10-11): por decisión del usuario, por ahora no se hacen pruebas manuales en el emulador.
+  > Resultado (2026-10-12): asignar INC-0003 a Luis → marca Asignada, técnico y movimiento «A Luis Ramírez, por Carlos Mendoza»; reasignar a Ana → Luis «Asignado ahora», botón «Reasignar a Ana Torres», movimiento «De Luis Ramírez a Ana Torres, por Carlos Mendoza» y aviso «Asignada a Ana Torres». En la consola: Luis 0 → 1 → 0 y Ana 0 → 1, INC-0003 con Ana y `ASIGNADA`, y los movimientos ASIGNADA y REASIGNADA. Con `jsalas` en su límite (4/4), su tarjeta sale con candado y «Alcanzó su límite de atención» y no se puede elegir; después se devolvió a 0.
 
-- [ ] **T42 · Prueba manual — NO automática: sin conexión, sin número y límite en el servidor**
+- [x] **T42 · Prueba manual — NO automática: sin conexión, sin número y límite en el servidor**
   **Detenerse aquí si no hay celular o emulador.**
   (a) Modo avión: asignar, ver el aviso de cambio por enviar, desactivarlo y verlo subir. (b) Abrir la pantalla con una incidencia «Por sincronizar» y ver el motivo con el botón deshabilitado. (c) Para el límite en el servidor: en la consola, subir la carga de un técnico a su límite sin que baje al celular (modo avión), asignarle y quitar el modo avión. El cambio debe rechazarse, el celular debe mostrar la versión del servidor con el aviso «no se pudo enviar», y el movimiento no debe aparecer en la consola. Al final, dejar la carga como estaba.
   RF: RF-602, RF-607, RF-610, RF-621
   Hecho cuando: los tres casos se comportan como dice la spec.
   > Pendiente (2026-10-11): por decisión del usuario, por ahora no se hacen pruebas manuales en el emulador.
+  > Resultado (2026-10-12): (a) en modo avión, INC-0004 asignada a Rosa queda con «Sin conexión · … · 1 cambio por enviar»; al volver la red sube en menos de 4 s y Rosa pasa a 1 en la consola. (b) una incidencia registrada sin conexión muestra «Esta incidencia aún no se sincroniza…» con las tarjetas atenuadas y el botón deshabilitado; con red recibe INC-0012 y el motivo desaparece solo. (c) con el emulador sin red y `jsalas` puesto en 4/4 en la consola, se asigna INC-0012 a Jorge localmente; al volver la red el servidor lo rechaza, INC-0012 vuelve a «Sin asignar / Sin técnico», el aviso dice «1 cambio no se pudo enviar» con «Entendido», al pulsarlo se borra el movimiento rechazado del celular, y en la consola no existe el movimiento «A Jorge Salas»; `jsalas` se devolvió a 0.
 
-- [ ] **T43 · Prueba manual — NO automática: llegada al técnico (dos celulares)**
+- [x] **T43 · Prueba manual — NO automática: llegada al técnico (dos celulares)**
   **Detenerse aquí si no hay dos dispositivos.**
   Con el jefe en un dispositivo y el técnico elegido en otro: tras asignar, en el celular del técnico la incidencia aparece en el filtro por su nombre y su detalle le muestra «Solicitar repuesto» y «Cerrar con informe».
   RF: RF-618
   Hecho cuando: la incidencia llega en segundos sin refrescar nada.
   > Pendiente (2026-10-11): por decisión del usuario, por ahora no se hacen pruebas manuales en el emulador.
+  > Resultado (2026-10-12): jefe en el emulador y técnico (`lramirez`) en un celular real (Xiaomi, Android 14). Al asignar INC-0011 a Luis, en el celular pasó a «Asignada · Luis Ramírez» en segundos sin refrescar, y su detalle muestra «Solicitar repuesto» y «Cerrar con informe».
 
-- [ ] **T44 · RF-624 — parte posible antes de la HU-08**
+- [x] **T44 · RF-624 — parte posible antes de la HU-08**
   Confirmar el caso «técnico anterior actualiza tras la reasignación → denegado» del Rules Playground (T23) y que T42 (c) deja el celular con la versión del servidor y sin movimiento huérfano. Anotar en la spec que la prueba completa (con «Iniciar atención») se repite en la HU-08, como se acordó en T03.
   RF: RF-624
   Hecho cuando: la spec dice qué parte de RF-624 quedó probada y cuál pasa a la HU-08.
   > Pendiente (2026-10-11): por decisión del usuario, por ahora no se hacen pruebas manuales en el emulador.
+  > Resultado: de RF-624 queda probado el rechazo en el servidor al técnico anterior (P7 de T23) y que un cambio rechazado deja la versión del servidor sin movimiento huérfano (T42 c). La prueba completa, con «Iniciar atención», pasa a la HU-08 (anotado en `spec.md`).
 
-- [ ] **T45 · Cierre: spec, `MEMORY.md` y PR F**
+- [x] **T45 · Cierre: spec, `MEMORY.md` y PR F**
   En `spec.md`, cambiar «Estado: aprobada» a «Estado: completa», con la nota de RF-624. En `MEMORY.md` (después de `git pull origin main`), actualizar solo la línea de la HU-06: «completa (RF-601 a RF-625)». Hacer los 5 commits de `plan.md` (PR F) y abrir el PR con capturas y las pruebas manuales T40–T44.
   RF: todos
   Hecho cuando: CI en verde, aprobación de Alonso, y el PR se fusiona después de C y D.
   > Pendiente (2026-10-11): el código está completo en el #26 (con `assembleDebug testDebugUnitTest lintDebug` en verde: 173 pruebas JVM). La spec no pasa a «completa» hasta hacer T40 a T44 y los pasos de consola T23 a T25.
+  > Hecho (2026-10-12): spec en «Estado: completa», línea de la HU-06 en `MEMORY.md` y PR de cierre. Pruebas instrumentadas de Room corridas en el emulador: `CatalogoDaoTest` (3), `IncidenciaDaoTest` (5) y `MovimientoDaoTest` (3), sin fallos.
 
 ---
 
-## Pendientes de la HU-06 (2026-10-11)
+## Pendientes de la HU-06 (2026-10-11) — resueltos el 2026-10-12 (ver T23 a T45)
 
 El código de los PR B a F está hecho. Faltan, en este orden:
 
