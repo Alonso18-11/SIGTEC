@@ -112,7 +112,7 @@
 
 ## PR D — carga del técnico y reglas (`feat/sync-carga-tecnico`, apilada sobre B)
 
-- [ ] **T20 · `cambiosDeCarga` y `cargaValida` 🔶**
+- [x] **T20 · `cambiosDeCarga` y `cargaValida` 🔶**
   Funciones puras en `ReglasSincronizacion.kt` (plan 3.6 y 3.7), con casos en `ReglasSincronizacionTest`: sin cambio, asignar, reasignar, quitar; dentro, en el límite, sobre el límite y bajo 0.
   RF: RF-620, RF-621
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*ReglasSincronizacionTest"` pasa.
