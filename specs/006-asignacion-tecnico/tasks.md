@@ -149,7 +149,7 @@
 
 ## PR E — dominio y datos (`feat/asignacion-dominio`, desde `main` con A)
 
-- [ ] **T27 · Errores de asignación ⚠️**
+- [x] **T27 · Errores de asignación ⚠️**
   `IncidenciaPorSincronizar`, `IncidenciaCerrada` y `YaAsignada(tecnicoNombre)` en `core/domain/Resultado.kt`, con sus textos de la spec en `core/ui/MensajesError.kt`.
   RF: RF-609, RF-610, RF-611
   Hecho cuando: `./gradlew assembleDebug` compila (el `when` exhaustivo de `mensaje()` cierra).

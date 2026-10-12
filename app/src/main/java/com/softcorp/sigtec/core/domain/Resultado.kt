@@ -16,5 +16,8 @@ sealed interface ErrorDominio {
     data class LimiteAtencionAlcanzado(val tecnicoNombre: String) : ErrorDominio
     data object ConfirmacionRequerida : ErrorDominio
     data object EquipoNoEncontrado : ErrorDominio        // RF-41
+    data object IncidenciaCerrada : ErrorDominio         // RF-609: ya no se puede asignar
+    data object IncidenciaPorSincronizar : ErrorDominio  // RF-610: sin número, aún no está en el servidor
+    data class YaAsignada(val tecnicoNombre: String) : ErrorDominio   // RF-611
     data class Desconocido(val mensaje: String?) : ErrorDominio
 }
