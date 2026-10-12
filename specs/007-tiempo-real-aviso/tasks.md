@@ -119,18 +119,22 @@
 
 ## Pruebas manuales (pendientes hasta que el equipo las programe)
 
-- [ ] **T19 · Aviso en otro dispositivo**
+- [x] **T19 · Aviso en otro dispositivo**
   Con el técnico en un emulador o celular y el jefe en otro: asignar desde el jefe y ver «Nueva incidencia asignada» en el técnico en segundos; con el celular bloqueado, ver solo el título (RF-707); reasignar a otro y comprobar que el primero no recibe aviso (RF-705).
   RF: RF-702 a RF-707
+  > Resultado (2026-10-12, emulador como jefe y Xiaomi con Android 14 como Luis): ✅ al asignar llega «Nueva incidencia asignada» con «INC-00XX · equipo · descripción»; con el celular bloqueado solo se ve el título; al reasignar a otra persona, Luis no recibe aviso. Con la pantalla apagada, el aviso estaba al encenderla y la lista se puso al día al abrir la app.
 
-- [ ] **T20 · Permiso en Android 13+**
+- [x] **T20 · Permiso en Android 13+**
   Instalación limpia en Android 13+ con un técnico: aparece el diálogo tras la oferta de huella; al negarlo no hay avisos, pero la lista se actualiza sola (RF-709); con el jefe no aparece (RF-710).
   RF: RF-708 a RF-710
+  > Resultado: ✅ el diálogo del sistema aparece en el técnico (Android 14) y no en el jefe (RF-710); tras «No permitir» no hay avisos, pero la lista se actualiza sola (RF-709).
 
-- [ ] **T21 · Tocar el aviso**
+- [x] **T21 · Tocar el aviso**
   Con la app abierta en otra pantalla, cerrada y bloqueada: llega al detalle (tras desbloquear si estaba bloqueada) y «Volver» se comporta como dice RF-711; tras cerrar sesión y entrar otra persona, no abre el detalle (RF-713).
   RF: RF-711 a RF-713
+  > Resultado: ✅ con la app abierta en otra pantalla y con la app cerrada, tocar el aviso abre el detalle y «Volver» se comporta como dice RF-711. Con la sesión bloqueada y la app ya en la pantalla de desbloqueo, el toque no relanza la huella; al desbloquear con huella o contraseña sí abre el detalle (documentado en RF-712, opción elegida por Alonso). Una vez, INC-0006 tardó en aparecer asignada en el técnico por un corte momentáneo de conexión: la base local se puso al día sola al volver la red.
 
-- [ ] **T22 · Tiempo real en la lista del jefe**
+- [x] **T22 · Tiempo real en la lista del jefe**
   Con la lista abierta en el celular del jefe, cambiar una incidencia desde otro celular (asignarla ahora; cerrarla cuando exista la HU-08) y ver que se actualiza sola.
   RF: RF-701
+  > Resultado: ✅ con la lista abierta en el emulador del jefe, los cambios hechos al asignar y reasignar aparecen solos.

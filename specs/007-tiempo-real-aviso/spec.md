@@ -1,6 +1,6 @@
 # Spec 007 — Tiempo real y aviso de asignación (HU-07)
 
-> Estado: aprobada (2026-10-11)
+> Estado: completa (2026-10-12). Aprobada el 2026-10-11; implementada y probada en un emulador (jefe) y un celular real con Android 14 (técnico).
 
 > Spec escrita antes del código (principio 2 de la constitución). Los requisitos usan el bloque propio de la HU-07 (RF-701…). Corresponde al RF-24 del producto: avisar al técnico con una notificación cuando se le asigna una incidencia. Criterio del curso: 3 (Firebase). La HU se entrega en cuatro PR pequeños; la división, los archivos y los commits están en `plan.md`.
 
@@ -41,7 +41,7 @@ Sin Firebase Cloud Messaging: enviar avisos desde un servidor exige Cloud Functi
 
 ### Abrir el detalle desde el aviso
 - RF-711: CUANDO la persona toca la notificación, EL SISTEMA abre la app (o la trae al frente si ya estaba abierta) en el detalle de esa incidencia, y quita la notificación. «Volver» desde el detalle lleva a la pantalla en la que estaba, o a Inicio si la app estaba cerrada.
-- RF-712: SI la sesión está bloqueada cuando se toca la notificación, ENTONCES EL SISTEMA muestra primero el desbloqueo (HU-02) y, al desbloquear, abre el detalle.
+- RF-712: SI la sesión está bloqueada cuando se toca la notificación, ENTONCES EL SISTEMA muestra primero el desbloqueo (HU-02) y, al desbloquear, abre el detalle. Si la app ya estaba abierta en la pantalla de desbloqueo, el toque no relanza el diálogo de huella (RF-29 de la HU-02 solo lo lanza al pasar a bloqueada): la persona pulsa «Ingresar con huella» o escribe su contraseña y llega al detalle. (Decisión de Alonso, 2026-10-12.)
 - RF-713: SI cuando se toca la notificación no hay sesión, ENTONCES EL SISTEMA abre la app en el inicio de sesión y guarda el aviso. Si después entra la misma persona que lo recibió, abre el detalle; si entra otra, lo descarta. SI la sesión ya abierta es de otra persona, ENTONCES abre la app normalmente, sin mostrar el detalle. (Guardar el aviso también cubre el instante en que la app arranca y todavía no sabe si hay sesión.)
 
 ## Requisitos no funcionales
@@ -64,6 +64,8 @@ Sin Firebase Cloud Messaging: enviar avisos desde un servidor exige Cloud Functi
 - La app estaba cerrada del todo: arranca, confirma la sesión, pasa por Inicio y abre el detalle; «Volver» lleva a Inicio (RF-711).
 - Es el primer ingreso y aparece la oferta de huella (HU-02): el permiso de notificaciones se pide después de responderla, para no mostrar dos diálogos juntos (RF-708).
 - El celular está bloqueado con huella: primero el desbloqueo y luego el detalle (RF-712).
+- La app ya está en la pantalla de desbloqueo cuando se toca el aviso: no aparece el diálogo de huella por sí solo; al desbloquear se abre el detalle (RF-712).
+- La conexión se corta un momento justo cuando llega la asignación: el aviso y la lista se ponen al día al volver la red, porque la escucha de Firestore se reconecta sola (visto en la prueba manual con INC-0006).
 
 ## Fuera de alcance
 - Avisar con la app cerrada (revisión periódica cada 15 minutos con WorkManager): es la HU-17.
