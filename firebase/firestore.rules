@@ -22,6 +22,11 @@ service cloud.firestore {
     function tecnicoDespues() { return request.resource.data.get('tecnicoAsignadoId', null); }
     function cambiaTecnico()  { return tecnicoDespues() != tecnicoAntes(); }
 
+    // Marca de la incidencia antes y después de un cambio, y si ese cambio la cierra (RF-823, HU-08)
+    function marcaAntes()    { return resource.data.marca; }
+    function marcaDespues()  { return request.resource.data.marca; }
+    function seCierra() { return marcaAntes() != 'CERRADA' && marcaDespues() == 'CERRADA'; }
+
     // Carga de un técnico antes y después de la escritura (getAfter ve la transacción completa)
     function cargaDe(uid) {
       return get(/databases/$(database)/documents/usuarios/$(uid)).data.incidenciasActivas;
@@ -34,6 +39,11 @@ service cloud.firestore {
     function cargaMovida() {
       return (tecnicoDespues() == null || cargaDespuesDe(tecnicoDespues()) == cargaDe(tecnicoDespues()) + 1)
         && (tecnicoAntes() == null || cargaDespuesDe(tecnicoAntes()) == cargaDe(tecnicoAntes()) - 1);
+    }
+
+    // RF-823 (HU-08): el técnico que cierra resta 1 a su propia carga en la misma escritura
+    function cargaRestadaAlCerrar() {
+      return cargaDespuesDe(request.auth.uid) == cargaDe(request.auth.uid) - 1;
     }
 
     // ---------- Usuarios ----------
@@ -59,8 +69,10 @@ service cloud.firestore {
       // Cambiar de técnico mueve la carga de los dos en la misma escritura: con la regla de
       // /usuarios (carga entre 0 y el límite) es RF-06 en el servidor (RF-622). Una cerrada no se reasigna.
       // El técnico asignado no puede cambiar quién es el técnico asignado (RF-623).
+      // Al cerrar, el técnico asignado debe restar 1 a su propia carga en la misma escritura (RF-823, HU-08).
       allow update: if (esJefe() && (!cambiaTecnico() || (resource.data.marca != 'CERRADA' && cargaMovida())))
-        || (esTecnico() && tecnicoAntes() == request.auth.uid && !cambiaTecnico());
+        || (esTecnico() && tecnicoAntes() == request.auth.uid && !cambiaTecnico()
+            && (!seCierra() || cargaRestadaAlCerrar()));
       allow delete: if false;
     }
 
@@ -73,10 +85,12 @@ service cloud.firestore {
     // ---------- Informe: solo el técnico asignado, con huella ----------
     match /informes/{incidenciaId} {
       allow read: if autenticado();
+      // RF-823 (HU-08): el diagnóstico es obligatorio, igual que confirmadoEn (RNF de trazabilidad).
       allow create: if esTecnico()
         && get(/databases/$(database)/documents/incidencias/$(incidenciaId))
              .data.tecnicoAsignadoId == request.auth.uid
-        && request.resource.data.confirmadoEn is timestamp;
+        && request.resource.data.confirmadoEn is timestamp
+        && request.resource.data.diagnostico is string && request.resource.data.diagnostico.size() > 0;
       allow update, delete: if false;
     }
 
