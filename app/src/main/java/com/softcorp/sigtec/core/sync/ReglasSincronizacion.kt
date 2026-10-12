@@ -32,6 +32,22 @@ internal fun atencionAlBajar(local: IncidenciaEntity?, remota: IncidenciaEntity)
 internal fun debeGuardarMovimiento(local: MovimientoEntity?): Boolean =
     local == null || !local.pendienteSincronizar
 
+/**
+ * RF-620 (HU-06): cuánto cambia la carga de cada técnico al subir una incidencia, comparando el
+ * técnico que tiene el servidor con el del celular. Mismo técnico: no cambia nada. Al cerrar, la
+ * HU-08 debe ampliarla para restar también la carga (dependencia anotada en la spec 006).
+ */
+internal fun cambiosDeCarga(tecnicoServidor: String?, tecnicoLocal: String?): Map<String, Int> {
+    if (tecnicoServidor == tecnicoLocal) return emptyMap()
+    return buildMap {
+        tecnicoServidor?.let { put(it, -1) }
+        tecnicoLocal?.let { put(it, +1) }
+    }
+}
+
+/** RF-621 (HU-06): la carga nueva queda entre 0 y el límite, lo mismo que exige la regla de /usuarios. */
+internal fun cargaValida(actual: Long, limite: Long, delta: Int): Boolean = actual + delta in 0..limite
+
 /** Siguiente número del contador `contadores/incidencias` para armar `INC-0124` (RF-69). */
 internal fun siguienteNumero(ultimoActual: Long?): Long = (ultimoActual ?: 0L) + 1
 
