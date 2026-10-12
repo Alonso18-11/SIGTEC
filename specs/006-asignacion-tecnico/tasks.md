@@ -179,7 +179,7 @@
   RF: RF-602, RF-612
   Hecho cuando: `connectedDebugAndroidTest` pasa en un celular.
 
-- [ ] **T33 · `AsignacionRepositoryImpl` y `AsignacionModule`**
+- [x] **T33 · `AsignacionRepositoryImpl` y `AsignacionModule`**
   Implementación de 4.3 (`@IoDispatcher`, `db.withTransaction`, `catch` que relanza `CancellationException` y registra con `Log.w`) y `@Binds` en `feature/asignacion/di/AsignacionModule.kt`.
   RF: RF-613, RF-616
   Hecho cuando: `./gradlew assembleDebug` compila (Hilt resuelve el repositorio).
