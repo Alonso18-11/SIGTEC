@@ -59,7 +59,7 @@
   RF: RF-827, RF-828, RF-829
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*ObservarDetalleIncidenciaTest"` pasa.
 
-- [ ] **T08 · Verificación y PR A**
+- [x] **T08 · Verificación y PR A**
   Correr el comando del CI. El PR no cambia nada visible (lo visible llega en el PR E): así se indica en
   «Cómo probarlo». Hacer los 6 commits de `plan.md` (PR A, incluidos los 2 de docs de T02) y abrir el PR en
   borrador con `.github/pull_request_template.md`, marcando `InformeTecnico.kt`, `InformeTecnicoEntity.kt`,
