@@ -279,7 +279,8 @@ private fun BarraAcciones(estado: DetalleIncidenciaUiState, acciones: AccionesDe
                 Button(onClick = acciones.alAsignar, modifier = Modifier.weight(1f)) {
                     Icon(Icons.Outlined.PersonAdd, contentDescription = null)
                     Spacer(Modifier.width(Espaciado.s))
-                    Text("Asignar técnico")
+                    // RF-605 (HU-06): con técnico, la misma pantalla reasigna
+                    Text(if (estado.detalle?.incidencia?.tecnicoAsignadoId != null) "Reasignar técnico" else "Asignar técnico")
                 }
             }
             if (estado.puedeAtender) {
@@ -348,6 +349,17 @@ private fun DetalleJefe() = SigtecTheme(darkTheme = true) {
                 puedeAsignar = true,
                 ahora = ahoraDePrueba
             ),
+            AccionesDetalle()
+        )
+    }
+}
+
+@Preview(name = "Jefe, con técnico · claro", showBackground = true, heightDp = 900)
+@Composable
+private fun DetalleJefeReasignar() = SigtecTheme {
+    Surface {
+        DetalleIncidenciaScreen(
+            DetalleIncidenciaUiState(cargando = false, detalle = detalleDePrueba, puedeAsignar = true, ahora = ahoraDePrueba),
             AccionesDetalle()
         )
     }

@@ -212,7 +212,7 @@
   RF: RF-617
   Hecho cuando: compila y `AsignacionNavigation.kt` ya no importa `PantallaEnConstruccion`.
 
-- [ ] **T39 · «Reasignar técnico» en el detalle 🔶**
+- [x] **T39 · «Reasignar técnico» en el detalle 🔶**
   En `DetalleIncidenciaScreen.kt`, el botón dice «Reasignar técnico» si `tecnicoAsignadoId != null`; se ajusta la preview del jefe.
   RF: RF-605
   Hecho cuando: compila y la preview muestra los dos textos.
