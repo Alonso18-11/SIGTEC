@@ -63,6 +63,8 @@ Hoy el jefe de Soporte y Sistemas reparte el trabajo sin saber cuántos casos ti
 - Plataforma: Android 8.0 (minSdk 26) o superior.
 
 ## Casos límite
+- Reasignación de A a B guardada en el celular y todavía sin subir: B ya suma ese cupo (RF-602), pero A sigue mostrando la carga que le cuenta el servidor hasta que la reasignación sube. A puede verse «Alcanzó su límite de atención» aunque ya liberó un cupo. Es conservador: nunca deja pasarse del límite, y se corrige solo al sincronizar. (Agregado en la revisión de los PR #25 y #26, 2026-10-12.)
+- La pantalla queda abierta mucho tiempo, por ejemplo pasada la medianoche: los días pendientes del resumen se recalculan cada minuto con un temporizador propio, igual que la lista y el detalle (HU-04), sin esperar a que cambien los datos. (Agregado en la misma revisión.)
 - Dos asignaciones sin conexión al mismo técnico que lo llevan a su límite: la segunda se rechaza en el celular, porque RF-602 cuenta la primera aunque todavía no haya subido.
 - El mismo jefe asigna desde dos celulares el último cupo de un técnico, ambos sin conexión: los dos pasan la validación local; al subir, el primero se acepta y el segundo se rechaza en el servidor (RF-621).
 - Justo después de que una asignación sube, la carga nueva del técnico puede tardar unos segundos en bajar: durante ese intervalo la carga mostrada puede quedar 1 por debajo; si el jefe usa ese cupo, el servidor rechaza el exceso (RF-621).

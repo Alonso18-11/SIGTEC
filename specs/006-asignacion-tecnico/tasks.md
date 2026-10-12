@@ -270,3 +270,23 @@ El código de los PR B a F está hecho. Faltan, en este orden:
 1. **Consola de Firebase (usuario y Alonso):** T24 (confirmar que la carga de cada técnico coincide con sus incidencias pendientes asignadas), T23 (Rules Playground: los 6 casos de una sola escritura; asignar y reasignar con la carga movida se prueban desde la app) y T25 (publicar `firebase/firestore.rules`). Opcional: borrar el movimiento huérfano `movimientos/153959cf-d90e-4d50-a8b8-898d3f338bb7`.
 2. **Pruebas manuales en el emulador o celular:** T40 (capturas en claro y oscuro con `adb`), T41 (asignar y reasignar, carga en la consola), T42 (sin conexión, sin número y límite en el servidor), T43 (llegada al técnico en dos dispositivos) y T44 (parte de RF-624 posible antes de la HU-08).
 3. **Cierre (T45):** spec en «Estado: completa» y la línea de la HU-06 en `MEMORY.md`.
+
+## Revisión posterior a los PR #25 y #26 (Alonso, 2026-10-12)
+
+Los PR #25 y #26 se fusionaron sin revisión. Esta revisión no encontró errores que bloqueen; estas tareas cubren los detalles menores. Siguen pendientes T23 a T25 (consola) y T40 a T45 (pruebas manuales y cierre).
+
+- [x] **T46 · Caso límite de la reasignación sin subir en `spec.md`**
+  Documentar que el técnico anterior conserva la carga del servidor hasta que la reasignación sube (conservador, sin cambio de código).
+  RF: RF-602
+  Hecho cuando: el caso límite está en `spec.md`.
+
+- [x] **T47 · Temporizador en `AsignacionViewModel`**
+  Agregar el `reloj` de un minuto combinado en `estado`, igual que `DetalleIncidenciaViewModel` (HU-04), para que los días pendientes del resumen no queden desactualizados. Prueba en `AsignacionViewModelTest`: `ahora` avanza tras un minuto sin cambiar la elección ni las opciones.
+  RF: RF-601, caso límite
+  Hecho cuando: la prueba nueva pasa y `./gradlew assembleDebug testDebugUnitTest lintDebug` está en verde.
+
+- [x] **T48 · Preview en oscuro del detalle con técnico**
+  Agregar a `DetalleIncidenciaScreen.kt` la versión oscura de la preview «Jefe, con técnico», como pide `CLAUDE.md` (claro y oscuro).
+  RF: RF-605
+  Hecho cuando: las dos previews se ven en Android Studio.
+

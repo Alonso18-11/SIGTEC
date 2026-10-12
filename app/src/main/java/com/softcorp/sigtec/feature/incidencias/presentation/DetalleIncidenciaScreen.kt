@@ -365,6 +365,18 @@ private fun DetalleJefeReasignar() = SigtecTheme {
     }
 }
 
+@Preview(name = "Jefe, con técnico · oscuro", showBackground = true, heightDp = 900,
+    uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun DetalleJefeReasignarOscuro() = SigtecTheme(darkTheme = true) {
+    Surface {
+        DetalleIncidenciaScreen(
+            DetalleIncidenciaUiState(cargando = false, detalle = detalleDePrueba, puedeAsignar = true, ahora = ahoraDePrueba),
+            AccionesDetalle()
+        )
+    }
+}
+
 @Preview(name = "No encontrada", showBackground = true)
 @Composable
 private fun DetalleNoEncontrada() = SigtecTheme {
