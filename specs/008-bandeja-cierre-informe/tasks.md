@@ -70,12 +70,12 @@
 
 ## PR B — dominio y datos de «cerrar con informe» y la bandeja (`feat/hu08-atencion-dominio`, desde `main` con A)
 
-- [ ] **T09 · Crear la rama desde `main` con A fusionado**
+- [x] **T09 · Crear la rama desde `main` con A fusionado**
   Si A todavía no se fusionó, crear la rama desde la de A (apilada) y rebasar cuando A se fusione.
   RF: —
   Hecho cuando: `git log` muestra los commits de A en la rama.
 
-- [ ] **T10 · `AtencionRepository`, `ObservarBandeja` y su doble falso**
+- [x] **T10 · `AtencionRepository`, `ObservarBandeja` y su doble falso**
   Interfaz en `feature/atencion/domain/AtencionRepository.kt` (`incidencia(id)`, `observarBandeja(tecnicoId)`,
   `cerrarConInforme(...)`); `ObservarBandeja` combinando `ObservarUsuarioActual` con el repositorio;
   `AtencionRepositoryFalso` en `app/src/test/.../feature/atencion/data`, en memoria y con `fallar`.
@@ -83,19 +83,19 @@
   RF: RF-801, RF-803, RF-805
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*ObservarBandejaTest"` pasa.
 
-- [ ] **T11 · `CerrarIncidenciaConInforme` con su prueba**
+- [x] **T11 · `CerrarIncidenciaConInforme` con su prueba**
   Caso de uso de la sección 4.2 del plan, con `bloqueoParaCerrar` (3.3) y `recortarCampos` (3.4) como
   funciones puras en el mismo archivo. `CerrarIncidenciaConInformeTest` con los casos de `plan.md` sección 7.
   RF: RF-812–RF-820
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*CerrarIncidenciaConInformeTest"` pasa.
 
-- [ ] **T12 · `AtencionRepositoryImpl` y `AtencionModule`**
+- [x] **T12 · `AtencionRepositoryImpl` y `AtencionModule`**
   Implementación de la sección 4.3 del plan (`@IoDispatcher`, `db.withTransaction`, `catch` que relanza
   `CancellationException` y registra con `Log.w`) y `@Binds` en `feature/atencion/di/AtencionModule.kt`.
   RF: RF-819, RF-824
   Hecho cuando: `./gradlew assembleDebug` compila (Hilt resuelve el repositorio).
 
-- [ ] **T13 · Verificación y PR B**
+- [x] **T13 · Verificación y PR B**
   Correr el comando del CI. El PR no cambia nada visible (llega en E): así se indica en «Cómo probarlo».
   Hacer los 3 commits de `plan.md` (PR B).
   RF: RF-801, RF-803, RF-805, RF-812–RF-820, RF-824
