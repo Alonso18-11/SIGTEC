@@ -2,12 +2,15 @@ package com.softcorp.sigtec
 
 import androidx.lifecycle.SavedStateHandle
 import com.softcorp.sigtec.core.data.SesionRepositoryDemo
+import com.softcorp.sigtec.core.domain.ErrorDominio
 import com.softcorp.sigtec.core.domain.model.Incidencia
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
 import com.softcorp.sigtec.core.domain.model.Movimiento
 import com.softcorp.sigtec.core.domain.model.TipoMovimiento
 import com.softcorp.sigtec.core.domain.usecase.ObservarUsuarioActual
+import com.softcorp.sigtec.core.domain.usecase.VerificarPermiso
 import com.softcorp.sigtec.feature.incidencias.data.IncidenciaRepositoryFalso
+import com.softcorp.sigtec.feature.incidencias.domain.IniciarAtencion
 import com.softcorp.sigtec.feature.incidencias.domain.ObservarDetalleIncidencia
 import com.softcorp.sigtec.feature.incidencias.presentation.DetalleIncidenciaViewModel
 import kotlinx.coroutines.launch
@@ -47,6 +50,14 @@ class DetalleIncidenciaViewModelTest {
         Movimiento("x", "otra", TipoMovimiento.REGISTRADA, "Ana Torres", t0.plusSeconds(60 * 60))
     )
 
+    // INC-0127: asignada a Luis Ramírez y lista para que empiece a atenderla (HU-08)
+    private val asignada = Incidencia(
+        id = "i127", numero = 127, codigoEquipo = "IMP-RRHH-002", descripcion = "La impresora no aparece en la red",
+        usuarioResponsable = "María Quispe", fechaRegistro = t0.plusSeconds(120 * 60), registradoPorId = "demo-pcardenas",
+        registradoPorNombre = "Pedro Cárdenas", marca = MarcaSeguimiento.ASIGNADA,
+        tecnicoAsignadoId = "demo-lramirez", tecnicoAsignadoNombre = "Luis Ramírez"
+    )
+
     private fun TestScope.nuevoVm(
         id: String = "c",
         inc: Incidencia = incidencia
@@ -55,10 +66,25 @@ class DetalleIncidenciaViewModelTest {
         val vm = DetalleIncidenciaViewModel(
             SavedStateHandle(mapOf(DetalleIncidenciaViewModel.ARG_INCIDENCIA_ID to id)),
             ObservarDetalleIncidencia(repo),
-            ObservarUsuarioActual(sesion)
+            ObservarUsuarioActual(sesion),
+            IniciarAtencion(VerificarPermiso(sesion), repo)
         )
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.estado.collect {} }
         return vm
+    }
+
+    // HU-08: variante de nuevoVm() que también entrega el repo, para inspeccionar sus movimientos
+    // después de alIniciarAtencion(); nuevoVm() no lo expone porque los casos de HU-04/06/07 no lo necesitan.
+    private fun TestScope.nuevoVmConRepo(inc: Incidencia): Pair<DetalleIncidenciaViewModel, IncidenciaRepositoryFalso> {
+        val repo = IncidenciaRepositoryFalso().also { it.cargar(listOf(inc)) }
+        val vm = DetalleIncidenciaViewModel(
+            SavedStateHandle(mapOf(DetalleIncidenciaViewModel.ARG_INCIDENCIA_ID to inc.id)),
+            ObservarDetalleIncidencia(repo),
+            ObservarUsuarioActual(sesion),
+            IniciarAtencion(VerificarPermiso(sesion), repo)
+        )
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.estado.collect {} }
+        return vm to repo
     }
 
     @Test
@@ -140,5 +166,61 @@ class DetalleIncidenciaViewModelTest {
         assertEquals(detalleAntes, vm.estado.value.detalle)
         assertEquals(puedeAsignarAntes, vm.estado.value.puedeAsignar)
         assertEquals(puedeAtenderAntes, vm.estado.value.puedeAtender)
+    }
+
+    @Test
+    fun `puedeIniciarAtencion es verdadero en marca Asignada para el tecnico asignado`() = runTest {
+        // RF-806
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")
+        val vm = nuevoVmConRepo(asignada).first
+
+        assertTrue(vm.estado.value.puedeIniciarAtencion)
+    }
+
+    @Test
+    fun `puedeIniciarAtencion es falso si la marca no es Asignada`() = runTest {
+        // RF-806: ya cambió de marca (En atención, Esperando repuesto, Cerrada, Sin asignar)
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")
+        val vm = nuevoVmConRepo(asignada.copy(marca = MarcaSeguimiento.EN_ATENCION)).first
+
+        assertFalse(vm.estado.value.puedeIniciarAtencion)
+    }
+
+    @Test
+    fun `puedeIniciarAtencion es falso para un tecnico distinto al asignado`() = runTest {
+        // RF-806, RF-807: aunque esté en marca Asignada, no es su incidencia
+        sesion.iniciarSesion("atorres@softcorp.pe", "")
+        val vm = nuevoVmConRepo(asignada).first
+
+        assertFalse(vm.estado.value.puedeIniciarAtencion)
+    }
+
+    @Test
+    fun `alIniciarAtencion deshabilita el boton mientras guarda y no duplica el movimiento`() = runTest {
+        // RF-811: un segundo toque inmediato no debe crear un segundo movimiento
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")
+        val (vm, repo) = nuevoVmConRepo(asignada)
+
+        vm.alIniciarAtencion()
+        vm.alIniciarAtencion()
+
+        assertTrue(vm.estado.value.iniciandoAtencion)
+        assertEquals(1, repo.movimientos.size)
+        assertEquals(MarcaSeguimiento.EN_ATENCION, repo.incidencias.single().marca)
+    }
+
+    @Test
+    fun `el error de IniciarAtencion queda en errorAtencion`() = runTest {
+        // RF-808: la marca ya cambió por otra vía antes de que el toque se guardara
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")
+        val (vm, repo) = nuevoVmConRepo(asignada)
+        // Cambia la marca justo antes del toque, simulando la carrera que describe RF-808
+        repo.cargar(listOf(asignada.copy(marca = MarcaSeguimiento.EN_ATENCION)))
+
+        vm.alIniciarAtencion()
+
+        assertEquals(ErrorDominio.MarcaCambiada, vm.estado.value.errorAtencion)
+        assertFalse(vm.estado.value.iniciandoAtencion)
+        assertTrue(repo.movimientos.isEmpty())
     }
 }
