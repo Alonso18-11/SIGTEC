@@ -117,7 +117,7 @@
   RF: RF-620, RF-621
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*ReglasSincronizacionTest"` pasa.
 
-- [ ] **T21 · Transacción `actualizarConCarga` 🔶**
+- [x] **T21 · Transacción `actualizarConCarga` 🔶**
   En `SincronizadorIncidencias.subir(local)`, una incidencia con número pasa por la transacción de 4.6. Si devuelve `CARGA_RECHAZADA`, se usa el rechazo de T09.
   RF: RF-620, RF-621
   Hecho cuando: compila y una incidencia que no cambia de técnico se sube igual que antes (sin escrituras en `usuarios`).

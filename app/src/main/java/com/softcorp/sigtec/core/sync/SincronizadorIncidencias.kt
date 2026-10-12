@@ -30,6 +30,9 @@ class SincronizadorIncidencias @Inject constructor(
     private val incidencias get() = firestore.collection("incidencias")
     private val movimientos get() = firestore.collection("movimientos")
     private val contador get() = firestore.collection("contadores").document("incidencias")
+    private val usuarios get() = firestore.collection("usuarios")
+
+    private enum class ResultadoSubida { SUBIDA, CARGA_RECHAZADA }
 
     /** Sube todo lo pendiente. Devuelve false si algo debe reintentarse. */
     suspend fun subirPendientes(ahora: Instant): Boolean {
@@ -52,27 +55,55 @@ class SincronizadorIncidencias @Inject constructor(
         incidenciaDao.pendientesDeSincronizar().isNotEmpty() ||
             movimientoDao.pendientesDeSincronizar().isNotEmpty()
 
-    private suspend fun subir(local: IncidenciaEntity): Boolean = try {
-        val numero = if (local.numero == null) {
-            crearConNumero(local)
-        } else {
-            incidencias.document(local.id)
-                .set(local.aFirestore(local.numero), SetOptions.merge())
-                .await()
-            local.numero
+    private suspend fun subir(local: IncidenciaEntity): Boolean {
+        try {
+            val numero = if (local.numero == null) {
+                crearConNumero(local)
+            } else {
+                // RF-621: sin cupo en el servidor es un rechazo permanente; no se reintenta
+                if (actualizarConCarga(local, local.numero) == ResultadoSubida.CARGA_RECHAZADA) {
+                    return rechazar(local)
+                }
+                local.numero
+            }
+            // El número se anota siempre: la pantalla muestra INC-XXXX apenas existe en el servidor
+            incidenciaDao.asignarNumero(local.id, numero)
+            // Si alguien la modificó mientras se subía, sigue pendiente y se sube de nuevo
+            incidenciaDao.marcarSincronizada(local.id, local.actualizadoEn)
+            return true
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.w(TAG, "No se pudo subir la incidencia ${local.id}", e)
+            // Un rechazo permanente ya no se reintenta; uno pasajero sí
+            return if (esErrorPermanente(e)) rechazar(local) else false
         }
-        // El número se anota siempre: la pantalla muestra INC-XXXX apenas existe en el servidor
-        incidenciaDao.asignarNumero(local.id, numero)
-        // Si alguien la modificó mientras se subía, sigue pendiente y se sube de nuevo
-        incidenciaDao.marcarSincronizada(local.id, local.actualizadoEn)
-        true
-    } catch (e: CancellationException) {
-        throw e
-    } catch (e: Exception) {
-        Log.w(TAG, "No se pudo subir la incidencia ${local.id}", e)
-        // Un rechazo permanente ya no se reintenta; uno pasajero sí
-        if (esErrorPermanente(e)) rechazar(local) else false
     }
+
+    /**
+     * RF-620 (HU-06): sube una incidencia que ya existe y, si su técnico cambió respecto del servidor,
+     * mueve la carga de ambos en la misma transacción: o se aplica todo, o nada. Las reglas de
+     * Firestore exigen ese movimiento con `getAfter()` (RF-622). Si la carga nueva de algún técnico
+     * saldría de 0..límite (RF-621), no escribe nada y devuelve CARGA_RECHAZADA (D-7 del plan).
+     */
+    private suspend fun actualizarConCarga(local: IncidenciaEntity, numero: Int): ResultadoSubida =
+        firestore.runTransaction { tx ->
+            val documento = incidencias.document(local.id)
+            val cambios = cambiosDeCarga(tx.get(documento).getString("tecnicoAsignadoId"), local.tecnicoAsignadoId)
+            // Firestore exige hacer todas las lecturas antes de la primera escritura
+            val perfiles = cambios.keys.associateWith { tx.get(usuarios.document(it)) }
+            val cargas = cambios.mapValues { (id, delta) ->
+                val perfil = perfiles.getValue(id)
+                val actual = perfil.getLong("incidenciasActivas") ?: 0L
+                if (!cargaValida(actual, perfil.getLong("limiteAtencion") ?: 0L, delta)) {
+                    return@runTransaction ResultadoSubida.CARGA_RECHAZADA
+                }
+                actual + delta
+            }
+            cargas.forEach { (id, carga) -> tx.update(usuarios.document(id), "incidenciasActivas", carga) }
+            tx.set(documento, local.aFirestore(numero), SetOptions.merge())
+            ResultadoSubida.SUBIDA
+        }.await()
 
     /**
      * RF-75: marca la incidencia y sus movimientos pendientes juntos, para que ninguno suba,
