@@ -98,17 +98,17 @@
   RF: RF-619
   Hecho cuando: `connectedDebugAndroidTest` pasa en un celular.
 
-- [ ] **T18 · Escuchar `usuarios` con perfil técnico 🔶**
+- [x] **T18 · Escuchar `usuarios` con perfil técnico 🔶**
   `escuchar(...)` recibe una `Query` y un nombre; las 3 llamadas existentes pasan su colección. Se agrega la escucha de `usuarios` con `whereEqualTo("perfil", "TECNICO")` y `guardarTecnicos(snap)` (plan 4.5).
   RF: RF-619
   Hecho cuando: compila, y con el Database Inspector de Android Studio la tabla `tecnicos` tiene los 4 técnicos de prueba con su límite.
-  > 2026-10-11: código hecho. La consulta es un parámetro opcional de `escuchar(...)` (por defecto, la colección entera), así que las 3 llamadas existentes no cambiaron. Falta que el usuario compruebe la tabla en el Database Inspector: el agente no inicia sesión con las cuentas de prueba.
+  > 2026-10-11: código hecho. La consulta es un parámetro opcional de `escuchar(...)` (por defecto, la colección entera), así que las 3 llamadas existentes no cambiaron. Comprobado por el usuario en el emulador con el Database Inspector: la tabla `tecnicos` tiene exactamente a Luis Ramírez (5), Rosa Vilca (4), Ana Torres (5) y Jorge Salas (4), todos con `incidenciasActivas` = 0, y no aparecen Carlos Mendoza ni Pedro Cárdenas.
 
-- [ ] **T19 · Verificación y PR C**
+- [x] **T19 · Verificación y PR C**
   Correr el comando del CI. Prueba manual: con la app abierta, cambiar en la consola `incidenciasActivas` de un técnico y verlo cambiar en la tabla; dejarlo como estaba. Marcar T16–T18 y hacer los 4 commits de `plan.md` (PR C).
   RF: RF-619
   Hecho cuando: CI en verde y aprobación de Alonso.
-  > 2026-10-11: `assembleDebug testDebugUnitTest lintDebug` en verde en local (136 pruebas JVM; lint sin avisos nuevos) y `connectedDebugAndroidTest` 9 de 9 en el emulador (incluye `CatalogoDaoTest`). Falta la prueba manual con la consola, a cargo del usuario.
+  > 2026-10-11: `assembleDebug testDebugUnitTest lintDebug` en verde en local (136 pruebas JVM; lint sin avisos nuevos) y `connectedDebugAndroidTest` 9 de 9 en el emulador (incluye `CatalogoDaoTest`). El #23 fue aprobado y fusionado por Alonso. **No se probó a mano** la actualización en vivo (cambiar `incidenciasActivas` en la consola y verla cambiar en la tabla); queda cubierta solo por el mismo mecanismo de escucha que ya usan incidencias, movimientos y equipos.
 
 ## PR D — carga del técnico y reglas (`feat/sync-carga-tecnico`, apilada sobre B)
 
