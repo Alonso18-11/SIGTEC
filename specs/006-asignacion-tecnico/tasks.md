@@ -88,7 +88,7 @@
 
 ## PR C — bajar los técnicos (`feat/sync-tecnicos`, desde `main` con A)
 
-- [ ] **T16 · `tecnicoDesdeDatos` y su prueba 🔶**
+- [x] **T16 · `tecnicoDesdeDatos` y su prueba 🔶**
   Función pura en `core/sync/MapeoFirestore.kt` (plan 3.8) y `DocumentSnapshot.aTecnicoEntity()`, que la usa; `MapeoTecnicoTest` con 3 casos.
   RF: RF-619
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*MapeoTecnicoTest"` pasa.

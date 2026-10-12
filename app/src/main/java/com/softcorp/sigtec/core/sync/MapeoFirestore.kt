@@ -5,6 +5,7 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.softcorp.sigtec.core.database.entity.EquipoEntity
 import com.softcorp.sigtec.core.database.entity.IncidenciaEntity
 import com.softcorp.sigtec.core.database.entity.MovimientoEntity
+import com.softcorp.sigtec.core.database.entity.TecnicoEntity
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
 import com.softcorp.sigtec.core.domain.model.Prioridad
 import com.softcorp.sigtec.core.domain.model.TipoFalla
@@ -89,3 +90,18 @@ internal fun DocumentSnapshot.aEquipoEntity(): EquipoEntity? = runCatching {
         responsableNombre = getString("responsableNombre")!!
     )
 }.getOrNull()
+
+/**
+ * RF-619 (HU-06): un usuario técnico de /usuarios, cuyo id es su UID. Trabaja sobre el Map del
+ * documento para probarse en la JVM sin clases de Firebase. Los enteros llegan como Long (int64).
+ * Si falta el nombre o el límite, el documento se descarta (como RF-60).
+ */
+internal fun tecnicoDesdeDatos(id: String, datos: Map<String, Any?>): TecnicoEntity? {
+    val nombre = datos["nombre"] as? String ?: return null
+    val limite = datos["limiteAtencion"] as? Long ?: return null
+    // Sin carga registrada todavía, no tiene incidencias activas
+    val activas = datos["incidenciasActivas"] as? Long ?: 0L
+    return TecnicoEntity(id, nombre, limiteAtencion = limite.toInt(), incidenciasActivas = activas.toInt())
+}
+
+internal fun DocumentSnapshot.aTecnicoEntity(): TecnicoEntity? = data?.let { tecnicoDesdeDatos(id, it) }
