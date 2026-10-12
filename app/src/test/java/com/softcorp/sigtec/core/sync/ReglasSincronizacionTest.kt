@@ -86,23 +86,47 @@ class ReglasSincronizacionTest {
 
     @Test
     fun `si el tecnico no cambia la carga no se mueve`() {
-        assertEquals(emptyMap<String, Int>(), cambiosDeCarga("u-luis", "u-luis"))
-        assertEquals(emptyMap<String, Int>(), cambiosDeCarga(null, null))
+        assertEquals(emptyMap<String, Int>(), cambiosDeCarga("u-luis", false, "u-luis", false))
+        assertEquals(emptyMap<String, Int>(), cambiosDeCarga(null, false, null, false))
     }
 
     @Test
     fun `asignar suma 1 al tecnico nuevo`() {
-        assertEquals(mapOf("u-luis" to 1), cambiosDeCarga(null, "u-luis"))
+        assertEquals(mapOf("u-luis" to 1), cambiosDeCarga(null, false, "u-luis", false))
     }
 
     @Test
     fun `reasignar resta 1 al anterior y suma 1 al nuevo`() {
-        assertEquals(mapOf("u-ana" to -1, "u-luis" to 1), cambiosDeCarga("u-ana", "u-luis"))
+        assertEquals(mapOf("u-ana" to -1, "u-luis" to 1), cambiosDeCarga("u-ana", false, "u-luis", false))
     }
 
     @Test
     fun `quitar el tecnico resta 1 al anterior`() {
-        assertEquals(mapOf("u-ana" to -1), cambiosDeCarga("u-ana", null))
+        assertEquals(mapOf("u-ana" to -1), cambiosDeCarga("u-ana", false, null, false))
+    }
+
+    // ---------- HU-08 (RF-822): cambiosDeCarga ampliada con el cierre ----------
+
+    @Test
+    fun `cerrar sin cambiar de tecnico resta 1 al unico`() {
+        assertEquals(mapOf("u-luis" to -1), cambiosDeCarga("u-luis", cerradaServidor = false, "u-luis", cerradaLocal = true))
+    }
+
+    @Test
+    fun `reabrir una incidencia cerrada en el servidor suma 1 de nuevo`() {
+        assertEquals(mapOf("u-luis" to 1), cambiosDeCarga("u-luis", cerradaServidor = true, "u-luis", cerradaLocal = false))
+    }
+
+    @Test
+    fun `cerrada en ambos lados no mueve nada`() {
+        assertEquals(emptyMap<String, Int>(), cambiosDeCarga("u-luis", cerradaServidor = true, "u-luis", cerradaLocal = true))
+    }
+
+    @Test
+    fun `cerrar y cambiar de tecnico a la vez resta al anterior sin sumar al nuevo`() {
+        // Caso teórico, no alcanzable desde la app (cerrar no cambia de técnico), pero la función
+        // debe responder algo consistente: el local ya no cuenta porque está cerrado.
+        assertEquals(mapOf("u-ana" to -1), cambiosDeCarga("u-ana", cerradaServidor = false, "u-luis", cerradaLocal = true))
     }
 
     @Test

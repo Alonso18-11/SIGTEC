@@ -34,15 +34,24 @@ internal fun debeGuardarMovimiento(local: MovimientoEntity?): Boolean =
     local == null || !local.pendienteSincronizar
 
 /**
- * RF-620 (HU-06): cuánto cambia la carga de cada técnico al subir una incidencia, comparando el
- * técnico que tiene el servidor con el del celular. Mismo técnico: no cambia nada. Al cerrar, la
- * HU-08 debe ampliarla para restar también la carga (dependencia anotada en la spec 006).
+ * RF-620 (HU-06) y RF-822 (HU-08): cuánto cambia la carga de cada técnico al subir una incidencia,
+ * comparando quién está "activo" (tiene la incidencia asignada y sin cerrar) en el servidor y en el
+ * celular. Cerrar es, para la carga, lo mismo que dejar de estar activo sin cambiar de id: por eso una
+ * sola regla generaliza el cambio de técnico y el cierre (plan 008, decisión D-2), en vez de una
+ * segunda función paralela.
  */
-internal fun cambiosDeCarga(tecnicoServidor: String?, tecnicoLocal: String?): Map<String, Int> {
-    if (tecnicoServidor == tecnicoLocal) return emptyMap()
+internal fun cambiosDeCarga(
+    tecnicoServidor: String?,
+    cerradaServidor: Boolean,
+    tecnicoLocal: String?,
+    cerradaLocal: Boolean
+): Map<String, Int> {
+    val activoServidor = tecnicoServidor?.takeUnless { cerradaServidor }
+    val activoLocal = tecnicoLocal?.takeUnless { cerradaLocal }
+    if (activoServidor == activoLocal) return emptyMap()
     return buildMap {
-        tecnicoServidor?.let { put(it, -1) }
-        tecnicoLocal?.let { put(it, +1) }
+        activoServidor?.let { put(it, -1) }
+        activoLocal?.let { put(it, +1) }
     }
 }
 

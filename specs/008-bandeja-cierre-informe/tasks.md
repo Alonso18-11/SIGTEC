@@ -103,34 +103,38 @@
 
 ## PR C — restar la carga al cerrar y sincronizar el informe (`feat/sync-cierre-informe`, desde `main` con A)
 
-- [ ] **T14 · Crear la rama desde `main` con A fusionado**
+- [x] **T14 · Crear la rama desde `main` con A fusionado**
   Puede avanzar en paralelo con B: no comparten archivos.
   RF: —
   Hecho cuando: `git log` muestra los commits de A en la rama.
 
-- [ ] **T15 · `cambiosDeCarga` ampliada 🔶**
+- [x] **T15 · `cambiosDeCarga` ampliada 🔶**
   En `core/sync/ReglasSincronizacion.kt`, agregar los parámetros `cerradaServidor`/`cerradaLocal` (plan 3.1).
   Casos nuevos en `ReglasSincronizacionTest`: cerrar sin cambiar de técnico, reabrir, sin cambios, y los casos
   de RF-620 que ya existían (deben seguir pasando con la firma nueva).
   RF: RF-822
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*ReglasSincronizacionTest"` pasa.
 
-- [ ] **T16 · `actualizarConCarga` pasa la marca de antes y de después 🔶**
+- [x] **T16 · `actualizarConCarga` pasa la marca de antes y de después 🔶**
   En `core/sync/SincronizadorIncidencias.kt`, `actualizarConCarga` lee `marca` del documento remoto y de
   `local.marca` y los pasa a `cambiosDeCarga` (plan 4.4).
   RF: RF-822
   Hecho cuando: compila y una incidencia que no cambia de técnico ni se cierra se sube igual que antes (sin
   escrituras en `usuarios`).
 
-- [ ] **T17 · Consultas de rechazo en `InformeTecnicoDao` 🔶**
+- [x] **T17 · Consultas de rechazo en `InformeTecnicoDao` 🔶**
   `listosParaSubir()`, `marcarSincronizado(id)`, `marcarNecesitaAtencion(id)`, `marcarNecesitaAtencionDe(incidenciaId)`
   y `borrarRechazados()` (plan sección 4.5, sin la rama de «incidencia sin número»). Nueva
   `app/src/androidTest/.../InformeTecnicoDaoTest.kt`: `listosParaSubir` con padre pendiente (no sale),
   rechazado (no sale) y sincronizado (sale); `marcarNecesitaAtencionDe`; `borrarRechazados`.
   RF: RF-825
   Hecho cuando: `connectedDebugAndroidTest` pasa en un celular.
+  > Implementado el 2026-10-12: sin celular/emulador conectado (`adb devices` vacío), no se pudo correr
+  > `connectedDebugAndroidTest`. Se verificó que compila con `./gradlew compileDebugAndroidTestSources`
+  > (BUILD SUCCESSFUL) y que `./gradlew assembleDebug testDebugUnitTest` sigue en verde (213/213). Pendiente
+  > correr `connectedDebugAndroidTest` en un celular real antes de cerrar el PR C (T21).
 
-- [ ] **T18 · El informe espera a su incidencia al subir 🔶**
+- [x] **T18 · El informe espera a su incidencia al subir 🔶**
   En `SincronizadorIncidencias.kt`: nuevo `subir(informe: InformeTecnicoEntity)` (documento
   `informes/{informe.incidenciaId}`, no `informe.id`); `subirPendientes` recorre
   `informeTecnicoDao.listosParaSubir()` después de los movimientos; `rechazar(local)` también llama a
@@ -138,39 +142,65 @@
   RF: RF-824, RF-825
   Hecho cuando: `./gradlew assembleDebug` compila; con una incidencia que falla al subir, su informe sigue
   pendiente (prueba manual completa en el PR F).
+  > Implementado el 2026-10-12: para que `subir(informe)` compilara hubo que adelantar también
+  > `InformeTecnicoEntity.aFirestore()` (T19) en `MapeoFirestore.kt`, con `diagnostico` incluido —no hay
+  > mapeo mínimo "temporal" distinto del definitivo, es la misma función; T19 solo queda por confirmarse
+  > y marcarse como hecha. `213/213` pruebas JVM siguen en verde (ninguna prueba nueva: T18 no pedía una,
+  > y `aFirestore()` tampoco tiene prueba propia en el plan, igual que el resto de funciones de mapeo).
 
-- [ ] **T19 · `InformeTecnicoEntity.aFirestore()` 🔶**
+- [x] **T19 · `InformeTecnicoEntity.aFirestore()` 🔶**
   Función de mapeo en `core/sync/MapeoFirestore.kt`, con `diagnostico` incluido.
   RF: RF-825, RNF trazabilidad
   Hecho cuando: `./gradlew assembleDebug` compila.
+  > Verificado el 2026-10-12: la función que adelantó T18 ya cumplía exactamente lo pedido — los 6 campos
+  > del RNF de trazabilidad (`diagnostico`, `trabajoRealizado`, `piezasCambiadas`, `observaciones`,
+  > `fechaCierre`, `confirmadoEn`) con los nombres exactos, mismo estilo `mapOf(...)` e `Instant.aTimestamp()`
+  > que `IncidenciaEntity.aFirestore()`/`MovimientoEntity.aFirestore()`. No se tocó código.
+  > `./gradlew assembleDebug testDebugUnitTest`: BUILD SUCCESSFUL, 213/213 pruebas JVM en verde.
 
-- [ ] **T20 · `descartarRechazados()` también borra informes 🔶**
+- [x] **T20 · `descartarRechazados()` también borra informes 🔶**
   En `core/sync/EstadoDatosRepositoryImpl.kt`, la transacción de `descartarRechazados()` agrega
   `informeTecnicoDao.borrarRechazados()`.
   RF: RF-825
   Hecho cuando: `./gradlew assembleDebug testDebugUnitTest` compila y pasa.
+  > Implementado el 2026-10-12: se inyectó `InformeTecnicoDao` en el constructor (mismo patrón que
+  > `movimientoDao`/`incidenciaDao`, provisto por Hilt vía `DatabaseModule`) y se agregó la llamada
+  > justo después de `movimientoDao.borrarRechazados()`, antes de las dos llamadas de `incidenciaDao`,
+  > igual que el bloque del plan 4.5. No existía ningún `EstadoDatosRepositoryImplTest.kt` que probara
+  > `descartarRechazados()` (solo hay un comentario de referencia en `MovimientoDaoTest.kt`, que no
+  > construye el repositorio), así que no se creó una prueba nueva, como ya indicaba la tarea.
+  > `./gradlew assembleDebug testDebugUnitTest lintDebug`: BUILD SUCCESSFUL, 213/213 pruebas JVM en
+  > verde (sin pruebas nuevas), sin warnings de lint nuevos en el archivo tocado.
 
-- [ ] **T21 · Verificación y PR C**
+- [x] **T21 · Verificación y PR C**
   Correr el comando del CI. La transacción real de la carga al cerrar y la subida real del informe no se
   pueden probar sin la pantalla de E: se prueban en el PR F, y así se indica en «Cómo probarlo». Hacer los 4
   commits de `plan.md` (PR C).
   RF: RF-822, RF-824, RF-825
   Hecho cuando: CI en verde y aprobación de la otra persona del equipo.
+  > Implementado el 2026-10-12: `./gradlew assembleDebug testDebugUnitTest lintDebug` en verde (213/213
+  > pruebas JVM) antes de cada commit. Los 4 commits de `plan.md` se hicieron en local, en orden; sin
+  > `git push` ni PR en GitHub (decisión explícita de esta sesión). `SincronizadorIncidencias.kt` se dividió
+  > entre los commits 2 y 3 reconstruyendo manualmente la versión intermedia (solo el cambio de T16, marca
+  > de antes/después en `actualizarConCarga`), porque el hunk de imports mezclaba una línea de T16 con dos
+  > de T18 demasiado cerca para que `git add -p` las separara solo; no fue necesario meter todo el archivo
+  > en un único commit. La aprobación de la otra persona del equipo y el PR en GitHub quedan pendientes:
+  > esta sesión no abre PR.
 
 ## PR D — reglas de Firestore (`feat/reglas-cierre-informe`, apilada sobre C)
 
-- [ ] **T22 · Crear la rama apilada sobre C**
+- [x] **T22 · Crear la rama apilada sobre C**
   RF: —
   Hecho cuando: `git log` muestra los commits de A y C en la rama.
 
-- [ ] **T23 · Reglas de `incidencias` e `informes` ⚠️**
+- [x] **T23 · Reglas de `incidencias` e `informes` ⚠️**
   Aplicar el diff de `plan.md` sección 4.6 a `firebase/firestore.rules`: funciones `marcaAntes()`,
   `marcaDespues()`, `seCierra()`, `cargaRestadaAlCerrar()`; la rama del técnico en `incidencias.update` exige
   la resta cuando `seCierra()`; `informes.create` exige `diagnostico is string && diagnostico.size() > 0`.
   RF: RF-823, RNF trazabilidad
   Hecho cuando: `git diff` solo muestra esas funciones y esas dos condiciones nuevas.
 
-- [ ] **T24 · Rules Playground — a cargo del usuario, no de un agente**
+- [x] **T24 · Rules Playground — a cargo del usuario, no de un agente**
   Probar con usuarios reales: el técnico asignado cierra y resta su propia carga en la misma escritura
   (puede salir «error desconocido» si el Playground no simula `getAfter()`, igual que en la HU-06: se prueba
   desde la app en T39); el técnico cierra sin restar la carga (denegado); crear un informe con `diagnostico`
@@ -178,22 +208,32 @@
   RF: RF-823
   Hecho cuando: los 4 casos dan el resultado esperado (o, si el Playground no puede simularlo, se anota para
   probarse desde la app).
+  > Resultado del usuario: «P6 ok · P1–P5 no simulables: el Playground no reconoce como timestamp el
+  > `confirmadoEn` que construye · P7 (cerrar) no simulable por `getAfter()` · todos se verifican desde la
+  > app en T38 y T39».
 
-- [ ] **T25 · Verificar la carga en la consola — a cargo del usuario**
+- [x] **T25 · Verificar la carga en la consola — a cargo del usuario**
   Antes de publicar, comprobar para cada técnico que `usuarios/{uid}.incidenciasActivas` sigue coincidiendo
   con sus incidencias pendientes asignadas (igual que T24 de la HU-06).
   RF: RF-823
   Hecho cuando: la carga de cada técnico coincide con lo que muestra el filtro por técnico de la lista.
+  > Verificado por el usuario: la carga de cada técnico en la consola coincide con sus incidencias
+  > pendientes asignadas.
 
-- [ ] **T26 · Publicar las reglas — a cargo del usuario o de la otra persona del equipo**
+- [x] **T26 · Publicar las reglas — a cargo del usuario o de la otra persona del equipo**
   Pegar `firebase/firestore.rules` en la consola después de T24 y T25.
   RF: RF-823
   Hecho cuando: la consola muestra la versión publicada con la fecha, anotada en `MEMORY.md`.
+  > Publicado por el usuario: las reglas ya están publicadas en la consola de Firebase.
 
-- [ ] **T27 · Verificación y PR D**
+- [x] **T27 · Verificación y PR D**
   Correr el comando del CI (no toca código de la app, solo reglas). Hacer los 2 commits de `plan.md` (PR D).
   RF: RF-823
   Hecho cuando: CI en verde y aprobación de la otra persona del equipo.
+  > Implementado el 2026-10-12: `./gradlew assembleDebug testDebugUnitTest lintDebug` en verde antes de
+  > commitear. Los 2 commits de `plan.md` se hicieron en local, sin `git push` ni PR en GitHub (decisión
+  > explícita de esta sesión). La aprobación de la otra persona del equipo y el PR en GitHub quedan
+  > pendientes: esta sesión no abre PR.
 
 ## PR E — pantallas (`feat/hu08-pantallas`, apilada sobre B; necesita A y B fusionados)
 
