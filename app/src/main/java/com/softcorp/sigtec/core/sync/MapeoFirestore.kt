@@ -4,6 +4,7 @@ import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentSnapshot
 import com.softcorp.sigtec.core.database.entity.EquipoEntity
 import com.softcorp.sigtec.core.database.entity.IncidenciaEntity
+import com.softcorp.sigtec.core.database.entity.InformeTecnicoEntity
 import com.softcorp.sigtec.core.database.entity.MovimientoEntity
 import com.softcorp.sigtec.core.database.entity.TecnicoEntity
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
@@ -76,6 +77,18 @@ internal fun DocumentSnapshot.aMovimientoEntity(): MovimientoEntity? = runCatchi
         pendienteSincronizar = false
     )
 }.getOrNull()
+
+// ---------- Informes técnicos ----------
+
+// RF-825, RNF trazabilidad: el campo del diagnóstico se llama igual en Firestore que en Room.
+internal fun InformeTecnicoEntity.aFirestore(): Map<String, Any?> = mapOf(
+    "diagnostico" to diagnostico,
+    "trabajoRealizado" to trabajoRealizado,
+    "piezasCambiadas" to piezasCambiadas,
+    "observaciones" to observaciones,
+    "fechaCierre" to fechaCierre.aTimestamp(),
+    "confirmadoEn" to confirmadoEn.aTimestamp()
+)
 
 // ---------- Catálogo ----------
 

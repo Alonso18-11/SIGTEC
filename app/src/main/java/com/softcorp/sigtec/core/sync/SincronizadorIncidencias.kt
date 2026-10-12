@@ -7,9 +7,11 @@ import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.Source
 import com.softcorp.sigtec.core.database.SigtecDatabase
 import com.softcorp.sigtec.core.database.dao.IncidenciaDao
+import com.softcorp.sigtec.core.database.dao.InformeTecnicoDao
 import com.softcorp.sigtec.core.database.dao.MovimientoDao
 import com.softcorp.sigtec.core.database.dao.SincronizacionDao
 import com.softcorp.sigtec.core.database.entity.IncidenciaEntity
+import com.softcorp.sigtec.core.database.entity.InformeTecnicoEntity
 import com.softcorp.sigtec.core.database.entity.MovimientoEntity
 import com.softcorp.sigtec.core.database.entity.SincronizacionEntity
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
@@ -26,10 +28,12 @@ class SincronizadorIncidencias @Inject constructor(
     private val baseLocal: SigtecDatabase,
     private val incidenciaDao: IncidenciaDao,
     private val movimientoDao: MovimientoDao,
+    private val informeTecnicoDao: InformeTecnicoDao,
     private val sincronizacionDao: SincronizacionDao
 ) {
     private val incidencias get() = firestore.collection("incidencias")
     private val movimientos get() = firestore.collection("movimientos")
+    private val informes get() = firestore.collection("informes")
     private val contador get() = firestore.collection("contadores").document("incidencias")
     private val usuarios get() = firestore.collection("usuarios")
 
@@ -45,6 +49,10 @@ class SincronizadorIncidencias @Inject constructor(
         for (movimiento in movimientoDao.listosParaSubir()) {
             todoBien = subir(movimiento) && todoBien
         }
+        // Después de los movimientos: el informe espera a su incidencia igual que ellos (RF-825)
+        for (informe in informeTecnicoDao.listosParaSubir()) {
+            todoBien = subir(informe) && todoBien
+        }
         sincronizacionDao.registrar(
             SincronizacionEntity(tipoTarea = TAREA_SUBIR, ejecutadaEn = ahora, exitosa = todoBien)
         )
@@ -54,7 +62,8 @@ class SincronizadorIncidencias @Inject constructor(
 
     suspend fun hayPendientes(): Boolean =
         incidenciaDao.pendientesDeSincronizar().isNotEmpty() ||
-            movimientoDao.pendientesDeSincronizar().isNotEmpty()
+            movimientoDao.pendientesDeSincronizar().isNotEmpty() ||
+            informeTecnicoDao.pendientesDeSincronizar().isNotEmpty()
 
     private suspend fun subir(local: IncidenciaEntity): Boolean {
         try {
@@ -114,14 +123,18 @@ class SincronizadorIncidencias @Inject constructor(
         }.await()
 
     /**
-     * RF-75: marca la incidencia y sus movimientos pendientes juntos, para que ninguno suba,
-     * y deja en el celular la versión del servidor. Devuelve false solo si Room falló.
+     * RF-75 (HU-05) y RF-825 (HU-08): marca la incidencia, sus movimientos y su informe técnico
+     * pendientes juntos, para que ninguno suba, y deja en el celular la versión del servidor.
+     * Devuelve false solo si Room falló.
      */
     private suspend fun rechazar(local: IncidenciaEntity): Boolean = try {
         val marcada = baseLocal.withTransaction {
             // 0 filas: se editó mientras se subía y queda pendiente con la versión nueva
             val marcada = incidenciaDao.marcarNecesitaAtencion(local.id, local.actualizadoEn) > 0
-            if (marcada) movimientoDao.marcarNecesitaAtencionDe(local.id)
+            if (marcada) {
+                movimientoDao.marcarNecesitaAtencionDe(local.id)
+                informeTecnicoDao.marcarNecesitaAtencionDe(local.id)
+            }
             marcada
         }
         if (marcada) traerVersionDelServidor(local.id)
@@ -182,6 +195,28 @@ class SincronizadorIncidencias @Inject constructor(
         Log.w(TAG, "No se pudo subir el movimiento ${movimiento.id}", e)
         if (esErrorPermanente(e)) {
             movimientoDao.marcarNecesitaAtencion(movimiento.id)
+            true
+        } else {
+            false
+        }
+    }
+
+    /**
+     * RF-825: el documento se llama como la incidencia (`informe.incidenciaId`), no como el informe
+     * (D-5 del plan): un id predecible evita tener que buscarlo por otro campo. Igual que los
+     * movimientos, las reglas prohíben editar informes: si ya existe, solo se anota como subido.
+     */
+    private suspend fun subir(informe: InformeTecnicoEntity): Boolean = try {
+        val documento = informes.document(informe.incidenciaId)
+        if (!documento.get().await().exists()) documento.set(informe.aFirestore()).await()
+        informeTecnicoDao.marcarSincronizado(informe.id)
+        true
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Log.w(TAG, "No se pudo subir el informe técnico ${informe.id}", e)
+        if (esErrorPermanente(e)) {
+            informeTecnicoDao.marcarNecesitaAtencion(informe.id)
             true
         } else {
             false
