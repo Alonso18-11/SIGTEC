@@ -174,7 +174,7 @@
   RF: RF-601, RF-602, RF-606, RF-607
   Hecho cuando: la prueba pasa.
 
-- [ ] **T32 · Consultas nuevas en `IncidenciaDao` y `CatalogoDao` 🔶**
+- [x] **T32 · Consultas nuevas en `IncidenciaDao` y `CatalogoDao` 🔶**
   `observarAsignacionesSinSubir()` y `asignacionesSinSubir(tecnicoId)` (4.4) y `CatalogoDao.tecnicoPorId(id)`, con un caso en `IncidenciaDaoTest`: una asignación con movimiento pendiente cuenta; una incidencia pendiente sin movimiento de asignación no cuenta.
   RF: RF-602, RF-612
   Hecho cuando: `connectedDebugAndroidTest` pasa en un celular.

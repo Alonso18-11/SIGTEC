@@ -94,10 +94,38 @@ class IncidenciaDaoTest {
         assertEquals(2, dao.observarAfectadasPorRechazo().first())
     }
 
-    private fun movimiento(id: String, incidenciaId: String) = Movimiento(
-        id = id, incidenciaId = incidenciaId, tipo = TipoMovimiento.ASIGNADA,
-        autorNombre = "Carlos Mendoza", fecha = Instant.parse("2026-10-11T10:00:00Z")
-    ).toEntity(pendienteSincronizar = true)
+    @Test
+    fun solo_cuentan_las_asignaciones_cuyo_movimiento_aun_no_subio() = runTest {
+        val ahora = Instant.parse("2026-10-11T10:00:00Z")
+        val movimientos = db.movimientoDao()
+        fun guardada(id: String, marca: MarcaSeguimiento, pendiente: Boolean, tecnico: String = "t1") =
+            incidencia(id, marca, ahora).copy(tecnicoAsignadoId = tecnico).toEntity(pendiente, actualizadoEn = ahora)
+        // Cuentan: asignada y reasignada en este celular, con su movimiento todavía pendiente
+        dao.guardar(guardada("nueva", MarcaSeguimiento.ASIGNADA, pendiente = true))
+        movimientos.guardar(movimiento("m-nueva", "nueva"))
+        dao.guardar(guardada("reasignada", MarcaSeguimiento.ASIGNADA, pendiente = true))
+        movimientos.guardar(movimiento("m-reasignada", "reasignada", TipoMovimiento.REASIGNADA))
+        dao.guardar(guardada("de-t2", MarcaSeguimiento.ESPERANDO_REPUESTO, pendiente = true, tecnico = "t2"))
+        movimientos.guardar(movimiento("m-de-t2", "de-t2", TipoMovimiento.REASIGNADA))
+        // No cuentan: pendiente por otro motivo, ya subida, o cerrada
+        dao.guardar(guardada("otro-motivo", MarcaSeguimiento.EN_ATENCION, pendiente = true))
+        movimientos.guardar(movimiento("m-otro-motivo", "otro-motivo", TipoMovimiento.ATENCION_INICIADA))
+        dao.guardar(guardada("subida", MarcaSeguimiento.ASIGNADA, pendiente = false))
+        movimientos.guardar(movimiento("m-subida", "subida"))
+        dao.guardar(guardada("cerrada", MarcaSeguimiento.CERRADA, pendiente = true))
+        movimientos.guardar(movimiento("m-cerrada", "cerrada"))
+
+        // RF-602, RF-612
+        assertEquals(listOf("t1", "t1", "t2"), dao.observarAsignacionesSinSubir().first().sorted())
+        assertEquals(2, dao.asignacionesSinSubir("t1"))
+        assertEquals(1, dao.asignacionesSinSubir("t2"))
+    }
+
+    private fun movimiento(id: String, incidenciaId: String, tipo: TipoMovimiento = TipoMovimiento.ASIGNADA) =
+        Movimiento(
+            id = id, incidenciaId = incidenciaId, tipo = tipo,
+            autorNombre = "Carlos Mendoza", fecha = Instant.parse("2026-10-11T10:00:00Z")
+        ).toEntity(pendienteSincronizar = true)
 
     private fun incidencia(id: String, marca: MarcaSeguimiento, fecha: Instant) = Incidencia(
         id = id, numero = null, codigoEquipo = "PC-CONT-014", descripcion = "No enciende",
