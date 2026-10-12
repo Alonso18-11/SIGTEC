@@ -169,7 +169,7 @@
   RF: RF-608–RF-616, RF-625
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*AsignarIncidenciaTest"` pasa.
 
-- [ ] **T31 · `ObservarOpcionesAsignacion` con su prueba**
+- [x] **T31 · `ObservarOpcionesAsignacion` con su prueba**
   Combina la incidencia, su oficina, los técnicos y las asignaciones sin subir (4.1) en `OpcionesAsignacion` con su bloqueo; `ObservarOpcionesAsignacionTest` con 3 casos.
   RF: RF-601, RF-602, RF-606, RF-607
   Hecho cuando: la prueba pasa.
