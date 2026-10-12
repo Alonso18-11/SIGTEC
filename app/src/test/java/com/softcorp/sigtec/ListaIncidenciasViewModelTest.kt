@@ -113,4 +113,18 @@ class ListaIncidenciasViewModelTest {
         assertEquals(incidenciasAntes, vm.ids)      // las incidencias no cambiaron
         assertEquals(filtrosAntes, vm.ui.filtros)   // los filtros no cambiaron
     }
+
+    @Test
+    fun `la lista se actualiza sola cuando cambia Room`() = runTest {
+        // RF-701 (HU-07): la sincronización escribe en Room y la lista abierta lo refleja sin que nadie la refresque
+        val repo = IncidenciaRepositoryFalso().apply { cargar(datos) }
+        val vm = ListaIncidenciasViewModel(ObservarIncidencias(repo))
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.estado.collect {} }
+        assertEquals(MarcaSeguimiento.EN_ATENCION, vm.ui.incidencias.first { it.id == "c" }.marca)
+
+        // Como si otro celular hubiera cerrado «c» y la sincronización lo bajara
+        repo.cargar(datos.map { if (it.id == "c") it.copy(marca = MarcaSeguimiento.CERRADA) else it })
+
+        assertEquals(MarcaSeguimiento.CERRADA, vm.ui.incidencias.first { it.id == "c" }.marca)
+    }
 }

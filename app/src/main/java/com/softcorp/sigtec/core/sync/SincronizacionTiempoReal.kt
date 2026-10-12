@@ -12,10 +12,12 @@ import com.softcorp.sigtec.core.database.dao.IncidenciaDao
 import com.softcorp.sigtec.core.database.dao.MovimientoDao
 import com.softcorp.sigtec.core.database.dao.SincronizacionDao
 import com.softcorp.sigtec.core.database.entity.SincronizacionEntity
+import com.softcorp.sigtec.core.database.entity.toDomain
 import com.softcorp.sigtec.core.di.ApplicationScope
 import com.softcorp.sigtec.core.di.IoDispatcher
 import com.softcorp.sigtec.core.domain.debeBorrarDatosAlEntrar
 import com.softcorp.sigtec.core.domain.repository.SesionRepository
+import com.softcorp.sigtec.core.notificaciones.NotificadorAsignaciones
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -36,6 +38,7 @@ class SincronizacionTiempoReal @Inject constructor(
     private val sincronizacionDao: SincronizacionDao,
     private val programador: ProgramadorSincronizacion,
     private val reloj: Reloj,
+    private val notificador: NotificadorAsignaciones,
     @IoDispatcher private val io: CoroutineDispatcher,
     @ApplicationScope private val scope: CoroutineScope
 ) {
@@ -60,7 +63,7 @@ class SincronizacionTiempoReal @Inject constructor(
                         duenoDatos = uid
                         emitAll(
                             merge(
-                                escuchar("incidencias", ::guardarIncidencias),
+                                escuchar("incidencias", { snap -> guardarIncidencias(snap, uid) }),
                                 escuchar("movimientos", ::guardarMovimientos),
                                 escuchar("equipos", ::guardarEquipos),
                                 // RF-619 (HU-06): solo los técnicos; quien deja de serlo llega como REMOVED
@@ -95,7 +98,7 @@ class SincronizacionTiempoReal @Inject constructor(
         if (!snap.metadata.isFromCache) registrarDescarga()
     }
 
-    private suspend fun guardarIncidencias(snap: QuerySnapshot) {
+    private suspend fun guardarIncidencias(snap: QuerySnapshot, uid: String) {
         for (cambio in snap.documentChanges) {
             if (cambio.type == DocumentChange.Type.REMOVED) continue
             val documento = cambio.document
@@ -108,6 +111,8 @@ class SincronizacionTiempoReal @Inject constructor(
                     // RF-79: si se pierde un cambio sin subir, ningún movimiento de ese intento debe subir
                     if (local?.pendienteSincronizar == true) movimientoDao.marcarNecesitaAtencionDe(remota.id)
                 }
+                // HU-07 (RF-702): después de guardar, así al tocar el aviso el detalle ya tiene la versión nueva
+                if (esAsignacionNuevaPara(uid, local, remota)) notificador.avisar(remota.toDomain(), uid)
             }
         }
     }

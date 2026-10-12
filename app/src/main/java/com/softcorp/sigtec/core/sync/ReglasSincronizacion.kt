@@ -3,6 +3,7 @@ package com.softcorp.sigtec.core.sync
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.softcorp.sigtec.core.database.entity.IncidenciaEntity
 import com.softcorp.sigtec.core.database.entity.MovimientoEntity
+import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
 
 internal const val TAREA_SUBIR = "SUBIR_CAMBIOS"
 internal const val TAREA_BAJAR = "BAJAR_INCIDENCIAS"
@@ -66,3 +67,14 @@ private val CODIGOS_PERMANENTES = setOf("PERMISSION_DENIED", "INVALID_ARGUMENT")
 
 /** No se intenta subir sin una red validada: evita gastar reintentos en vano (RF-78). */
 internal fun debeIntentarSubir(hayConexionValidada: Boolean): Boolean = hayConexionValidada
+
+/**
+ * HU-07 (RF-702, RF-703, RF-705): avisar solo si el cambio se observó en este celular: la incidencia
+ * ya estaba aquí sin ser de esta persona y ahora le llega asignada y sin cerrar. Si llega por primera
+ * vez (por ejemplo, en la primera descarga tras iniciar sesión) no se avisa, para no llenar la pantalla.
+ */
+internal fun esAsignacionNuevaPara(usuarioId: String, local: IncidenciaEntity?, remota: IncidenciaEntity): Boolean =
+    local != null &&
+        local.tecnicoAsignadoId != usuarioId &&
+        remota.tecnicoAsignadoId == usuarioId &&
+        remota.marca != MarcaSeguimiento.CERRADA

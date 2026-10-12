@@ -22,6 +22,7 @@ import com.softcorp.sigtec.core.biometric.DisponibilidadBiometrica
 import com.softcorp.sigtec.core.biometric.ResultadoBiometrico
 import com.softcorp.sigtec.core.biometric.rememberVerificadorBiometrico
 import com.softcorp.sigtec.core.domain.model.EstadoAcceso
+import com.softcorp.sigtec.core.notificaciones.PedirPermisoNotificaciones
 import com.softcorp.sigtec.feature.acceso.presentation.OfertaHuellaDialogo
 import com.softcorp.sigtec.feature.acceso.presentation.accesoGraph
 import com.softcorp.sigtec.feature.asignacion.presentation.asignacionGraph
@@ -38,6 +39,7 @@ fun SigtecRaiz(vm: RaizViewModel = hiltViewModel()) {
 
     val estado by vm.estadoAcceso.collectAsStateWithLifecycle()
     val mostrarOferta by vm.mostrarOfertaHuella.collectAsStateWithLifecycle()
+    val avisoPendiente by vm.avisoPendiente.collectAsStateWithLifecycle()
     val verificador = rememberVerificadorBiometrico()
 
     // Solo hay usuario para la app cuando la sesión está activa (no bloqueada)
@@ -65,6 +67,25 @@ fun SigtecRaiz(vm: RaizViewModel = hiltViewModel()) {
             }
         }
     }
+
+    // HU-07 (RF-711 a RF-713): el detalle del aviso se abre solo con la sesión activa de quien lo recibió
+    // y después de salir del login, así nunca se salta el login ni la huella (D-7)
+    LaunchedEffect(estado, avisoPendiente, destinoActual) {
+        val aviso = avisoPendiente ?: return@LaunchedEffect
+        val destino = destinoActual ?: return@LaunchedEffect
+        if (destino.hasRoute(Ruta.Login::class)) return@LaunchedEffect
+        when (val decision = destinoDelAviso(estado, aviso)) {
+            is DestinoDelAviso.Abrir -> {
+                vm.alAtenderAviso()
+                navController.navigate(Ruta.DetalleIncidencia(decision.incidenciaId))
+            }
+            DestinoDelAviso.Descartar -> vm.alAtenderAviso()
+            DestinoDelAviso.Esperar -> Unit
+        }
+    }
+
+    // HU-07 (RF-708): al técnico con la sesión activa, después de la oferta de huella para no juntar dos diálogos
+    PedirPermisoNotificaciones(perfil = usuario?.perfil, habilitado = activa && !mostrarOferta)
 
     // Oferta de huella después del primer ingreso con contraseña (HU-02, sección 16.2 paso 3)
     if (mostrarOferta) {

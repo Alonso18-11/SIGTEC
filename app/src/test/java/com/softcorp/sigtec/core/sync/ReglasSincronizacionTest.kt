@@ -183,4 +183,37 @@ class ReglasSincronizacionTest {
     fun `sin conexion validada no se debe intentar subir`() {
         assertFalse(debeIntentarSubir(hayConexionValidada = false))
     }
+
+    // ---------- HU-07: asignación nueva para quien tiene la sesión (RF-702, RF-703, RF-705) ----------
+
+    private fun asignada(tecnico: String?, marca: MarcaSeguimiento = MarcaSeguimiento.ASIGNADA) =
+        incidencia(false, antes, "remota").copy(
+            tecnicoAsignadoId = tecnico, tecnicoAsignadoNombre = tecnico, marca = marca
+        )
+
+    @Test
+    fun `asignada antes a otro o sin tecnico y ahora a mi avisa`() {
+        assertTrue(esAsignacionNuevaPara("luis", local = asignada(null, MarcaSeguimiento.SIN_ASIGNAR), remota = asignada("luis")))
+        assertTrue(esAsignacionNuevaPara("luis", local = asignada("ana"), remota = asignada("luis")))
+    }
+
+    @Test
+    fun `si llega por primera vez ya asignada a mi no avisa`() {
+        assertFalse(esAsignacionNuevaPara("luis", local = null, remota = asignada("luis")))
+    }
+
+    @Test
+    fun `si ya era mia no avisa otra vez`() {
+        assertFalse(esAsignacionNuevaPara("luis", local = asignada("luis"), remota = asignada("luis", MarcaSeguimiento.EN_ATENCION)))
+    }
+
+    @Test
+    fun `asignada a mi pero cerrada no avisa`() {
+        assertFalse(esAsignacionNuevaPara("luis", local = asignada("ana"), remota = asignada("luis", MarcaSeguimiento.CERRADA)))
+    }
+
+    @Test
+    fun `reasignada de mi a otra persona no avisa`() {
+        assertFalse(esAsignacionNuevaPara("luis", local = asignada("luis"), remota = asignada("ana")))
+    }
 }
