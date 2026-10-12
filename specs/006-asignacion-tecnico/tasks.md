@@ -40,10 +40,11 @@
   RF: — (problema 4)
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*ReglasSincronizacionTest"` pasa.
 
-- [ ] **T07 · Consultas de rechazo en los DAO 🔶**
+- [x] **T07 · Consultas de rechazo en los DAO 🔶**
   `IncidenciaDao.marcarNecesitaAtencion(id, actualizadoEn): Int` (con guarda), `MovimientoDao.listosParaSubir()`, `MovimientoDao.marcarNecesitaAtencionDe(incidenciaId)`, conteo de incidencias afectadas, `borrarRechazados()` y limpieza de la marca, con sus casos en `MovimientoDaoTest` (nuevo) e `IncidenciaDaoTest`.
   RF: — (problemas 1, 3 y 5)
   Hecho cuando: `./gradlew assembleDebug` compila y `connectedDebugAndroidTest` pasa en un celular.
+  > 2026-10-11: `connectedDebugAndroidTest` pasó en el emulador Pixel_8 (Android 14): 7 de 7, 4 de `IncidenciaDaoTest` y 3 de `MovimientoDaoTest`.
 
 - [x] **T08 · Subir los movimientos solo después de su incidencia 🔶**
   `SincronizadorIncidencias.subirPendientes` usa `listosParaSubir()` en vez de `pendientesDeSincronizar()` para los movimientos.
