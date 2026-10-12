@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.room.withTransaction
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import com.softcorp.sigtec.core.database.SigtecDatabase
 import com.softcorp.sigtec.core.database.dao.CatalogoDao
@@ -62,6 +63,11 @@ class SincronizacionTiempoReal @Inject constructor(
                                 escuchar("incidencias", ::guardarIncidencias),
                                 escuchar("movimientos", ::guardarMovimientos),
                                 escuchar("equipos", ::guardarEquipos),
+                                // RF-619 (HU-06): solo los técnicos; quien deja de serlo llega como REMOVED
+                                escuchar(
+                                    "usuarios", ::guardarTecnicos,
+                                    firestore.collection("usuarios").whereEqualTo("perfil", "TECNICO")
+                                ),
                                 vigilarPendientes()
                             )
                         )
@@ -71,11 +77,13 @@ class SincronizacionTiempoReal @Inject constructor(
             .launchIn(scope)
     }
 
+    // `consulta` permite escuchar solo una parte de la colección, como los técnicos de /usuarios
     private fun escuchar(
         coleccion: String,
-        guardar: suspend (QuerySnapshot) -> Unit
+        guardar: suspend (QuerySnapshot) -> Unit,
+        consulta: Query = firestore.collection(coleccion)
     ): Flow<Unit> = callbackFlow {
-        val registro = firestore.collection(coleccion).addSnapshotListener { snap, error ->
+        val registro = consulta.addSnapshotListener { snap, error ->
             if (error != null) Log.w(TAG, "Error al escuchar $coleccion", error)
             else if (snap != null) trySend(snap)
         }
@@ -118,6 +126,14 @@ class SincronizacionTiempoReal @Inject constructor(
             .filter { it.type != DocumentChange.Type.REMOVED }
             .mapNotNull { it.document.aEquipoEntity() }
         if (nuevos.isNotEmpty()) catalogoDao.guardarEquipos(nuevos)
+    }
+
+    // RF-619 (HU-06): también de solo lectura. Un técnico mal formado se descarta sin frenar al resto.
+    private suspend fun guardarTecnicos(snap: QuerySnapshot) {
+        val (quitados, cambiados) = snap.documentChanges.partition { it.type == DocumentChange.Type.REMOVED }
+        val nuevos = cambiados.mapNotNull { it.document.aTecnicoEntity() }
+        if (nuevos.isNotEmpty()) catalogoDao.guardarTecnicos(nuevos)
+        if (quitados.isNotEmpty()) catalogoDao.borrarTecnicos(quitados.map { it.document.id })
     }
 
     // Programa la subida solo cuando se pasa de "nada pendiente" a "hay pendientes".

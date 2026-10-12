@@ -40,10 +40,11 @@
   RF: — (problema 4)
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*ReglasSincronizacionTest"` pasa.
 
-- [ ] **T07 · Consultas de rechazo en los DAO 🔶**
+- [x] **T07 · Consultas de rechazo en los DAO 🔶**
   `IncidenciaDao.marcarNecesitaAtencion(id, actualizadoEn): Int` (con guarda), `MovimientoDao.listosParaSubir()`, `MovimientoDao.marcarNecesitaAtencionDe(incidenciaId)`, conteo de incidencias afectadas, `borrarRechazados()` y limpieza de la marca, con sus casos en `MovimientoDaoTest` (nuevo) e `IncidenciaDaoTest`.
   RF: — (problemas 1, 3 y 5)
   Hecho cuando: `./gradlew assembleDebug` compila y `connectedDebugAndroidTest` pasa en un celular.
+  > 2026-10-11: `connectedDebugAndroidTest` pasó en el emulador Pixel_8 (Android 14): 7 de 7, 4 de `IncidenciaDaoTest` y 3 de `MovimientoDaoTest`.
 
 - [x] **T08 · Subir los movimientos solo después de su incidencia 🔶**
   `SincronizadorIncidencias.subirPendientes` usa `listosParaSubir()` en vez de `pendientesDeSincronizar()` para los movimientos.
@@ -87,12 +88,12 @@
 
 ## PR C — bajar los técnicos (`feat/sync-tecnicos`, desde `main` con A)
 
-- [ ] **T16 · `tecnicoDesdeDatos` y su prueba 🔶**
+- [x] **T16 · `tecnicoDesdeDatos` y su prueba 🔶**
   Función pura en `core/sync/MapeoFirestore.kt` (plan 3.8) y `DocumentSnapshot.aTecnicoEntity()`, que la usa; `MapeoTecnicoTest` con 3 casos.
   RF: RF-619
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*MapeoTecnicoTest"` pasa.
 
-- [ ] **T17 · `CatalogoDao.borrarTecnicos` 🔶**
+- [x] **T17 · `CatalogoDao.borrarTecnicos` 🔶**
   `@Query("DELETE FROM tecnicos WHERE id IN (:ids)")` y `CatalogoDaoTest` instrumentada (guardar 2, borrar 1).
   RF: RF-619
   Hecho cuando: `connectedDebugAndroidTest` pasa en un celular.
@@ -101,11 +102,13 @@
   `escuchar(...)` recibe una `Query` y un nombre; las 3 llamadas existentes pasan su colección. Se agrega la escucha de `usuarios` con `whereEqualTo("perfil", "TECNICO")` y `guardarTecnicos(snap)` (plan 4.5).
   RF: RF-619
   Hecho cuando: compila, y con el Database Inspector de Android Studio la tabla `tecnicos` tiene los 4 técnicos de prueba con su límite.
+  > 2026-10-11: código hecho. La consulta es un parámetro opcional de `escuchar(...)` (por defecto, la colección entera), así que las 3 llamadas existentes no cambiaron. Falta que el usuario compruebe la tabla en el Database Inspector: el agente no inicia sesión con las cuentas de prueba.
 
 - [ ] **T19 · Verificación y PR C**
   Correr el comando del CI. Prueba manual: con la app abierta, cambiar en la consola `incidenciasActivas` de un técnico y verlo cambiar en la tabla; dejarlo como estaba. Marcar T16–T18 y hacer los 4 commits de `plan.md` (PR C).
   RF: RF-619
   Hecho cuando: CI en verde y aprobación de Alonso.
+  > 2026-10-11: `assembleDebug testDebugUnitTest lintDebug` en verde en local (136 pruebas JVM; lint sin avisos nuevos) y `connectedDebugAndroidTest` 9 de 9 en el emulador (incluye `CatalogoDaoTest`). Falta la prueba manual con la consola, a cargo del usuario.
 
 ## PR D — carga del técnico y reglas (`feat/sync-carga-tecnico`, apilada sobre B)
 
