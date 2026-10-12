@@ -188,6 +188,7 @@
   Correr el comando del CI. Hacer los 6 commits de `plan.md` (PR E). El PR no cambia nada visible (la pantalla llega en F): así se indica en «Cómo probarlo».
   RF: RF-602, RF-608–RF-616
   Hecho cuando: CI en verde y aprobación de Alonso.
+  > 2026-10-11: `assembleDebug testDebugUnitTest lintDebug` en verde en local (162 pruebas JVM; lint sin avisos nuevos) y `connectedDebugAndroidTest` 11 de 11 en el emulador Pixel_8 (incluye las consultas nuevas de `IncidenciaDaoTest` y `CatalogoDaoTest`).
 
 ## PR F — pantalla y detalle (`feat/asignacion-pantalla`, apilada sobre E; se fusiona después de C y D)
 
