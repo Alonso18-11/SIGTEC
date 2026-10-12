@@ -53,4 +53,13 @@ class CatalogoDaoTest {
         assertEquals(1, tecnicos.size)
         assertEquals(4, tecnicos.single().incidenciasActivas)
     }
+
+    @Test
+    fun busca_un_tecnico_por_su_id() = runTest {
+        // RF-612 (HU-06)
+        dao.guardarTecnicos(listOf(TecnicoEntity("u-luis", "Luis Ramírez", 5, 3)))
+
+        assertEquals("Luis Ramírez", dao.tecnicoPorId("u-luis")?.nombre)
+        assertEquals(null, dao.tecnicoPorId("u-otro"))
+    }
 }

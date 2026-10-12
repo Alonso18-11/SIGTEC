@@ -35,6 +35,32 @@ interface IncidenciaDao {
     @Upsert
     suspend fun guardarTodas(incidencias: List<IncidenciaEntity>)
 
+    // RF-602 (HU-06): un técnico por cada asignación guardada en este celular que aún no subió. Solo
+    // cuenta si su movimiento de asignación también está pendiente, para no contar dos veces una
+    // incidencia que ya está asignada en el servidor y quedó pendiente por otro motivo.
+    @Query("""
+        SELECT i.tecnicoAsignadoId FROM incidencias i
+        WHERE i.tecnicoAsignadoId IS NOT NULL AND i.marca != 'CERRADA' AND i.pendienteSincronizar = 1
+          AND EXISTS (
+              SELECT 1 FROM movimientos m
+              WHERE m.incidenciaId = i.id AND m.pendienteSincronizar = 1
+                AND m.tipo IN ('ASIGNADA', 'REASIGNADA')
+          )
+    """)
+    fun observarAsignacionesSinSubir(): Flow<List<String>>
+
+    // RF-612 (HU-06): lo mismo, para un técnico, al momento de asignar
+    @Query("""
+        SELECT COUNT(*) FROM incidencias i
+        WHERE i.tecnicoAsignadoId = :tecnicoId AND i.marca != 'CERRADA' AND i.pendienteSincronizar = 1
+          AND EXISTS (
+              SELECT 1 FROM movimientos m
+              WHERE m.incidenciaId = i.id AND m.pendienteSincronizar = 1
+                AND m.tipo IN ('ASIGNADA', 'REASIGNADA')
+          )
+    """)
+    suspend fun asignacionesSinSubir(tecnicoId: String): Int
+
     // Lo que el worker debe subir a Firestore (HU-17)
     @Query("SELECT * FROM incidencias WHERE pendienteSincronizar = 1")
     suspend fun pendientesDeSincronizar(): List<IncidenciaEntity>

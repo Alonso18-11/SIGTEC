@@ -12,6 +12,10 @@ interface CatalogoDao {
     @Query("SELECT * FROM tecnicos ORDER BY nombre")
     fun observarTecnicos(): Flow<List<TecnicoEntity>>
 
+    // RF-612 (HU-06): el técnico elegido, con la carga y el límite que bajaron del servidor
+    @Query("SELECT * FROM tecnicos WHERE id = :id")
+    suspend fun tecnicoPorId(id: String): TecnicoEntity?
+
     @Upsert
     suspend fun guardarTecnicos(tecnicos: List<TecnicoEntity>)
 

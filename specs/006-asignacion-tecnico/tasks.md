@@ -154,37 +154,37 @@
 
 ## PR E — dominio y datos (`feat/asignacion-dominio`, desde `main` con A)
 
-- [ ] **T27 · Errores de asignación ⚠️**
+- [x] **T27 · Errores de asignación ⚠️**
   `IncidenciaPorSincronizar`, `IncidenciaCerrada` y `YaAsignada(tecnicoNombre)` en `core/domain/Resultado.kt`, con sus textos de la spec en `core/ui/MensajesError.kt`.
   RF: RF-609, RF-610, RF-611
   Hecho cuando: `./gradlew assembleDebug` compila (el `when` exhaustivo de `mensaje()` cierra).
 
-- [ ] **T28 · `ReglasAsignacion` y su prueba**
+- [x] **T28 · `ReglasAsignacion` y su prueba**
   Funciones 3.1 a 3.5 y 3.11 (`marcaAlAsignar`) en `feature/asignacion/domain/ReglasAsignacion.kt`, con `OpcionTecnico`, y `ReglasAsignacionTest` con los casos de `plan.md` sección 7.
   RF: RF-602–RF-604, RF-607, RF-609, RF-610, RF-613–RF-615, RF-625
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*ReglasAsignacionTest"` pasa y el archivo no importa nada de `android.*`.
 
-- [ ] **T29 · `AsignacionRepository` y su doble falso**
+- [x] **T29 · `AsignacionRepository` y su doble falso**
   Interfaz en `feature/asignacion/domain` (incidencia, técnico, técnicos, oficina, asignaciones sin subir, `asignar`) y `AsignacionRepositoryFalso` en `app/src/test/.../feature/asignacion/data`, en memoria y con `fallar`.
   RF: RF-601, RF-602, RF-613
   Hecho cuando: compila con `./gradlew testDebugUnitTest`.
 
-- [ ] **T30 · `AsignarIncidencia` con sus pruebas**
+- [x] **T30 · `AsignarIncidencia` con sus pruebas**
   Caso de uso de 4.2 (`@Inject constructor`, `operator fun invoke(incidenciaId, tecnicoId, ahora)`) y `AsignarIncidenciaTest` con los 10 casos de `plan.md` sección 7, incluida la reasignación desde Esperando repuesto, que conserva la marca.
   RF: RF-608–RF-616, RF-625
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*AsignarIncidenciaTest"` pasa.
 
-- [ ] **T31 · `ObservarOpcionesAsignacion` con su prueba**
+- [x] **T31 · `ObservarOpcionesAsignacion` con su prueba**
   Combina la incidencia, su oficina, los técnicos y las asignaciones sin subir (4.1) en `OpcionesAsignacion` con su bloqueo; `ObservarOpcionesAsignacionTest` con 3 casos.
   RF: RF-601, RF-602, RF-606, RF-607
   Hecho cuando: la prueba pasa.
 
-- [ ] **T32 · Consultas nuevas en `IncidenciaDao` y `CatalogoDao` 🔶**
+- [x] **T32 · Consultas nuevas en `IncidenciaDao` y `CatalogoDao` 🔶**
   `observarAsignacionesSinSubir()` y `asignacionesSinSubir(tecnicoId)` (4.4) y `CatalogoDao.tecnicoPorId(id)`, con un caso en `IncidenciaDaoTest`: una asignación con movimiento pendiente cuenta; una incidencia pendiente sin movimiento de asignación no cuenta.
   RF: RF-602, RF-612
   Hecho cuando: `connectedDebugAndroidTest` pasa en un celular.
 
-- [ ] **T33 · `AsignacionRepositoryImpl` y `AsignacionModule`**
+- [x] **T33 · `AsignacionRepositoryImpl` y `AsignacionModule`**
   Implementación de 4.3 (`@IoDispatcher`, `db.withTransaction`, `catch` que relanza `CancellationException` y registra con `Log.w`) y `@Binds` en `feature/asignacion/di/AsignacionModule.kt`.
   RF: RF-613, RF-616
   Hecho cuando: `./gradlew assembleDebug` compila (Hilt resuelve el repositorio).
@@ -193,6 +193,7 @@
   Correr el comando del CI. Hacer los 6 commits de `plan.md` (PR E). El PR no cambia nada visible (la pantalla llega en F): así se indica en «Cómo probarlo».
   RF: RF-602, RF-608–RF-616
   Hecho cuando: CI en verde y aprobación de Alonso.
+  > 2026-10-11: `assembleDebug testDebugUnitTest lintDebug` en verde en local (162 pruebas JVM; lint sin avisos nuevos) y `connectedDebugAndroidTest` 11 de 11 en el emulador Pixel_8 (incluye las consultas nuevas de `IncidenciaDaoTest` y `CatalogoDaoTest`).
 
 ## PR F — pantalla y detalle (`feat/asignacion-pantalla`, apilada sobre E; se fusiona después de C y D)
 
