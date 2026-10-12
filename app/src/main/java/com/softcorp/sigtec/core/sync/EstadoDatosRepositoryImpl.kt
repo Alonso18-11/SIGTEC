@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.room.withTransaction
 import com.softcorp.sigtec.core.database.SigtecDatabase
 import com.softcorp.sigtec.core.database.dao.IncidenciaDao
+import com.softcorp.sigtec.core.database.dao.InformeTecnicoDao
 import com.softcorp.sigtec.core.database.dao.MovimientoDao
 import com.softcorp.sigtec.core.database.dao.SincronizacionDao
 import com.softcorp.sigtec.core.di.IoDispatcher
@@ -26,6 +27,7 @@ class EstadoDatosRepositoryImpl @Inject constructor(
     private val baseLocal: SigtecDatabase,
     private val incidenciaDao: IncidenciaDao,
     private val movimientoDao: MovimientoDao,
+    private val informeTecnicoDao: InformeTecnicoDao,
     @IoDispatcher private val io: CoroutineDispatcher
 ) : EstadoDatosRepository {
 
@@ -46,6 +48,7 @@ class EstadoDatosRepositoryImpl @Inject constructor(
         try {
             baseLocal.withTransaction {
                 movimientoDao.borrarRechazados()   // primero: busca las incidencias que se van a borrar
+                informeTecnicoDao.borrarRechazados()   // RF-825
                 incidenciaDao.borrarRechazadasSinNumero()
                 incidenciaDao.quitarMarcaDeAtencion()
             }
