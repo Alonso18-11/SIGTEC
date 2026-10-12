@@ -85,6 +85,51 @@ class ReglasSincronizacionTest {
     }
 
     @Test
+    fun `si el tecnico no cambia la carga no se mueve`() {
+        assertEquals(emptyMap<String, Int>(), cambiosDeCarga("u-luis", "u-luis"))
+        assertEquals(emptyMap<String, Int>(), cambiosDeCarga(null, null))
+    }
+
+    @Test
+    fun `asignar suma 1 al tecnico nuevo`() {
+        assertEquals(mapOf("u-luis" to 1), cambiosDeCarga(null, "u-luis"))
+    }
+
+    @Test
+    fun `reasignar resta 1 al anterior y suma 1 al nuevo`() {
+        assertEquals(mapOf("u-ana" to -1, "u-luis" to 1), cambiosDeCarga("u-ana", "u-luis"))
+    }
+
+    @Test
+    fun `quitar el tecnico resta 1 al anterior`() {
+        assertEquals(mapOf("u-ana" to -1), cambiosDeCarga("u-ana", null))
+    }
+
+    @Test
+    fun `la carga puede subir hasta llegar justo al limite`() {
+        assertTrue(cargaValida(actual = 3, limite = 5, delta = 1))
+        assertTrue(cargaValida(actual = 4, limite = 5, delta = 1))
+    }
+
+    @Test
+    fun `la carga no puede pasar del limite`() {
+        // RF-621: otro celular ya ocupó el último cupo
+        assertFalse(cargaValida(actual = 5, limite = 5, delta = 1))
+    }
+
+    @Test
+    fun `la carga no puede quedar bajo cero`() {
+        assertTrue(cargaValida(actual = 1, limite = 5, delta = -1))
+        assertFalse(cargaValida(actual = 0, limite = 5, delta = -1))
+    }
+
+    @Test
+    fun `sin cupo definido nunca se puede asignar`() {
+        // Perfil sin limiteAtencion: se lee como 0
+        assertFalse(cargaValida(actual = 0, limite = 0, delta = 1))
+    }
+
+    @Test
     fun `sin contador previo el siguiente numero es 1`() {
         assertEquals(1L, siguienteNumero(null))
     }

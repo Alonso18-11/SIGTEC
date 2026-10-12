@@ -17,6 +17,25 @@ service cloud.firestore {
       return request.resource.data.diff(resource.data).affectedKeys().hasOnly(campos);
     }
 
+    // Técnico asignado antes y después de un cambio de incidencia (null si no tiene)
+    function tecnicoAntes()   { return resource.data.get('tecnicoAsignadoId', null); }
+    function tecnicoDespues() { return request.resource.data.get('tecnicoAsignadoId', null); }
+    function cambiaTecnico()  { return tecnicoDespues() != tecnicoAntes(); }
+
+    // Carga de un técnico antes y después de la escritura (getAfter ve la transacción completa)
+    function cargaDe(uid) {
+      return get(/databases/$(database)/documents/usuarios/$(uid)).data.incidenciasActivas;
+    }
+    function cargaDespuesDe(uid) {
+      return getAfter(/databases/$(database)/documents/usuarios/$(uid)).data.incidenciasActivas;
+    }
+
+    // RF-622: al cambiar de técnico, el nuevo suma 1 y el anterior resta 1 en la misma escritura
+    function cargaMovida() {
+      return (tecnicoDespues() == null || cargaDespuesDe(tecnicoDespues()) == cargaDe(tecnicoDespues()) + 1)
+        && (tecnicoAntes() == null || cargaDespuesDe(tecnicoAntes()) == cargaDe(tecnicoAntes()) - 1);
+    }
+
     // ---------- Usuarios ----------
     match /usuarios/{uid} {
       allow read: if autenticado();
@@ -36,9 +55,12 @@ service cloud.firestore {
       allow create: if autenticado()
         && request.resource.data.registradoPorId == request.auth.uid
         && request.resource.data.marca == 'SIN_ASIGNAR';
-      // La modifica el jefe (asignar, clasificar) o el técnico asignado (atender, cerrar)
-      allow update: if esJefe()
-        || (esTecnico() && resource.data.tecnicoAsignadoId == request.auth.uid);
+      // La modifica el jefe (asignar, clasificar) o el técnico asignado (atender, cerrar).
+      // Cambiar de técnico mueve la carga de los dos en la misma escritura: con la regla de
+      // /usuarios (carga entre 0 y el límite) es RF-06 en el servidor (RF-622). Una cerrada no se reasigna.
+      // El técnico asignado no puede cambiar quién es el técnico asignado (RF-623).
+      allow update: if (esJefe() && (!cambiaTecnico() || (resource.data.marca != 'CERRADA' && cargaMovida())))
+        || (esTecnico() && tecnicoAntes() == request.auth.uid && !cambiaTecnico());
       allow delete: if false;
     }
 
