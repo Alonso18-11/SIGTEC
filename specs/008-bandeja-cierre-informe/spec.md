@@ -1,6 +1,7 @@
 # Spec 008 — Bandeja del técnico y cierre con informe confirmado por huella (HU-08)
 
-> Estado: borrador.
+> Estado: completa (2026-10-12). Pruebas de consola y manuales hechas el 2026-10-12 (`tasks.md`, T24 a T26 y T38 a T40): cierre con informe y huella, carga del técnico con y sin conexión, y el conflicto con una reasignación (RF-624 de la HU-06). El Rules Playground no simula `getAfter()` ni reconoce como timestamp el `confirmadoEn` que construye: esos casos se probaron desde la app.
+
 > Spec escrita antes del código (principio 2 de la constitución). Los requisitos usan el bloque propio de la HU-08 (RF-801…). Corresponde, al menos, al RF-06 del producto (ya citado en `CLAUDE.md` para la HU-06: no se asigna a quien alcanzó su límite; aquí se amplía para que cerrar reste carga) y al RF-23 (confirmación biométrica de cierres, también en `CLAUDE.md`). No se identificó un RF de producto específico para «ver la bandeja»: el documento de requisitos del producto no está en el repo (misma limitación ya anotada en `specs/003-registro-incidencia/spec.md`).
 
 ## Contexto y objetivo
