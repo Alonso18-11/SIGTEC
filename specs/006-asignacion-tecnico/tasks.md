@@ -192,7 +192,7 @@
 
 ## PR F — pantalla y detalle (`feat/asignacion-pantalla`, apilada sobre E; se fusiona después de C y D)
 
-- [ ] **T35 · `TextosAsignacion` y su prueba**
+- [x] **T35 · `TextosAsignacion` y su prueba**
   `iniciales(nombre)`, el texto del botón (asignar o reasignar) y la línea «La incidencia aparecerá en la bandeja de <nombre>», con `TextosAsignacionTest`.
   RF: RF-601, RF-605
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*TextosAsignacionTest"` pasa.
