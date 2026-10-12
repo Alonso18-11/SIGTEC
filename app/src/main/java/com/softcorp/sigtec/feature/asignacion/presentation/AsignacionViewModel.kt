@@ -10,10 +10,12 @@ import com.softcorp.sigtec.feature.asignacion.domain.ObservarOpcionesAsignacion
 import com.softcorp.sigtec.feature.asignacion.domain.OpcionTecnico
 import com.softcorp.sigtec.feature.asignacion.domain.OpcionesAsignacion
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -53,8 +55,17 @@ class AsignacionViewModel @Inject constructor(
 
     private val local = MutableStateFlow(AsignacionUiState())
 
-    val estado: StateFlow<AsignacionUiState> = combine(observarOpciones(incidenciaId), local) { opciones, l ->
-        l.copy(cargando = false, opciones = opciones, ahora = Instant.now())
+    // Los días pendientes del resumen no deben quedar desactualizados si la pantalla queda abierta
+    // mucho tiempo sin cambios de datos (mismo patrón que la lista y el detalle, HU-04)
+    private val reloj = flow {
+        while (true) {
+            emit(Instant.now())
+            delay(RELOJ_MS)
+        }
+    }
+
+    val estado: StateFlow<AsignacionUiState> = combine(observarOpciones(incidenciaId), local, reloj) { opciones, l, ahora ->
+        l.copy(cargando = false, opciones = opciones, ahora = ahora)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AsignacionUiState())
 
     fun alElegir(tecnicoId: String) = local.update { it.copy(elegidoId = tecnicoId, error = null) }
@@ -78,5 +89,6 @@ class AsignacionViewModel @Inject constructor(
 
     companion object {
         const val ARG_INCIDENCIA_ID = "incidenciaId"
+        private const val RELOJ_MS = 60_000L
     }
 }

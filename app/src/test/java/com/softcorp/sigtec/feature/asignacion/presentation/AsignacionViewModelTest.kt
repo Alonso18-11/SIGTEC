@@ -17,6 +17,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -138,5 +139,25 @@ class AsignacionViewModelTest {
 
         assertNull(vm.estado.value.elegido)
         assertFalse(vm.estado.value.puedeAsignar)
+    }
+
+    @Test
+    fun `ahora avanza cada minuto sin que cambien la eleccion ni las opciones`() = runTest {
+        // Caso límite de la spec (T47): los días pendientes del resumen no quedan desactualizados
+        val vm = nuevoVm()
+        vm.alElegir(luis.id)
+        val primera = vm.estado.value.ahora
+        val opcionesAntes = vm.estado.value.opciones
+        val elegidoAntes = vm.estado.value.elegido
+
+        // Igual que en DetalleIncidenciaViewModelTest: el reloj usa Instant.now() real, así que una
+        // espera breve asegura que avance; luego se adelanta el scheduler de Main un minuto.
+        Thread.sleep(50)
+        main.dispatcher.scheduler.advanceTimeBy(60_000L)
+        main.dispatcher.scheduler.runCurrent()
+
+        assertNotEquals(primera, vm.estado.value.ahora)
+        assertEquals(opcionesAntes, vm.estado.value.opciones)
+        assertEquals(elegidoAntes, vm.estado.value.elegido)
     }
 }
