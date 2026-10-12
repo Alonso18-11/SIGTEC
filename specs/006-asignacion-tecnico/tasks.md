@@ -122,7 +122,7 @@
   RF: RF-620, RF-621
   Hecho cuando: compila y una incidencia que no cambia de técnico se sube igual que antes (sin escrituras en `usuarios`).
 
-- [ ] **T22 · Reglas de `incidencias` ⚠️**
+- [x] **T22 · Reglas de `incidencias` ⚠️**
   Aplicar el diff de 4.7 a `firebase/firestore.rules` sin tocar la regla de `usuarios` ni la del contador.
   RF: RF-622, RF-623
   Hecho cuando: el archivo tiene las funciones de apoyo y el `allow update` nuevo, y `git diff` solo muestra el bloque de `incidencias` y sus funciones.
