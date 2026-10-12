@@ -98,31 +98,31 @@
   RF: RF-619
   Hecho cuando: `connectedDebugAndroidTest` pasa en un celular.
 
-- [ ] **T18 · Escuchar `usuarios` con perfil técnico 🔶**
+- [x] **T18 · Escuchar `usuarios` con perfil técnico 🔶**
   `escuchar(...)` recibe una `Query` y un nombre; las 3 llamadas existentes pasan su colección. Se agrega la escucha de `usuarios` con `whereEqualTo("perfil", "TECNICO")` y `guardarTecnicos(snap)` (plan 4.5).
   RF: RF-619
   Hecho cuando: compila, y con el Database Inspector de Android Studio la tabla `tecnicos` tiene los 4 técnicos de prueba con su límite.
-  > 2026-10-11: código hecho. La consulta es un parámetro opcional de `escuchar(...)` (por defecto, la colección entera), así que las 3 llamadas existentes no cambiaron. Falta que el usuario compruebe la tabla en el Database Inspector: el agente no inicia sesión con las cuentas de prueba.
+  > 2026-10-11: código hecho. La consulta es un parámetro opcional de `escuchar(...)` (por defecto, la colección entera), así que las 3 llamadas existentes no cambiaron. Comprobado por el usuario en el emulador con el Database Inspector: la tabla `tecnicos` tiene exactamente a Luis Ramírez (5), Rosa Vilca (4), Ana Torres (5) y Jorge Salas (4), todos con `incidenciasActivas` = 0, y no aparecen Carlos Mendoza ni Pedro Cárdenas.
 
-- [ ] **T19 · Verificación y PR C**
+- [x] **T19 · Verificación y PR C**
   Correr el comando del CI. Prueba manual: con la app abierta, cambiar en la consola `incidenciasActivas` de un técnico y verlo cambiar en la tabla; dejarlo como estaba. Marcar T16–T18 y hacer los 4 commits de `plan.md` (PR C).
   RF: RF-619
   Hecho cuando: CI en verde y aprobación de Alonso.
-  > 2026-10-11: `assembleDebug testDebugUnitTest lintDebug` en verde en local (136 pruebas JVM; lint sin avisos nuevos) y `connectedDebugAndroidTest` 9 de 9 en el emulador (incluye `CatalogoDaoTest`). Falta la prueba manual con la consola, a cargo del usuario.
+  > 2026-10-11: `assembleDebug testDebugUnitTest lintDebug` en verde en local (136 pruebas JVM; lint sin avisos nuevos) y `connectedDebugAndroidTest` 9 de 9 en el emulador (incluye `CatalogoDaoTest`). El #23 fue aprobado y fusionado por Alonso. **No se probó a mano** la actualización en vivo (cambiar `incidenciasActivas` en la consola y verla cambiar en la tabla); queda cubierta solo por el mismo mecanismo de escucha que ya usan incidencias, movimientos y equipos.
 
 ## PR D — carga del técnico y reglas (`feat/sync-carga-tecnico`, apilada sobre B)
 
-- [ ] **T20 · `cambiosDeCarga` y `cargaValida` 🔶**
+- [x] **T20 · `cambiosDeCarga` y `cargaValida` 🔶**
   Funciones puras en `ReglasSincronizacion.kt` (plan 3.6 y 3.7), con casos en `ReglasSincronizacionTest`: sin cambio, asignar, reasignar, quitar; dentro, en el límite, sobre el límite y bajo 0.
   RF: RF-620, RF-621
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*ReglasSincronizacionTest"` pasa.
 
-- [ ] **T21 · Transacción `actualizarConCarga` 🔶**
+- [x] **T21 · Transacción `actualizarConCarga` 🔶**
   En `SincronizadorIncidencias.subir(local)`, una incidencia con número pasa por la transacción de 4.6. Si devuelve `CARGA_RECHAZADA`, se usa el rechazo de T09.
   RF: RF-620, RF-621
   Hecho cuando: compila y una incidencia que no cambia de técnico se sube igual que antes (sin escrituras en `usuarios`).
 
-- [ ] **T22 · Reglas de `incidencias` ⚠️**
+- [x] **T22 · Reglas de `incidencias` ⚠️**
   Aplicar el diff de 4.7 a `firebase/firestore.rules` sin tocar la regla de `usuarios` ni la del contador.
   RF: RF-622, RF-623
   Hecho cuando: el archivo tiene las funciones de apoyo y el `allow update` nuevo, y `git diff` solo muestra el bloque de `incidencias` y sus funciones.
@@ -131,21 +131,26 @@
   Probar con usuarios reales: el jefe asigna con la carga +1 (permitido); asigna sin mover la carga (denegado); reasigna con +1 y −1 (permitido); asigna sobre el límite (denegado por `usuarios`); el técnico asignado actualiza sin cambiar el técnico (permitido); el técnico cambia `tecnicoAsignadoId` (denegado); el técnico anterior actualiza tras la reasignación (denegado, RF-624).
   RF: RF-622, RF-623, RF-624
   Hecho cuando: los 7 casos dan el resultado esperado.
+  > 2026-10-11: pendiente, a cargo del usuario y Alonso. Las reglas del PR D (#24) están solo en el repo; la consola las valida al pegarlas, porque en el equipo no hay Firebase CLI.
+  > Ojo: el Rules Playground simula **una sola escritura**, así que `getAfter()` no ve el cambio en `/usuarios` que hace la transacción. En el Playground, «asigna con +1» y «reasigna con +1 y −1» salen **denegados aunque las reglas estén bien**: esos dos se prueban desde la app después de publicar (T41). En el Playground se prueban los otros 5: asignar sin mover la carga (denegado), `/usuarios` sobre el límite (denegado), técnico que actualiza sin cambiar el técnico (permitido), técnico que cambia `tecnicoAsignadoId` (denegado) y técnico anterior tras la reasignación (denegado); y además, jefe que actualiza sin cambiar el técnico (permitido).
 
 - [ ] **T24 · Verificar la carga en la consola — a cargo del usuario**
   Antes de publicar, comprobar para cada técnico que `usuarios/{uid}.incidenciasActivas` coincide con el número de incidencias pendientes (no cerradas) que tiene asignadas en `incidencias`. Nadie asignó a mano, así que se espera que coincidan; si alguna no coincide, corregirla en la consola y anotarlo en el PR.
   RF: RF-622
   Hecho cuando: la carga de cada técnico coincide con lo que muestra el filtro por técnico de la lista.
+  > 2026-10-11: revisado en la copia de Room del emulador (sesión del usuario, colección `incidencias` completa): 11 incidencias, todas Sin asignar y con número, ninguna con técnico, así que la carga 0 de los 4 técnicos cuadra. Falta confirmarlo en la consola antes de publicar. Aparte: hay 1 movimiento `REGISTRADA` huérfano en el servidor (incidencia `fb047fae…`, Luis Ramírez, 2026-10-11 09:42), de la prueba manual del #17 previa al PR B; no afecta la carga.
 
 - [ ] **T25 · Publicar las reglas — a cargo del usuario o de Alonso**
   Pegar `firebase/firestore.rules` en la consola después de T23 y T24.
   RF: RF-622, RF-623
   Hecho cuando: la consola muestra la versión publicada con la fecha, anotada en `MEMORY.md`.
+  > 2026-10-11: sin publicar (decisión del usuario: se coordina con Alonso).
 
 - [ ] **T26 · Verificación y PR D**
   Correr el comando del CI. La transacción real no se puede probar todavía, porque sin la pantalla de F no hay forma de asignar desde la app: se prueba en T41 y T42, y así se indica en «Cómo probarlo». Comprobar a mano que registrar y subir una incidencia sigue funcionando igual. Hacer los 4 commits de `plan.md` (PR D).
   RF: RF-620–RF-623
   Hecho cuando: CI en verde y aprobación de Alonso.
+  > 2026-10-11: `assembleDebug testDebugUnitTest lintDebug` en verde en local (144 pruebas JVM; lint sin avisos nuevos). La transacción real queda para T41 y T42. Registrar y subir una incidencia nueva no pasa por la transacción de carga (sigue en `crearConNumero`); las ediciones sí, pero hoy la app no tiene ninguna.
 
 ## PR E — dominio y datos (`feat/asignacion-dominio`, desde `main` con A)
 
