@@ -19,5 +19,6 @@ sealed interface ErrorDominio {
     data object IncidenciaCerrada : ErrorDominio         // RF-609: ya no se puede asignar
     data object IncidenciaPorSincronizar : ErrorDominio  // RF-610: sin número, aún no está en el servidor
     data class YaAsignada(val tecnicoNombre: String) : ErrorDominio   // RF-611
+    data object MarcaCambiada : ErrorDominio             // RF-808: la marca cambió por otra vía antes de guardar
     data class Desconocido(val mensaje: String?) : ErrorDominio
 }
