@@ -12,6 +12,7 @@ import com.softcorp.sigtec.core.database.dao.SincronizacionDao
 import com.softcorp.sigtec.core.database.entity.IncidenciaEntity
 import com.softcorp.sigtec.core.database.entity.MovimientoEntity
 import com.softcorp.sigtec.core.database.entity.SincronizacionEntity
+import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.tasks.await
 import java.time.Instant
@@ -81,15 +82,22 @@ class SincronizadorIncidencias @Inject constructor(
     }
 
     /**
-     * RF-620 (HU-06): sube una incidencia que ya existe y, si su técnico cambió respecto del servidor,
-     * mueve la carga de ambos en la misma transacción: o se aplica todo, o nada. Las reglas de
-     * Firestore exigen ese movimiento con `getAfter()` (RF-622). Si la carga nueva de algún técnico
-     * saldría de 0..límite (RF-621), no escribe nada y devuelve CARGA_RECHAZADA (D-7 del plan).
+     * RF-620 (HU-06) y RF-822 (HU-08): sube una incidencia que ya existe y, si su técnico cambió
+     * respecto del servidor o se cerró, mueve la carga de ambos en la misma transacción: o se aplica
+     * todo, o nada. Las reglas de Firestore exigen ese movimiento con `getAfter()` (RF-622, RF-823). Si
+     * la carga nueva de algún técnico saldría de 0..límite (RF-621), no escribe nada y devuelve
+     * CARGA_RECHAZADA (D-7 del plan).
      */
     private suspend fun actualizarConCarga(local: IncidenciaEntity, numero: Int): ResultadoSubida =
         firestore.runTransaction { tx ->
             val documento = incidencias.document(local.id)
-            val cambios = cambiosDeCarga(tx.get(documento).getString("tecnicoAsignadoId"), local.tecnicoAsignadoId)
+            val remotaSnap = tx.get(documento)
+            val cambios = cambiosDeCarga(
+                remotaSnap.getString("tecnicoAsignadoId"),
+                remotaSnap.getString("marca") == MarcaSeguimiento.CERRADA.name,
+                local.tecnicoAsignadoId,
+                local.marca == MarcaSeguimiento.CERRADA
+            )
             // Firestore exige hacer todas las lecturas antes de la primera escritura
             val perfiles = cambios.keys.associateWith { tx.get(usuarios.document(it)) }
             val cargas = cambios.mapValues { (id, delta) ->
