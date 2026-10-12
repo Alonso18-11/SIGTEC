@@ -197,23 +197,23 @@
 
 ## PR E — pantallas (`feat/hu08-pantallas`, apilada sobre B; necesita A y B fusionados)
 
-- [ ] **T28 · Crear la rama apilada sobre B**
+- [x] **T28 · Crear la rama apilada sobre B**
   RF: —
   Hecho cuando: `git log` muestra los commits de A y B en la rama.
 
-- [ ] **T29 · `MisTareasViewModel` con su prueba**
+- [x] **T29 · `MisTareasViewModel` con su prueba**
   `MisTareasUiState` con reloj de un minuto (mismo patrón que `AsignacionViewModel`/`ListaIncidenciasViewModel`,
   `MEMORY.md`), combinando `ObservarBandeja()`. `MisTareasViewModelTest` con los casos de `plan.md` sección 7.
   RF: RF-801, RF-803, RF-805
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*MisTareasViewModelTest"` pasa.
 
-- [ ] **T30 · `MisTareasScreen` según `plan.md` sección 5**
+- [x] **T30 · `MisTareasScreen` según `plan.md` sección 5**
   `MisTareasRoute` (`hiltViewModel()`, `collectAsStateWithLifecycle()`) y `MisTareasScreen` (solo dibuja), con
   tarjetas que reutilizan `EtiquetaIncidencia`, mensaje de bandeja vacía (RF-803) y previews claro/oscuro.
   RF: RF-801–RF-804
   Hecho cuando: compila, las previews se ven en claro y oscuro, y no hay hexadecimales ni `fontSize` en el archivo.
 
-- [ ] **T31 · `InformeTecnicoViewModel` con su prueba**
+- [x] **T31 · `InformeTecnicoViewModel` con su prueba**
   `InformeTecnicoUiState` (cuatro campos, `guardando`, `error`, `disponibilidadBiometrica`, evento `cerrada`),
   `alCambiarDiagnostico`/`alCambiarTrabajo`/`alCambiarPiezas`/`alCambiarObservaciones` y
   `alConfirmarCierre(confirmadoEn)`. `InformeTecnicoViewModelTest` con los casos de `plan.md` sección 7
@@ -221,34 +221,58 @@
   RF: RF-813–RF-820
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*InformeTecnicoViewModelTest"` pasa.
 
-- [ ] **T32 · `InformeTecnicoScreen` según `plan.md` sección 5**
+- [x] **T32 · `InformeTecnicoScreen` según `plan.md` sección 5**
   `InformeTecnicoRoute` (pide `rememberVerificadorBiometrico()` y solo llama a `vm.alConfirmarCierre` en
   `ResultadoBiometrico.Exito`) + `InformeTecnicoScreen` (solo dibuja), con el botón deshabilitado por campos
   vacíos o por `SIN_SEGURIDAD`, y previews claro/oscuro.
   RF: RF-813–RF-817
   Hecho cuando: compila y las previews se ven en claro y oscuro.
+  > Hecho el 2026-10-12: SIN resumen de la incidencia arriba (decisión del usuario, `InformeTecnicoUiState`
+  > de T31 no expone ningún dato de la incidencia, solo los 4 campos del formulario). `InformeTecnicoScreen`
+  > solo tiene los 4 `OutlinedTextField` + botón «Confirmar cierre»; sin bloque de resumen.
 
-- [ ] **T33 · Reemplazar las dos pantallas en construcción 🔶**
+- [x] **T33 · Reemplazar las dos pantallas en construcción 🔶**
   En `feature/atencion/presentation/AtencionNavigation.kt`, `Ruta.MisTareas` usa `MisTareasRoute` y
   `Ruta.RegistrarInforme` usa `InformeTecnicoRoute`; `Ruta.SolicitarRepuesto` sigue con `PantallaEnConstruccion`
   (HU-11, fuera de alcance).
   RF: RF-801, RF-813
   Hecho cuando: compila y el archivo ya no importa `PantallaEnConstruccion` para esas dos rutas.
+  > Hecho el 2026-10-12: `MisTareas` navega con `alAbrir = { id -> navController.navigate(Ruta.DetalleIncidencia(id)) }`
+  > (mismo patrón que `ListaIncidenciasScreen`); `RegistrarInforme` usa `InformeTecnicoRoute(alVolver = ..., alCerrar = ...)`,
+  > ambas lambdas hacen `popBackStack()` (volver manual y cierre exitoso terminan en el detalle). `SolicitarRepuesto`
+  > y `EstadoRepuestos` sin cambios. 236 pruebas en verde, `assembleDebug` y `testDebugUnitTest` sin errores.
 
-- [ ] **T34 · `DetalleIncidenciaViewModel` ampliado con su prueba 🔶**
+- [x] **T34 · `DetalleIncidenciaViewModel` ampliado con su prueba 🔶**
   `puedeIniciarAtencion` (marca == Asignada, técnico asignado, permiso), `iniciandoAtencion`, `errorAtencion`,
   `alIniciarAtencion()` (deshabilita mientras guarda, RF-811). Primer `DetalleIncidenciaViewModelTest.kt` del
   proyecto, solo con los casos nuevos de esta HU (ver `plan.md`, sección 0).
   RF: RF-806, RF-807, RF-811
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*DetalleIncidenciaViewModelTest"` pasa.
+  > Hecho el 2026-10-12: `plan.md` (sección 0) asumía que no existía `DetalleIncidenciaViewModelTest.kt`, pero ya
+  > existía en `app/src/test/java/com/softcorp/sigtec/` (paquete raíz, de la HU-04/#15), no en el paquete de la
+  > clase real. Los otros tres `ViewModelTest` del proyecto (`ListaIncidenciasViewModelTest`, `LoginViewModelTest`,
+  > `RegistroIncidenciaViewModelTest`) siguen ese mismo precedente de paquete raíz, así que los 5 casos nuevos
+  > (RF-806, RF-807, RF-811) se agregaron como métodos `@Test` nuevos dentro del archivo ya existente, en vez de
+  > crear uno en `feature/incidencias/presentation/` (que habría sido una convención nueva e inconsistente).
+  > 241 pruebas en verde (6 casos viejos + 5 nuevos de `DetalleIncidenciaViewModelTest`, 11 en total), `assembleDebug`
+  > y `testDebugUnitTest` sin errores.
 
-- [ ] **T35 · Botón «Iniciar atención» y sección del informe en el detalle 🔶**
+- [x] **T35 · Botón «Iniciar atención» y sección del informe en el detalle 🔶**
   En `DetalleIncidenciaScreen.kt`: botón en `BarraAcciones` cuando `estado.puedeIniciarAtencion`,
   deshabilitado mientras `estado.iniciandoAtencion`, con `errorAtencion` mostrado si lo hay; nueva sección
   «Informe técnico» en `Contenido(...)` cuando la incidencia está Solucionada y `detalle.informe != null`.
   Dos previews nuevas (claro y oscuro).
   RF: RF-806, RF-827
   Hecho cuando: compila, las previews se ven en ambos temas y no hay doble margen en la barra superior.
+  > Hecho el 2026-10-12: `AccionesDetalle.alIniciarAtencion` se agregó como excepción documentada (no navega,
+  > `DetalleIncidenciaRoute` la conecta directo a `vm::alIniciarAtencion` con `.copy(...)`, sin tocar
+  > `IncidenciasNavigation.kt`). El botón queda en la misma `Row` que «Asignar técnico»/«Solicitar
+  > repuesto»/«Cerrar con informe» (los tres solo pueden coexistir en marca Asignada); el ícono es
+  > `Icons.Outlined.PlayArrow`. La sección «Informe técnico» va después de `TarjetaDatos` y antes de
+  > «Evidencias», con el nombre del técnico asignado (`tecnicoAsignadoNombre ?: SIN_TECNICO`) y
+  > `fechaCompleta(informe.confirmadoEn)`. Dos previews nuevas: «Técnico, puede iniciar atención · claro» y
+  > «Cerrada con informe · oscuro» (una por tema, según pidió el orquestador). 241 pruebas en verde,
+  > `assembleDebug` y `testDebugUnitTest` sin errores; sin hexadecimales ni `fontSize` nuevos.
 
 - [ ] **T36 · Verificación con `adb` en el emulador o celular**
   `./gradlew installDebug`, entrar como un técnico de prueba (`lramirez`, `atorres`, `jsalas` o `rvilca`),
@@ -257,11 +281,28 @@
   RF: RF-801–RF-804, RF-806
   Hecho cuando: las pantallas coinciden con `plan.md` sección 5 en ambos temas, sin doble margen en la barra
   superior y sin errores en Logcat.
+  > Estado parcial (intento 2026-10-12): `./gradlew installDebug` OK en `emulator-5554`. El login mostró la
+  > sesión ya vinculada de un técnico («Hola de nuevo, Luis», con huella disponible), así que se usó
+  > `adb -e emu finger touch 1` (mecanismo legítimo del emulador, no una contraseña inventada). `dumpsys
+  > fingerprint` confirmó dos autenticaciones exitosas y `dumpsys SurfaceFlinger --list` confirmó que
+  > `com.softcorp.sigtec/.MainActivity` quedó activo en primer plano. Pero la pantalla del emulador quedó
+  > atascada en negro para toda captura (`screencap`/`exec-out` y por archivo), incluso tras despertar,
+  > ciclar `KEYCODE_POWER`, fijar brillo y desactivar animaciones; `dumpsys display` mostró el estado
+  > `committedState` pasando a `ON` sin que el framebuffer cambiara — un cuelgue de render del emulador, no
+  > un fallo de la app (no hubo ningún `*:W` con `softcorp`/`sigtec`, ni ANR ni `FATAL EXCEPTION`). No se
+  > pudieron tomar las capturas en claro/oscuro. Pendiente: reiniciar el AVD (o probar en celular real) y
+  > repetir los pasos 4 a 7 del procedimiento.
 
-- [ ] **T37 · Verificación y PR E**
+- [x] **T37 · Verificación y PR E**
   Correr el comando del CI. Hacer los 4 commits de `plan.md` (PR E), con las capturas de T36.
   RF: RF-801–RF-820, RF-827
   Hecho cuando: CI en verde y aprobación de la otra persona del equipo.
+  > Hecho el 2026-10-12: `./gradlew assembleDebug testDebugUnitTest lintDebug` en verde (241 pruebas, 0
+  > fallos). Sin capturas de T36 (quedó bloqueada por un cuelgue de render del emulador, no de la app; el
+  > usuario decidió seguir y revisar visualmente más adelante, en el emulador reiniciado o en su celular,
+  > durante las pruebas manuales de T38). Hechos los 4 commits de `plan.md` en orden; no se hizo `git push`
+  > ni se abrió PR en GitHub (decisión del usuario para esta sesión). T36 queda sin marcar, con su nota de
+  > estado parcial.
 
 ## PR F — verificación de punta a punta y cierre (`docs/hu08-cierre`, apilada sobre E)
 
