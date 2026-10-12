@@ -132,6 +132,7 @@
   RF: RF-622, RF-623, RF-624
   Hecho cuando: los 7 casos dan el resultado esperado.
   > 2026-10-11: pendiente, a cargo del usuario y Alonso. Las reglas del PR D (#24) están solo en el repo; la consola las valida al pegarlas, porque en el equipo no hay Firebase CLI.
+  > Ojo: el Rules Playground simula **una sola escritura**, así que `getAfter()` no ve el cambio en `/usuarios` que hace la transacción. En el Playground, «asigna con +1» y «reasigna con +1 y −1» salen **denegados aunque las reglas estén bien**: esos dos se prueban desde la app después de publicar (T41). En el Playground se prueban los otros 5: asignar sin mover la carga (denegado), `/usuarios` sobre el límite (denegado), técnico que actualiza sin cambiar el técnico (permitido), técnico que cambia `tecnicoAsignadoId` (denegado) y técnico anterior tras la reasignación (denegado); y además, jefe que actualiza sin cambiar el técnico (permitido).
 
 - [ ] **T24 · Verificar la carga en la consola — a cargo del usuario**
   Antes de publicar, comprobar para cada técnico que `usuarios/{uid}.incidenciasActivas` coincide con el número de incidencias pendientes (no cerradas) que tiene asignadas en `incidencias`. Nadie asignó a mano, así que se espera que coincidan; si alguna no coincide, corregirla en la consola y anotarlo en el PR.
