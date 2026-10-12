@@ -159,12 +159,12 @@
   RF: RF-602–RF-604, RF-607, RF-609, RF-610, RF-613–RF-615, RF-625
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*ReglasAsignacionTest"` pasa y el archivo no importa nada de `android.*`.
 
-- [ ] **T29 · `AsignacionRepository` y su doble falso**
+- [x] **T29 · `AsignacionRepository` y su doble falso**
   Interfaz en `feature/asignacion/domain` (incidencia, técnico, técnicos, oficina, asignaciones sin subir, `asignar`) y `AsignacionRepositoryFalso` en `app/src/test/.../feature/asignacion/data`, en memoria y con `fallar`.
   RF: RF-601, RF-602, RF-613
   Hecho cuando: compila con `./gradlew testDebugUnitTest`.
 
-- [ ] **T30 · `AsignarIncidencia` con sus pruebas**
+- [x] **T30 · `AsignarIncidencia` con sus pruebas**
   Caso de uso de 4.2 (`@Inject constructor`, `operator fun invoke(incidenciaId, tecnicoId, ahora)`) y `AsignarIncidenciaTest` con los 10 casos de `plan.md` sección 7, incluida la reasignación desde Esperando repuesto, que conserva la marca.
   RF: RF-608–RF-616, RF-625
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*AsignarIncidenciaTest"` pasa.
