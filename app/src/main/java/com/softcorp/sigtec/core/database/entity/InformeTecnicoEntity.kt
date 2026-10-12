@@ -10,19 +10,35 @@ import java.time.Instant
 data class InformeTecnicoEntity(
     @PrimaryKey val id: String,
     val incidenciaId: String,
+    val diagnostico: String,
     val trabajoRealizado: String,
     val piezasCambiadas: String?,
     val observaciones: String?,
     val fechaCierre: Instant,
     val confirmadoEn: Instant,
-    val pendienteSincronizar: Boolean
+    val pendienteSincronizar: Boolean,
+    val necesitaAtencion: Boolean = false // RF-825: el padre (incidencia) se rechazó al sincronizar
 )
 
 fun InformeTecnicoEntity.toDomain() = InformeTecnico(
-    id, incidenciaId, trabajoRealizado, piezasCambiadas, observaciones, fechaCierre, confirmadoEn
+    id = id,
+    incidenciaId = incidenciaId,
+    diagnostico = diagnostico,
+    trabajoRealizado = trabajoRealizado,
+    piezasCambiadas = piezasCambiadas,
+    observaciones = observaciones,
+    fechaCierre = fechaCierre,
+    confirmadoEn = confirmadoEn
 )
 
 fun InformeTecnico.toEntity(pendienteSincronizar: Boolean) = InformeTecnicoEntity(
-    id, incidenciaId, trabajoRealizado, piezasCambiadas, observaciones,
-    fechaCierre, confirmadoEn, pendienteSincronizar
+    id = id,
+    incidenciaId = incidenciaId,
+    diagnostico = diagnostico,
+    trabajoRealizado = trabajoRealizado,
+    piezasCambiadas = piezasCambiadas,
+    observaciones = observaciones,
+    fechaCierre = fechaCierre,
+    confirmadoEn = confirmadoEn,
+    pendienteSincronizar = pendienteSincronizar
 )

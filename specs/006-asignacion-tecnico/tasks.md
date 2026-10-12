@@ -288,6 +288,8 @@ El código de los PR B a F está hecho. Faltan, en este orden:
 
 Los PR #25 y #26 se fusionaron sin revisión. Esta revisión no encontró errores que bloqueen; estas tareas cubren los detalles menores. Siguen pendientes T23 a T25 (consola) y T40 a T45 (pruebas manuales y cierre).
 
+> Corrección (2026-10-12, PR A de la HU-08): la frase anterior quedó desactualizada. T23 a T25 y T40 a T45 ya están hechas (ver sus propias entradas más arriba, con resultado del 2026-10-12); la spec 006 está en «Estado: completa». Se deja la frase original para no perder el rastro de la revisión de Alonso.
+
 - [x] **T46 · Caso límite de la reasignación sin subir en `spec.md`**
   Documentar que el técnico anterior conserva la carga del servidor hasta que la reasignación sube (conservador, sin cambio de código).
   RF: RF-602

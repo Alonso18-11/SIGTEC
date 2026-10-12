@@ -13,6 +13,7 @@ import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.icons.outlined.PhotoCamera
+import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,6 +25,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.softcorp.sigtec.core.domain.model.EstadoIncidencia
 import com.softcorp.sigtec.core.domain.model.Incidencia
+import com.softcorp.sigtec.core.domain.model.InformeTecnico
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
 import com.softcorp.sigtec.core.domain.model.Movimiento
 import com.softcorp.sigtec.core.domain.model.Prioridad
@@ -34,6 +36,7 @@ import com.softcorp.sigtec.core.theme.Espaciado
 import com.softcorp.sigtec.core.theme.SigtecTheme
 import com.softcorp.sigtec.core.ui.components.EtiquetaEstado
 import com.softcorp.sigtec.core.ui.components.EtiquetaIncidencia
+import com.softcorp.sigtec.core.ui.mensaje
 import com.softcorp.sigtec.feature.incidencias.domain.DetalleIncidencia
 import com.softcorp.sigtec.feature.incidencias.domain.SIN_TECNICO
 import com.softcorp.sigtec.feature.incidencias.domain.codigoParaMostrar
@@ -44,10 +47,14 @@ private val TamanoPunto = 12.dp
 private val GrosorLinea = 2.dp
 private val AnchoEtiquetaDato = 120.dp
 
-/** Lo que el detalle puede abrir; cada acción navega a su pantalla (las de otras HU, provisionales). */
+/**
+ * Lo que el detalle puede abrir; cada acción navega a su pantalla (las de otras HU, provisionales).
+ * `alIniciarAtencion` es la excepción (HU-08): no navega, el `ViewModel` reacciona directo (RF-806 a RF-811).
+ */
 data class AccionesDetalle(
     val alVolver: () -> Unit = {},
     val alAsignar: () -> Unit = {},
+    val alIniciarAtencion: () -> Unit = {},
     val alSolicitarRepuesto: () -> Unit = {},
     val alCerrar: () -> Unit = {},
     val alAgregarFoto: () -> Unit = {},
@@ -65,7 +72,7 @@ fun DetalleIncidenciaRoute(
     val avisos = remember { SnackbarHostState() }
     // El aviso que deja el registro (HU-03) se muestra una sola vez
     LaunchedEffect(aviso) { aviso?.let { avisos.showSnackbar(it) } }
-    DetalleIncidenciaScreen(estado, acciones, avisos)
+    DetalleIncidenciaScreen(estado, acciones.copy(alIniciarAtencion = vm::alIniciarAtencion), avisos)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -165,6 +172,11 @@ private fun Contenido(detalle: DetalleIncidencia, ahora: Instant, acciones: Acci
 
         TarjetaDatos(incidencia, acciones.alVerHistorial)
 
+        // ---------- Informe técnico (HU-08): solo si ya llegó a este celular (RF-827 a RF-829) ----------
+        if (incidencia.estado == EstadoIncidencia.SOLUCIONADO && detalle.informe != null) {
+            SeccionInforme(detalle.informe, incidencia.tecnicoAsignadoNombre ?: SIN_TECNICO)
+        }
+
         // ---------- Evidencias (las fotos son la HU-09) ----------
         Text("Evidencias", style = MaterialTheme.typography.titleMedium)
         OutlinedButton(onClick = acciones.alAgregarFoto) {
@@ -224,6 +236,39 @@ private fun ValorDato(texto: String) {
     Text(texto, style = MaterialTheme.typography.bodyLarge)
 }
 
+/** RF-827: diagnóstico, solución aplicada, piezas (si las hay), observaciones (si las hay), y quién/cuándo confirmó. */
+@Composable
+private fun SeccionInforme(informe: InformeTecnico, tecnicoNombre: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(Espaciado.s)) {
+        Text("Informe técnico", style = MaterialTheme.typography.titleMedium)
+        OutlinedCard(Modifier.fillMaxWidth()) {
+            Column(
+                Modifier.padding(Espaciado.m),
+                verticalArrangement = Arrangement.spacedBy(Espaciado.s)
+            ) {
+                FilaInforme("Diagnóstico", informe.diagnostico)
+                FilaInforme("Solución aplicada", informe.trabajoRealizado)
+                informe.piezasCambiadas?.let { FilaInforme("Piezas cambiadas", it) }
+                informe.observaciones?.let { FilaInforme("Observaciones", it) }
+                HorizontalDivider()
+                Text(
+                    "Confirmado por $tecnicoNombre · ${fechaCompleta(informe.confirmadoEn)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun FilaInforme(etiqueta: String, valor: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
+        Text(etiqueta, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(valor, style = MaterialTheme.typography.bodyLarge)
+    }
+}
+
 @Composable
 private fun LineaDeTiempo(movimientos: List<Movimiento>, ahora: Instant) {
     Column {
@@ -267,33 +312,51 @@ private fun LineaDeTiempo(movimientos: List<Movimiento>, ahora: Instant) {
 
 @Composable
 private fun BarraAcciones(estado: DetalleIncidenciaUiState, acciones: AccionesDetalle) {
-    if (!estado.puedeAsignar && !estado.puedeAtender) return
+    if (!estado.puedeAsignar && !estado.puedeAtender && !estado.puedeIniciarAtencion) return
     Column {
         HorizontalDivider()
-        Row(
+        Column(
             modifier = Modifier.padding(Espaciado.m),
-            horizontalArrangement = Arrangement.spacedBy(Espaciado.s)
+            verticalArrangement = Arrangement.spacedBy(Espaciado.s)
         ) {
-            // Asignar es del jefe (HU-06); repuesto y cierre, de quien atiende (HU-11 y HU-08)
-            if (estado.puedeAsignar) {
-                Button(onClick = acciones.alAsignar, modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Outlined.PersonAdd, contentDescription = null)
-                    Spacer(Modifier.width(Espaciado.s))
-                    // RF-605 (HU-06): con técnico, la misma pantalla reasigna
-                    Text(if (estado.detalle?.incidencia?.tecnicoAsignadoId != null) "Reasignar técnico" else "Asignar técnico")
+            Row(horizontalArrangement = Arrangement.spacedBy(Espaciado.s)) {
+                // Asignar es del jefe (HU-06); iniciar, repuesto y cierre, de quien atiende (HU-08 y HU-11)
+                if (estado.puedeAsignar) {
+                    Button(onClick = acciones.alAsignar, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Outlined.PersonAdd, contentDescription = null)
+                        Spacer(Modifier.width(Espaciado.s))
+                        // RF-605 (HU-06): con técnico, la misma pantalla reasigna
+                        Text(if (estado.detalle?.incidencia?.tecnicoAsignadoId != null) "Reasignar técnico" else "Asignar técnico")
+                    }
+                }
+                // RF-806: solo en la marca Asignada; RF-811: deshabilitado mientras se guarda
+                if (estado.puedeIniciarAtencion) {
+                    Button(
+                        onClick = acciones.alIniciarAtencion,
+                        enabled = !estado.iniciandoAtencion,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Outlined.PlayArrow, contentDescription = null)
+                        Spacer(Modifier.width(Espaciado.s))
+                        Text("Iniciar atención")
+                    }
+                }
+                if (estado.puedeAtender) {
+                    OutlinedButton(onClick = acciones.alSolicitarRepuesto, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Outlined.Inventory2, contentDescription = null)
+                        Spacer(Modifier.width(Espaciado.s))
+                        Text("Solicitar repuesto")
+                    }
+                    Button(onClick = acciones.alCerrar, modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Outlined.Check, contentDescription = null)
+                        Spacer(Modifier.width(Espaciado.s))
+                        Text("Cerrar con informe")
+                    }
                 }
             }
-            if (estado.puedeAtender) {
-                OutlinedButton(onClick = acciones.alSolicitarRepuesto, modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Outlined.Inventory2, contentDescription = null)
-                    Spacer(Modifier.width(Espaciado.s))
-                    Text("Solicitar repuesto")
-                }
-                Button(onClick = acciones.alCerrar, modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Outlined.Check, contentDescription = null)
-                    Spacer(Modifier.width(Espaciado.s))
-                    Text("Cerrar con informe")
-                }
+            // RF-808, RF-810: error de iniciar atención, si lo hay
+            estado.errorAtencion?.let {
+                Text(it.mensaje(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
             }
         }
     }
@@ -381,4 +444,56 @@ private fun DetalleJefeReasignarOscuro() = SigtecTheme(darkTheme = true) {
 @Composable
 private fun DetalleNoEncontrada() = SigtecTheme {
     Surface { DetalleIncidenciaScreen(DetalleIncidenciaUiState(cargando = false), AccionesDetalle()) }
+}
+
+// ---------- HU-08: «Iniciar atención» y la sección del informe técnico ----------
+
+private val informeDePrueba = InformeTecnico(
+    id = "inf1", incidenciaId = "c",
+    diagnostico = "Fuente de poder dañada por el corte de luz",
+    trabajoRealizado = "Se reemplazó la fuente de poder por una nueva",
+    piezasCambiadas = "Fuente de poder ATX 500W",
+    observaciones = "Se recomienda usar un estabilizador de corriente",
+    fechaCierre = ahoraDePrueba,
+    confirmadoEn = ahoraDePrueba
+)
+
+@Preview(name = "Técnico, puede iniciar atención · claro", showBackground = true, heightDp = 900)
+@Composable
+private fun DetalleIniciarAtencion() = SigtecTheme {
+    Surface {
+        DetalleIncidenciaScreen(
+            DetalleIncidenciaUiState(
+                cargando = false,
+                detalle = DetalleIncidencia(
+                    detalleDePrueba.incidencia.copy(marca = MarcaSeguimiento.ASIGNADA),
+                    detalleDePrueba.movimientos.drop(1)   // sin «Atención iniciada» todavía
+                ),
+                puedeAtender = true,
+                puedeIniciarAtencion = true,
+                ahora = ahoraDePrueba
+            ),
+            AccionesDetalle()
+        )
+    }
+}
+
+@Preview(name = "Cerrada con informe · oscuro", showBackground = true, heightDp = 900,
+    uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun DetalleCerradaConInforme() = SigtecTheme(darkTheme = true) {
+    Surface {
+        DetalleIncidenciaScreen(
+            DetalleIncidenciaUiState(
+                cargando = false,
+                detalle = DetalleIncidencia(
+                    detalleDePrueba.incidencia.copy(marca = MarcaSeguimiento.CERRADA),
+                    detalleDePrueba.movimientos,
+                    informe = informeDePrueba
+                ),
+                ahora = ahoraDePrueba
+            ),
+            AccionesDetalle()
+        )
+    }
 }
