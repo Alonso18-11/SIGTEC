@@ -15,6 +15,10 @@ interface CatalogoDao {
     @Upsert
     suspend fun guardarTecnicos(tecnicos: List<TecnicoEntity>)
 
+    // RF-619 (HU-06): quien deja de ser técnico o se elimina ya no se puede elegir
+    @Query("DELETE FROM tecnicos WHERE id IN (:ids)")
+    suspend fun borrarTecnicos(ids: List<String>)
+
     @Query("SELECT * FROM equipos WHERE codigo = :codigo")
     suspend fun equipoPorCodigo(codigo: String): EquipoEntity?
 

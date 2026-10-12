@@ -93,7 +93,7 @@
   RF: RF-619
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*MapeoTecnicoTest"` pasa.
 
-- [ ] **T17 · `CatalogoDao.borrarTecnicos` 🔶**
+- [x] **T17 · `CatalogoDao.borrarTecnicos` 🔶**
   `@Query("DELETE FROM tecnicos WHERE id IN (:ids)")` y `CatalogoDaoTest` instrumentada (guardar 2, borrar 1).
   RF: RF-619
   Hecho cuando: `connectedDebugAndroidTest` pasa en un celular.
