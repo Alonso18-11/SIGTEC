@@ -131,21 +131,25 @@
   Probar con usuarios reales: el jefe asigna con la carga +1 (permitido); asigna sin mover la carga (denegado); reasigna con +1 y −1 (permitido); asigna sobre el límite (denegado por `usuarios`); el técnico asignado actualiza sin cambiar el técnico (permitido); el técnico cambia `tecnicoAsignadoId` (denegado); el técnico anterior actualiza tras la reasignación (denegado, RF-624).
   RF: RF-622, RF-623, RF-624
   Hecho cuando: los 7 casos dan el resultado esperado.
+  > 2026-10-11: pendiente, a cargo del usuario y Alonso. Las reglas del PR D (#24) están solo en el repo; la consola las valida al pegarlas, porque en el equipo no hay Firebase CLI.
 
 - [ ] **T24 · Verificar la carga en la consola — a cargo del usuario**
   Antes de publicar, comprobar para cada técnico que `usuarios/{uid}.incidenciasActivas` coincide con el número de incidencias pendientes (no cerradas) que tiene asignadas en `incidencias`. Nadie asignó a mano, así que se espera que coincidan; si alguna no coincide, corregirla en la consola y anotarlo en el PR.
   RF: RF-622
   Hecho cuando: la carga de cada técnico coincide con lo que muestra el filtro por técnico de la lista.
+  > 2026-10-11: revisado en la copia de Room del emulador (sesión del usuario, colección `incidencias` completa): 11 incidencias, todas Sin asignar y con número, ninguna con técnico, así que la carga 0 de los 4 técnicos cuadra. Falta confirmarlo en la consola antes de publicar. Aparte: hay 1 movimiento `REGISTRADA` huérfano en el servidor (incidencia `fb047fae…`, Luis Ramírez, 2026-10-11 09:42), de la prueba manual del #17 previa al PR B; no afecta la carga.
 
 - [ ] **T25 · Publicar las reglas — a cargo del usuario o de Alonso**
   Pegar `firebase/firestore.rules` en la consola después de T23 y T24.
   RF: RF-622, RF-623
   Hecho cuando: la consola muestra la versión publicada con la fecha, anotada en `MEMORY.md`.
+  > 2026-10-11: sin publicar (decisión del usuario: se coordina con Alonso).
 
 - [ ] **T26 · Verificación y PR D**
   Correr el comando del CI. La transacción real no se puede probar todavía, porque sin la pantalla de F no hay forma de asignar desde la app: se prueba en T41 y T42, y así se indica en «Cómo probarlo». Comprobar a mano que registrar y subir una incidencia sigue funcionando igual. Hacer los 4 commits de `plan.md` (PR D).
   RF: RF-620–RF-623
   Hecho cuando: CI en verde y aprobación de Alonso.
+  > 2026-10-11: `assembleDebug testDebugUnitTest lintDebug` en verde en local (144 pruebas JVM; lint sin avisos nuevos). La transacción real queda para T41 y T42. Registrar y subir una incidencia nueva no pasa por la transacción de carga (sigue en `crearConNumero`); las ediciones sí, pero hoy la app no tiene ninguna.
 
 ## PR E — dominio y datos (`feat/asignacion-dominio`, desde `main` con A)
 
