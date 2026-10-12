@@ -154,7 +154,7 @@
   RF: RF-609, RF-610, RF-611
   Hecho cuando: `./gradlew assembleDebug` compila (el `when` exhaustivo de `mensaje()` cierra).
 
-- [ ] **T28 · `ReglasAsignacion` y su prueba**
+- [x] **T28 · `ReglasAsignacion` y su prueba**
   Funciones 3.1 a 3.5 y 3.11 (`marcaAlAsignar`) en `feature/asignacion/domain/ReglasAsignacion.kt`, con `OpcionTecnico`, y `ReglasAsignacionTest` con los casos de `plan.md` sección 7.
   RF: RF-602–RF-604, RF-607, RF-609, RF-610, RF-613–RF-615, RF-625
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*ReglasAsignacionTest"` pasa y el archivo no importa nada de `android.*`.
