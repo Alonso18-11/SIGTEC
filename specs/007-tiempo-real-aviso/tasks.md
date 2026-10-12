@@ -23,7 +23,7 @@
 
 ## PR B7 — notificación local y permiso (`feat/aviso-notificacion`, desde `main` con A7)
 
-- [ ] **T04 · `contenidoAvisoAsignacion` e `idNotificacion` con su prueba 🔶**
+- [x] **T04 · `contenidoAvisoAsignacion` e `idNotificacion` con su prueba 🔶**
   En `core/notificaciones/ContenidoAviso.kt` (Kotlin puro, plan 3.2 y 3.3), con `ContenidoAvisoTest`: título, texto, versión pública e id estable.
   RF: RF-702, RF-704, RF-707
   Hecho cuando: `./gradlew testDebugUnitTest --tests "*ContenidoAvisoTest"` pasa y el archivo no importa `android.*`.
