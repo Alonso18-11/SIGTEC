@@ -6,26 +6,23 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -43,9 +40,10 @@ import com.softcorp.sigtec.core.biometric.DisponibilidadBiometrica
 import com.softcorp.sigtec.core.biometric.ResultadoBiometrico
 import com.softcorp.sigtec.core.biometric.rememberVerificadorBiometrico
 import com.softcorp.sigtec.core.domain.ErrorDominio
-import com.softcorp.sigtec.core.theme.AreaTactilMinima
 import com.softcorp.sigtec.core.theme.Espaciado
 import com.softcorp.sigtec.core.theme.SigtecTheme
+import com.softcorp.sigtec.core.ui.components.BarraSuperior
+import com.softcorp.sigtec.core.ui.components.BotonPrincipal
 import com.softcorp.sigtec.core.ui.mensaje
 
 /**
@@ -84,7 +82,6 @@ fun InformeTecnicoRoute(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InformeTecnicoScreen(
     estado: InformeTecnicoUiState,
@@ -99,21 +96,11 @@ fun InformeTecnicoScreen(
     // Solo marca los campos obligatorios como inválidos después de un intento de confirmar.
     var intentoConfirmar by remember { mutableStateOf(false) }
 
-    // La raíz ya aplica los márgenes de la barra de estado: aquí van en cero para no duplicarlos.
+    // La raíz ya aplica los márgenes de la barra de estado; BarraSuperior ya los trae en cero.
     Scaffold(
         modifier = Modifier.imePadding(),
         contentWindowInsets = WindowInsets(0),
-        topBar = {
-            TopAppBar(
-                title = { Text("Informe técnico") },
-                navigationIcon = {
-                    IconButton(onClick = alVolver) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Volver")
-                    }
-                },
-                windowInsets = WindowInsets(0)
-            )
-        }
+        topBar = { BarraSuperior("Informe técnico", alVolver = alVolver) }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -123,6 +110,11 @@ fun InformeTecnicoScreen(
                 .padding(Espaciado.m),
             verticalArrangement = Arrangement.spacedBy(Espaciado.m)
         ) {
+            Text(
+                "Describe lo que encontraste y lo que hiciste. Los campos con * son obligatorios.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             OutlinedTextField(
                 value = estado.diagnostico,
                 onValueChange = alCambiarDiagnostico,
@@ -179,10 +171,10 @@ fun InformeTecnicoScreen(
 
 @Composable
 private fun BotonConfirmar(estado: InformeTecnicoUiState, onClick: () -> Unit) {
-    Button(
+    BotonPrincipal(
         onClick = onClick,
         enabled = estado.puedeConfirmar,
-        modifier = Modifier.fillMaxWidth().heightIn(min = AreaTactilMinima)
+        modifier = Modifier.fillMaxWidth()
     ) {
         if (estado.guardando) {
             CircularProgressIndicator(
@@ -191,8 +183,20 @@ private fun BotonConfirmar(estado: InformeTecnicoUiState, onClick: () -> Unit) {
                 color = MaterialTheme.colorScheme.onPrimary
             )
         } else {
+            Icon(Icons.Outlined.Fingerprint, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(Espaciado.s))
             Text("Confirmar cierre")
         }
+    }
+    // RF-815: se avisa antes de tocar que el cierre pide la huella o el PIN/patrón del celular
+    if (estado.disponibilidadBiometrica != DisponibilidadBiometrica.SIN_SEGURIDAD) {
+        Text(
+            "Se te pedirá tu huella o el bloqueo de pantalla para confirmar.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
     }
     // RF-816: sin bloqueo de pantalla configurado no se puede confirmar ningún cierre.
     if (estado.disponibilidadBiometrica == DisponibilidadBiometrica.SIN_SEGURIDAD) {

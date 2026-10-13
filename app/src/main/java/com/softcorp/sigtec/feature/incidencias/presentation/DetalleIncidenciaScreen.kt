@@ -2,12 +2,11 @@ package com.softcorp.sigtec.feature.incidencias.presentation
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.MoreVert
@@ -18,6 +17,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -31,11 +32,14 @@ import com.softcorp.sigtec.core.domain.model.Movimiento
 import com.softcorp.sigtec.core.domain.model.Prioridad
 import com.softcorp.sigtec.core.domain.model.TipoFalla
 import com.softcorp.sigtec.core.domain.model.TipoMovimiento
-import com.softcorp.sigtec.core.theme.ColorEstado
 import com.softcorp.sigtec.core.theme.Espaciado
 import com.softcorp.sigtec.core.theme.SigtecTheme
-import com.softcorp.sigtec.core.ui.components.EtiquetaEstado
+import com.softcorp.sigtec.core.ui.components.Avatar
+import com.softcorp.sigtec.core.ui.components.BarraSuperior
+import com.softcorp.sigtec.core.ui.components.BotonPrincipal
+import com.softcorp.sigtec.core.ui.components.BotonSecundario
 import com.softcorp.sigtec.core.ui.components.EtiquetaIncidencia
+import com.softcorp.sigtec.core.ui.components.Seccion
 import com.softcorp.sigtec.core.ui.mensaje
 import com.softcorp.sigtec.feature.incidencias.domain.DetalleIncidencia
 import com.softcorp.sigtec.feature.incidencias.domain.SIN_TECNICO
@@ -43,9 +47,9 @@ import com.softcorp.sigtec.feature.incidencias.domain.codigoParaMostrar
 import java.time.Duration
 import java.time.Instant
 
-private val TamanoPunto = 12.dp
+private val TamanoAvatarActividad = 24.dp
 private val GrosorLinea = 2.dp
-private val AnchoEtiquetaDato = 120.dp
+private val AnchoEtiquetaDato = 148.dp
 
 /**
  * Lo que el detalle puede abrir; cada acción navega a su pantalla (las de otras HU, provisionales).
@@ -75,7 +79,6 @@ fun DetalleIncidenciaRoute(
     DetalleIncidenciaScreen(estado, acciones.copy(alIniciarAtencion = vm::alIniciarAtencion), avisos)
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetalleIncidenciaScreen(
     estado: DetalleIncidenciaUiState,
@@ -85,19 +88,15 @@ fun DetalleIncidenciaScreen(
     val incidencia = estado.detalle?.incidencia
     var menuAbierto by remember { mutableStateOf(false) }
 
-    // La raíz ya aplica los márgenes de la barra de estado: aquí van en cero para no duplicarlos
+    // La raíz ya aplica los márgenes de la barra de estado; BarraSuperior ya los trae en cero
     Scaffold(
         contentWindowInsets = WindowInsets(0),
         snackbarHost = { SnackbarHost(avisos) },
         topBar = {
-            TopAppBar(
-                title = { Text(incidencia?.codigoParaMostrar() ?: "Incidencia") },
-                navigationIcon = {
-                    IconButton(onClick = acciones.alVolver) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Volver")
-                    }
-                },
-                actions = {
+            BarraSuperior(
+                titulo = incidencia?.codigoParaMostrar() ?: "Incidencia",
+                alVolver = acciones.alVolver,
+                acciones = {
                     if (incidencia != null) {
                         Box {
                             IconButton(onClick = { menuAbierto = true }) {
@@ -111,8 +110,7 @@ fun DetalleIncidenciaScreen(
                             }
                         }
                     }
-                },
-                windowInsets = WindowInsets(0)
+                }
             )
         },
         bottomBar = { if (incidencia != null) BarraAcciones(estado, acciones) }
@@ -138,6 +136,8 @@ fun DetalleIncidenciaScreen(
     }
 }
 
+// Ordenado como la vista de un issue de Jira: resumen y estado arriba, «Detalles» en un panel
+// de etiqueta → valor, y después el informe, las evidencias y la actividad.
 @Composable
 private fun Contenido(detalle: DetalleIncidencia, ahora: Instant, acciones: AccionesDetalle) {
     val incidencia = detalle.incidencia
@@ -146,31 +146,10 @@ private fun Contenido(detalle: DetalleIncidencia, ahora: Instant, acciones: Acci
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(Espaciado.m),
-        verticalArrangement = Arrangement.spacedBy(Espaciado.m)
+        verticalArrangement = Arrangement.spacedBy(Espaciado.l)
     ) {
-        // ---------- Estado oficial y punto de la atención ----------
-        Row(horizontalArrangement = Arrangement.spacedBy(Espaciado.s)) {
-            EtiquetaEstado(
-                texto = if (incidencia.estado == EstadoIncidencia.SOLUCIONADO) "Solucionado" else "Pendiente",
-                color = ColorEstado(
-                    contenido = MaterialTheme.colorScheme.onSurfaceVariant,
-                    contenedor = MaterialTheme.colorScheme.surfaceContainerHigh
-                )
-            )
-            // Si ya está solucionada, la primera etiqueta basta
-            if (incidencia.estado == EstadoIncidencia.PENDIENTE) {
-                EtiquetaIncidencia(incidencia.marca, incidencia.critica, incidencia.diasPendiente(ahora))
-            }
-        }
-
-        Column(verticalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
-            Text(incidencia.descripcion, style = MaterialTheme.typography.titleLarge)
-            clasificacion(incidencia)?.let {
-                Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
-
-        TarjetaDatos(incidencia, acciones.alVerHistorial)
+        Encabezado(incidencia, ahora)
+        PanelDatos(incidencia, acciones.alVerHistorial)
 
         // ---------- Informe técnico (HU-08): solo si ya llegó a este celular (RF-827 a RF-829) ----------
         if (incidencia.estado == EstadoIncidencia.SOLUCIONADO && detalle.informe != null) {
@@ -178,16 +157,41 @@ private fun Contenido(detalle: DetalleIncidencia, ahora: Instant, acciones: Acci
         }
 
         // ---------- Evidencias (las fotos son la HU-09) ----------
-        Text("Evidencias", style = MaterialTheme.typography.titleMedium)
-        OutlinedButton(onClick = acciones.alAgregarFoto) {
-            Icon(Icons.Outlined.PhotoCamera, contentDescription = null)
-            Spacer(Modifier.width(Espaciado.s))
-            Text("Agregar foto")
+        Seccion("Evidencias") {
+            BotonSecundario(onClick = acciones.alAgregarFoto) {
+                Icon(Icons.Outlined.PhotoCamera, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(Espaciado.s))
+                Text("Agregar foto")
+            }
         }
 
         // ---------- Línea de tiempo: lo más reciente arriba ----------
-        Text("Movimientos", style = MaterialTheme.typography.titleMedium)
-        LineaDeTiempo(detalle.movimientos, ahora)
+        Seccion("Actividad") { LineaDeTiempo(detalle.movimientos, ahora) }
+    }
+}
+
+/** Resumen del problema, su estado (oficial y punto de la atención) y su clasificación. */
+@Composable
+private fun Encabezado(incidencia: Incidencia, ahora: Instant) {
+    Column(verticalArrangement = Arrangement.spacedBy(Espaciado.s)) {
+        Text(incidencia.descripcion, style = MaterialTheme.typography.titleLarge)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Espaciado.s)
+        ) {
+            // Cerrada ya se lee «Solucionado»; si sigue pendiente, la marca dice en qué punto está
+            EtiquetaIncidencia(incidencia.marca, incidencia.critica, incidencia.diasPendiente(ahora))
+            if (incidencia.estado == EstadoIncidencia.PENDIENTE) {
+                Text(
+                    "Estado: Pendiente",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        clasificacion(incidencia)?.let {
+            Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
     }
 }
 
@@ -197,23 +201,37 @@ private fun clasificacion(incidencia: Incidencia): String? =
         .ifEmpty { null }
 
 @Composable
-private fun TarjetaDatos(incidencia: Incidencia, alVerHistorial: (String) -> Unit) {
-    OutlinedCard(Modifier.fillMaxWidth()) {
-        Column(
-            Modifier.padding(Espaciado.m),
-            verticalArrangement = Arrangement.spacedBy(Espaciado.s)
+private fun PanelDatos(incidencia: Incidencia, alVerHistorial: (String) -> Unit) {
+    Seccion("Detalles") {
+        OutlinedCard(
+            shape = MaterialTheme.shapes.medium,
+            colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface),
+            modifier = Modifier.fillMaxWidth()
         ) {
-            FilaDato("Equipo") {
-                Text(incidencia.codigoEquipo, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
-                TextButton(
-                    onClick = { alVerHistorial(incidencia.codigoEquipo) },
-                    contentPadding = PaddingValues(0.dp)
-                ) { Text("Ver historial del equipo") }
+            Column(
+                Modifier.padding(horizontal = Espaciado.m, vertical = Espaciado.sm),
+                verticalArrangement = Arrangement.spacedBy(Espaciado.sm)
+            ) {
+                FilaDato("Técnico asignado") {
+                    val tecnico = incidencia.tecnicoAsignadoNombre
+                    if (tecnico != null) Persona(tecnico) else ValorDato(SIN_TECNICO, tenue = true)
+                }
+                FilaDato("Equipo") {
+                    Text(incidencia.codigoEquipo, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                    // Enlace en línea, como en Jira: sin el alto mínimo de un botón para no dejar un hueco
+                    Text(
+                        "Ver historial del equipo",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier
+                            .padding(top = Espaciado.xs)
+                            .clickable(role = Role.Button) { alVerHistorial(incidencia.codigoEquipo) }
+                    )
+                }
+                FilaDato("Usuario responsable") { ValorDato(incidencia.usuarioResponsable) }
+                FilaDato("Registrado por") { Persona(incidencia.registradoPorNombre) }
+                FilaDato("Fecha y hora") { ValorDato(fechaCompleta(incidencia.fechaRegistro)) }
             }
-            FilaDato("Usuario responsable") { ValorDato(incidencia.usuarioResponsable) }
-            FilaDato("Registrado por") { ValorDato(incidencia.registradoPorNombre) }
-            FilaDato("Fecha y hora") { ValorDato(fechaCompleta(incidencia.fechaRegistro)) }
-            FilaDato("Técnico asignado") { ValorDato(incidencia.tecnicoAsignadoNombre ?: SIN_TECNICO) }
         }
     }
 }
@@ -225,37 +243,64 @@ private fun FilaDato(etiqueta: String, valor: @Composable ColumnScope.() -> Unit
             etiqueta,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.width(AnchoEtiquetaDato)
+            modifier = Modifier
+                .width(AnchoEtiquetaDato)
+                .padding(top = 2.dp)
         )
         Column(Modifier.weight(1f), content = valor)
     }
 }
 
 @Composable
-private fun ValorDato(texto: String) {
-    Text(texto, style = MaterialTheme.typography.bodyLarge)
+private fun ValorDato(texto: String, tenue: Boolean = false) {
+    Text(
+        texto,
+        style = MaterialTheme.typography.bodyMedium,
+        color = if (tenue) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
+    )
+}
+
+@Composable
+private fun Persona(nombre: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Avatar(nombre, tamano = TamanoAvatarActividad)
+        Spacer(Modifier.width(Espaciado.s))
+        ValorDato(nombre)
+    }
 }
 
 /** RF-827: diagnóstico, solución aplicada, piezas (si las hay), observaciones (si las hay), y quién/cuándo confirmó. */
 @Composable
 private fun SeccionInforme(informe: InformeTecnico, tecnicoNombre: String) {
-    Column(verticalArrangement = Arrangement.spacedBy(Espaciado.s)) {
-        Text("Informe técnico", style = MaterialTheme.typography.titleMedium)
-        OutlinedCard(Modifier.fillMaxWidth()) {
+    Seccion("Informe técnico") {
+        OutlinedCard(
+            shape = MaterialTheme.shapes.medium,
+            colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface),
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Column(
                 Modifier.padding(Espaciado.m),
-                verticalArrangement = Arrangement.spacedBy(Espaciado.s)
+                verticalArrangement = Arrangement.spacedBy(Espaciado.sm)
             ) {
                 FilaInforme("Diagnóstico", informe.diagnostico)
                 FilaInforme("Solución aplicada", informe.trabajoRealizado)
                 informe.piezasCambiadas?.let { FilaInforme("Piezas cambiadas", it) }
                 informe.observaciones?.let { FilaInforme("Observaciones", it) }
-                HorizontalDivider()
-                Text(
-                    "Confirmado por $tecnicoNombre · ${fechaCompleta(informe.confirmadoEn)}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Outlined.Check,
+                        contentDescription = null,
+                        tint = SigtecTheme.estados.solucionado.contenido,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(Espaciado.s))
+                    Text(
+                        "Confirmado por $tecnicoNombre · ${fechaCompleta(informe.confirmadoEn)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }
@@ -264,33 +309,26 @@ private fun SeccionInforme(informe: InformeTecnico, tecnicoNombre: String) {
 @Composable
 private fun FilaInforme(etiqueta: String, valor: String) {
     Column(verticalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
-        Text(etiqueta, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(valor, style = MaterialTheme.typography.bodyLarge)
+        Text(etiqueta, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(valor, style = MaterialTheme.typography.bodyMedium)
     }
 }
 
+/** Actividad al estilo Jira: el avatar de quien hizo cada cambio, unidos por una línea vertical. */
 @Composable
 private fun LineaDeTiempo(movimientos: List<Movimiento>, ahora: Instant) {
     Column {
         movimientos.forEachIndexed { i, movimiento ->
             Row(Modifier.height(IntrinsicSize.Min)) {
-                // Punto y línea que une con el movimiento anterior
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(end = Espaciado.m)
+                    modifier = Modifier.padding(end = Espaciado.sm)
                 ) {
-                    Box(
-                        Modifier
-                            .padding(top = Espaciado.xs)
-                            .size(TamanoPunto)
-                            .background(
-                                if (i == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-                                CircleShape
-                            )
-                    )
+                    Avatar(movimiento.autorNombre, tamano = TamanoAvatarActividad)
                     if (i < movimientos.lastIndex) {
                         Box(
                             Modifier
+                                .padding(vertical = Espaciado.xs)
                                 .width(GrosorLinea)
                                 .weight(1f)
                                 .background(MaterialTheme.colorScheme.outlineVariant)
@@ -298,10 +336,14 @@ private fun LineaDeTiempo(movimientos: List<Movimiento>, ahora: Instant) {
                     }
                 }
                 Column(Modifier.padding(bottom = Espaciado.m)) {
-                    Text(movimiento.tipo.titulo(), style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        movimiento.tipo.titulo(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = if (i == 0) FontWeight.SemiBold else FontWeight.Medium
+                    )
                     Text(
                         "${movimiento.detalle ?: movimiento.autorNombre} · ${fechaCorta(movimiento.fecha, ahora)}",
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -313,53 +355,63 @@ private fun LineaDeTiempo(movimientos: List<Movimiento>, ahora: Instant) {
 @Composable
 private fun BarraAcciones(estado: DetalleIncidenciaUiState, acciones: AccionesDetalle) {
     if (!estado.puedeAsignar && !estado.puedeAtender && !estado.puedeIniciarAtencion) return
-    Column {
-        HorizontalDivider()
-        Column(
-            modifier = Modifier.padding(Espaciado.m),
-            verticalArrangement = Arrangement.spacedBy(Espaciado.s)
-        ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(Espaciado.s)) {
+    Surface(color = MaterialTheme.colorScheme.surface) {
+        Column {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Column(
+                modifier = Modifier.padding(horizontal = Espaciado.m, vertical = Espaciado.sm),
+                verticalArrangement = Arrangement.spacedBy(Espaciado.s)
+            ) {
                 // Asignar es del jefe (HU-06); iniciar, repuesto y cierre, de quien atiende (HU-08 y HU-11)
                 if (estado.puedeAsignar) {
-                    Button(onClick = acciones.alAsignar, modifier = Modifier.weight(1f)) {
-                        Icon(Icons.Outlined.PersonAdd, contentDescription = null)
-                        Spacer(Modifier.width(Espaciado.s))
+                    BotonPrincipal(onClick = acciones.alAsignar, modifier = Modifier.fillMaxWidth()) {
+                        IconoBoton(Icons.Outlined.PersonAdd)
                         // RF-605 (HU-06): con técnico, la misma pantalla reasigna
                         Text(if (estado.detalle?.incidencia?.tecnicoAsignadoId != null) "Reasignar técnico" else "Asignar técnico")
                     }
                 }
-                // RF-806: solo en la marca Asignada; RF-811: deshabilitado mientras se guarda
+                // RF-806: solo en la marca Asignada; RF-811: deshabilitado mientras se guarda.
+                // Mientras se puede iniciar, esa es la acción principal y las otras dos quedan en gris.
                 if (estado.puedeIniciarAtencion) {
-                    Button(
+                    BotonPrincipal(
                         onClick = acciones.alIniciarAtencion,
                         enabled = !estado.iniciandoAtencion,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Icon(Icons.Outlined.PlayArrow, contentDescription = null)
-                        Spacer(Modifier.width(Espaciado.s))
+                        IconoBoton(Icons.Outlined.PlayArrow)
                         Text("Iniciar atención")
                     }
                 }
                 if (estado.puedeAtender) {
-                    OutlinedButton(onClick = acciones.alSolicitarRepuesto, modifier = Modifier.weight(1f)) {
-                        Icon(Icons.Outlined.Inventory2, contentDescription = null)
-                        Spacer(Modifier.width(Espaciado.s))
-                        Text("Solicitar repuesto")
-                    }
-                    Button(onClick = acciones.alCerrar, modifier = Modifier.weight(1f)) {
-                        Icon(Icons.Outlined.Check, contentDescription = null)
-                        Spacer(Modifier.width(Espaciado.s))
-                        Text("Cerrar con informe")
+                    Row(horizontalArrangement = Arrangement.spacedBy(Espaciado.s)) {
+                        BotonSecundario(onClick = acciones.alSolicitarRepuesto, modifier = Modifier.weight(1f)) {
+                            IconoBoton(Icons.Outlined.Inventory2)
+                            Text("Solicitar repuesto", maxLines = 1)
+                        }
+                        val contenidoCerrar: @Composable RowScope.() -> Unit = {
+                            IconoBoton(Icons.Outlined.Check)
+                            Text("Cerrar con informe", maxLines = 1)
+                        }
+                        if (estado.puedeIniciarAtencion) {
+                            BotonSecundario(onClick = acciones.alCerrar, modifier = Modifier.weight(1f), content = contenidoCerrar)
+                        } else {
+                            BotonPrincipal(onClick = acciones.alCerrar, modifier = Modifier.weight(1f), content = contenidoCerrar)
+                        }
                     }
                 }
-            }
-            // RF-808, RF-810: error de iniciar atención, si lo hay
-            estado.errorAtencion?.let {
-                Text(it.mensaje(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                // RF-808, RF-810: error de iniciar atención, si lo hay
+                estado.errorAtencion?.let {
+                    Text(it.mensaje(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                }
             }
         }
     }
+}
+
+@Composable
+private fun IconoBoton(icono: ImageVector) {
+    Icon(icono, contentDescription = null, modifier = Modifier.size(18.dp))
+    Spacer(Modifier.width(Espaciado.s))
 }
 
 // ---------- Vistas previas: la pantalla se prueba sin Room ni ViewModel ----------

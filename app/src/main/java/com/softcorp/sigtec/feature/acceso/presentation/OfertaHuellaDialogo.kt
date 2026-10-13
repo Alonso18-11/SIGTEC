@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import com.softcorp.sigtec.core.ui.components.BotonTexto
 
 @Composable
 fun OfertaHuellaDialogo(
@@ -25,7 +26,7 @@ fun OfertaHuellaDialogo(
                         "patrón o contraseña de tu celular."
             )
         },
-        confirmButton = { TextButton(onClick = alActivar) { Text("Activar") } },
-        dismissButton = { TextButton(onClick = alRechazar) { Text("Ahora no") } }
+        confirmButton = { BotonTexto(onClick = alActivar) { Text("Activar") } },
+        dismissButton = { BotonTexto(onClick = alRechazar) { Text("Ahora no") } }
     )
 }

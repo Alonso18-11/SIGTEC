@@ -1,10 +1,8 @@
 package com.softcorp.sigtec.core.ui.components
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
-import com.softcorp.sigtec.core.theme.ColorEstado
 import com.softcorp.sigtec.core.theme.SigtecTheme
 
 /** La etiqueta que se ve en la lista, la bandeja y el detalle. */
@@ -22,10 +20,7 @@ fun EtiquetaIncidencia(
             "Caso crítico · $diasPendiente días" to estados.critico
         else -> when (marca) {
             MarcaSeguimiento.SIN_ASIGNAR -> "Sin asignar" to estados.sinAsignar
-            MarcaSeguimiento.ASIGNADA -> "Asignada" to ColorEstado(
-                contenido = MaterialTheme.colorScheme.onSurfaceVariant,
-                contenedor = MaterialTheme.colorScheme.surfaceVariant
-            )
+            MarcaSeguimiento.ASIGNADA -> "Asignada" to estados.asignada
             MarcaSeguimiento.EN_ATENCION -> "En atención" to estados.enAtencion
             MarcaSeguimiento.ESPERANDO_REPUESTO ->
                 "Esperando repuesto · $diasPendiente días" to estados.esperandoRepuesto

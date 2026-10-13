@@ -33,19 +33,21 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.softcorp.sigtec.core.biometric.rememberVerificadorBiometrico
 import com.softcorp.sigtec.core.domain.ErrorDominio
 import com.softcorp.sigtec.core.domain.model.Perfil
 import com.softcorp.sigtec.core.domain.model.Usuario
-import com.softcorp.sigtec.core.theme.AreaTactilMinima
 import com.softcorp.sigtec.core.theme.Espaciado
 import com.softcorp.sigtec.core.theme.SigtecTheme
+import com.softcorp.sigtec.core.ui.components.BotonPrincipal
+import com.softcorp.sigtec.core.ui.components.BotonSecundario
+import com.softcorp.sigtec.core.ui.components.BotonTexto
 import com.softcorp.sigtec.core.ui.mensaje
 
-private val TamanoLogo = 72.dp
+private val TamanoLogo = 48.dp
+private val AnchoMaximoFormulario = 420.dp
 
 @Composable
 fun LoginRoute(vm: LoginViewModel = hiltViewModel()) {
@@ -97,179 +99,193 @@ fun LoginScreen(
     val enviar = { foco.clearFocus(); alIngresar() }
     val bloqueada = estado.usuarioBloqueado != null
 
+    // Como el inicio de sesión de Atlassian: la marca arriba y el formulario en un panel con borde fino
     Column(
         modifier = Modifier
             .fillMaxSize()
             .imePadding()                      // el teclado no tapa el botón
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = Espaciado.l),
+            .padding(horizontal = Espaciado.m),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(Modifier.height(Espaciado.xl * 2))
 
         // ---------- Identidad ----------
-        Surface(
-            color = MaterialTheme.colorScheme.primaryContainer,
-            shape = MaterialTheme.shapes.extraLarge,
-            modifier = Modifier.size(TamanoLogo)
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    Icons.Outlined.Build,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
-        }
-        Spacer(Modifier.height(Espaciado.l))
-        Text(
-            "SIGTEC",
-            style = MaterialTheme.typography.headlineLarge,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 4.sp,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Text(
-            "Soporte y Sistemas · Soft Corporation",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        estado.usuarioBloqueado?.let { usuario ->
-            Spacer(Modifier.height(Espaciado.m))
-            Text(
-                "Hola de nuevo, ${usuario.nombre.substringBefore(' ')}",
-                style = MaterialTheme.typography.titleMedium
-            )
-        }
-
-        Spacer(Modifier.height(Espaciado.xl * 2))
-
-        // ---------- Correo y contraseña (HU-01) ----------
-        OutlinedTextField(
-            value = estado.correo,
-            onValueChange = alCambiarCorreo,
-            label = { Text("Correo institucional") },
-            leadingIcon = { Icon(Icons.Outlined.Email, contentDescription = null) },
-            singleLine = true,
-            enabled = !estado.cargando,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Email,
-                imeAction = ImeAction.Next
-            ),
-            keyboardActions = KeyboardActions(onNext = { foco.moveFocus(FocusDirection.Down) }),
-            // Permite que el gestor de contraseñas del celular complete el campo
-            modifier = Modifier
-                .fillMaxWidth()
-                .semantics { contentType = ContentType.Username }
-        )
-        Spacer(Modifier.height(Espaciado.m))
-
-        OutlinedTextField(
-            value = estado.contrasena,
-            onValueChange = alCambiarContrasena,
-            label = { Text("Contraseña") },
-            leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null) },
-            trailingIcon = {
-                IconButton(onClick = alAlternarVisibilidad) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Surface(
+                color = MaterialTheme.colorScheme.primary,
+                shape = MaterialTheme.shapes.large,
+                modifier = Modifier.size(TamanoLogo)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
                     Icon(
-                        if (estado.contrasenaVisible) Icons.Outlined.VisibilityOff
-                        else Icons.Outlined.Visibility,
-                        contentDescription = if (estado.contrasenaVisible) "Ocultar contraseña"
-                        else "Mostrar contraseña"
+                        Icons.Outlined.Build,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimary
                     )
                 }
-            },
-            visualTransformation = if (estado.contrasenaVisible) VisualTransformation.None
-            else PasswordVisualTransformation(),
-            singleLine = true,
-            enabled = !estado.cargando,
-            isError = estado.error != null,
-            supportingText = estado.error?.let { error -> { Text(error.mensaje()) } },
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Password,
-                imeAction = ImeAction.Done
-            ),
-            keyboardActions = KeyboardActions(onDone = { enviar() }),
-            modifier = Modifier
-                .fillMaxWidth()
-                .semantics { contentType = ContentType.Password }
+            }
+            Spacer(Modifier.width(Espaciado.sm))
+            Text(
+                "SIGTEC",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+        Spacer(Modifier.height(Espaciado.xs))
+        Text(
+            "Soporte y Sistemas · Soft Corporation",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+
         Spacer(Modifier.height(Espaciado.l))
 
-        Button(
-            onClick = enviar,
-            enabled = estado.puedeIngresar,
+        OutlinedCard(
+            shape = MaterialTheme.shapes.large,
+            colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface),
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = AreaTactilMinima)
+                .widthIn(max = AnchoMaximoFormulario)
         ) {
-            if (estado.cargando) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(Espaciado.l),
-                    strokeWidth = 2.dp,
-                    color = MaterialTheme.colorScheme.onPrimary
+            Column(
+                modifier = Modifier.padding(Espaciado.l),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    estado.usuarioBloqueado?.let { "Hola de nuevo, ${it.nombre.substringBefore(' ')}" }
+                        ?: "Inicia sesión para continuar",
+                    style = MaterialTheme.typography.titleMedium,
+                    textAlign = TextAlign.Center
                 )
-            } else {
-                Text("Ingresar")
+                Spacer(Modifier.height(Espaciado.l))
+
+                // ---------- Correo y contraseña (HU-01) ----------
+                OutlinedTextField(
+                    value = estado.correo,
+                    onValueChange = alCambiarCorreo,
+                    label = { Text("Correo institucional") },
+                    leadingIcon = { Icon(Icons.Outlined.Email, contentDescription = null) },
+                    singleLine = true,
+                    enabled = !estado.cargando,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Email,
+                        imeAction = ImeAction.Next
+                    ),
+                    keyboardActions = KeyboardActions(onNext = { foco.moveFocus(FocusDirection.Down) }),
+                    // Permite que el gestor de contraseñas del celular complete el campo
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics { contentType = ContentType.Username }
+                )
+                Spacer(Modifier.height(Espaciado.sm))
+
+                OutlinedTextField(
+                    value = estado.contrasena,
+                    onValueChange = alCambiarContrasena,
+                    label = { Text("Contraseña") },
+                    leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null) },
+                    trailingIcon = {
+                        IconButton(onClick = alAlternarVisibilidad) {
+                            Icon(
+                                if (estado.contrasenaVisible) Icons.Outlined.VisibilityOff
+                                else Icons.Outlined.Visibility,
+                                contentDescription = if (estado.contrasenaVisible) "Ocultar contraseña"
+                                else "Mostrar contraseña"
+                            )
+                        }
+                    },
+                    visualTransformation = if (estado.contrasenaVisible) VisualTransformation.None
+                    else PasswordVisualTransformation(),
+                    singleLine = true,
+                    enabled = !estado.cargando,
+                    isError = estado.error != null,
+                    supportingText = estado.error?.let { error -> { Text(error.mensaje()) } },
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(onDone = { enviar() }),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics { contentType = ContentType.Password }
+                )
+                Spacer(Modifier.height(Espaciado.m))
+
+                BotonPrincipal(
+                    onClick = enviar,
+                    enabled = estado.puedeIngresar,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    if (estado.cargando) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(Espaciado.l),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    } else {
+                        Text("Ingresar")
+                    }
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(vertical = Espaciado.m)
+                ) {
+                    HorizontalDivider(Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant)
+                    Text(
+                        "o",
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(horizontal = Espaciado.m),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    HorizontalDivider(Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant)
+                }
+
+                // ---------- Huella (HU-02) ----------
+                BotonSecundario(
+                    onClick = alIngresarConHuella,
+                    enabled = bloqueada && !estado.cargando,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Outlined.Fingerprint, contentDescription = null)
+                    Spacer(Modifier.width(Espaciado.s))
+                    Text("Ingresar con huella")
+                }
+
+                val textoHuella = when {
+                    estado.avisoHuella != null -> estado.avisoHuella
+                    bloqueada -> "Toca para desbloquear con tu huella."
+                    estado.propietarioHuella != null ->
+                        "${estado.propietarioHuella.substringBefore(' ')}: ingresa con tu contraseña " +
+                                "para volver a usar tu huella."
+                    else -> "Disponible si activaste la huella en Ajustes de seguridad."
+                }
+                Text(
+                    textoHuella,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (estado.avisoHuella != null) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(top = Espaciado.s)
+                )
+
+                // Otra persona frente al celular bloqueado: entra con su propia cuenta,
+                // sin tocar la sesión ni la huella del dueño
+                estado.usuarioBloqueado?.let { usuario ->
+                    Text(
+                        "¿No eres ${usuario.nombre.substringBefore(' ')}? Ingresa con tu correo y contraseña.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = Espaciado.s)
+                    )
+                }
             }
         }
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(vertical = Espaciado.m)
-        ) {
-            HorizontalDivider(Modifier.weight(1f))
-            Text(
-                "o",
-                modifier = Modifier.padding(horizontal = Espaciado.m),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            HorizontalDivider(Modifier.weight(1f))
-        }
-
-        // ---------- Huella (HU-02) ----------
-        OutlinedButton(
-            onClick = alIngresarConHuella,
-            enabled = bloqueada && !estado.cargando,
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = AreaTactilMinima)
-        ) {
-            Icon(Icons.Outlined.Fingerprint, contentDescription = null)
-            Spacer(Modifier.width(Espaciado.s))
-            Text("Ingresar con huella")
-        }
-
-        val textoHuella = when {
-            estado.avisoHuella != null -> estado.avisoHuella
-            bloqueada -> "Toca para desbloquear con tu huella."
-            estado.propietarioHuella != null ->
-                "${estado.propietarioHuella.substringBefore(' ')}: ingresa con tu contraseña " +
-                        "para volver a usar tu huella."
-            else -> "Disponible si activaste la huella en Ajustes de seguridad."
-        }
-        Text(
-            textoHuella,
-            style = MaterialTheme.typography.bodySmall,
-            color = if (estado.avisoHuella != null) MaterialTheme.colorScheme.error
-            else MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = Espaciado.s)
-        )
-
-        // Otra persona frente al celular bloqueado: entra con su propia cuenta,
-        // sin tocar la sesión ni la huella del dueño
-        estado.usuarioBloqueado?.let { usuario ->
-            Text(
-                "¿No eres ${usuario.nombre.substringBefore(' ')}? Ingresa con tu correo y contraseña.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = Espaciado.s)
-            )
-        }
-
-        Spacer(Modifier.height(Espaciado.xl * 2))
+        Spacer(Modifier.height(Espaciado.l))
         Text(
             "Acceso exclusivo para el personal del área de Soporte y Sistemas",
             style = MaterialTheme.typography.bodySmall,
@@ -305,12 +321,9 @@ private fun DialogoConfirmarIngreso(
             Text("$nombre tiene ${textoCambiosSinEnviar(pendientes)} en este celular. Si ingresas, ${textoSePerdera(pendientes)}.")
         },
         confirmButton = {
-            TextButton(
-                onClick = alConfirmar,
-                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
-            ) { Text("Ingresar de todos modos") }
+            BotonTexto(onClick = alConfirmar, color = MaterialTheme.colorScheme.error) { Text("Ingresar de todos modos") }
         },
-        dismissButton = { TextButton(onClick = alCancelar) { Text("Cancelar") } }
+        dismissButton = { BotonTexto(onClick = alCancelar) { Text("Cancelar") } }
     )
 }
 

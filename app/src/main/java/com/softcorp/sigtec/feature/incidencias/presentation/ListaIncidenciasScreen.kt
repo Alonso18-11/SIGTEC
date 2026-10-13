@@ -28,14 +28,16 @@ import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
 import com.softcorp.sigtec.core.theme.Espaciado
 import com.softcorp.sigtec.core.theme.SigtecTheme
 import com.softcorp.sigtec.core.ui.components.AvisoConexion
-import com.softcorp.sigtec.core.ui.components.EtiquetaIncidencia
+import com.softcorp.sigtec.core.ui.components.BarraSuperior
+import com.softcorp.sigtec.core.ui.components.BotonTexto
+import com.softcorp.sigtec.core.ui.components.FilaIncidencia
 import com.softcorp.sigtec.feature.incidencias.domain.FiltrosIncidencias
 import com.softcorp.sigtec.feature.incidencias.domain.SIN_TECNICO
 import com.softcorp.sigtec.feature.incidencias.domain.codigoParaMostrar
 import java.time.Duration
 import java.time.Instant
 
-// Deja la última tarjeta por encima del botón «Registrar»
+// Deja la última fila por encima del botón «Registrar»
 private val EspacioBotonFlotante = 88.dp
 
 @Composable
@@ -75,28 +77,34 @@ fun ListaIncidenciasScreen(
     // La raíz ya aplica los márgenes de la barra de estado: aquí van en cero para no duplicarlos
     Scaffold(
         contentWindowInsets = WindowInsets(0),
-        topBar = { TopAppBar(title = { Text("Incidencias") }, windowInsets = WindowInsets(0)) },
+        topBar = { BarraSuperior("Incidencias") },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = alRegistrar,
                 icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
-                text = { Text("Registrar") }
+                text = { Text("Registrar") },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                shape = MaterialTheme.shapes.small
             )
         }
     ) { padding ->
+        // Cabecera con margen a los lados y filas de borde a borde, como la lista de issues de Jira
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(
-                start = Espaciado.m, end = Espaciado.m, bottom = EspacioBotonFlotante
-            ),
-            verticalArrangement = Arrangement.spacedBy(Espaciado.s)
+            contentPadding = PaddingValues(bottom = EspacioBotonFlotante)
         ) {
-            item { aviso() }
-            item { Buscador(estado.filtros.texto, alBuscar) }
             item {
-                Filtros(estado, alFiltrarMarca, alFiltrarTecnico, alFiltrarEquipo, alLimpiar)
+                Column(
+                    Modifier.padding(start = Espaciado.m, end = Espaciado.m, top = Espaciado.m),
+                    verticalArrangement = Arrangement.spacedBy(Espaciado.sm)
+                ) {
+                    aviso()
+                    Buscador(estado.filtros.texto, alBuscar)
+                    Filtros(estado, alFiltrarMarca, alFiltrarTecnico, alFiltrarEquipo, alLimpiar)
+                }
             }
             when {
                 estado.cargando -> item {
@@ -108,7 +116,18 @@ fun ListaIncidenciasScreen(
                 else -> {
                     item { Contador(estado) }
                     items(estado.incidencias, key = { it.id }) { incidencia ->
-                        TarjetaIncidencia(incidencia, estado.ahora, onClick = { alAbrir(incidencia.id) })
+                        FilaIncidencia(
+                            codigo = incidencia.codigoParaMostrar(),
+                            equipo = incidencia.codigoEquipo,
+                            descripcion = incidencia.descripcion,
+                            marca = incidencia.marca,
+                            critica = incidencia.critica,
+                            diasPendiente = incidencia.diasPendiente(estado.ahora),
+                            onClick = { alAbrir(incidencia.id) },
+                            fecha = fechaCorta(incidencia.fechaRegistro, estado.ahora),
+                            tecnico = incidencia.tecnicoAsignadoNombre,
+                            sinTecnico = SIN_TECNICO
+                        )
                     }
                 }
             }
@@ -121,7 +140,7 @@ private fun Buscador(texto: String, alBuscar: (String) -> Unit) {
     TextField(
         value = texto,
         onValueChange = alBuscar,
-        placeholder = { Text("Buscar por código, equipo o problema") },
+        placeholder = { Text("Buscar por código, equipo o problema", maxLines = 1, overflow = TextOverflow.Ellipsis) },
         leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
         trailingIcon = {
             if (texto.isNotEmpty()) {
@@ -131,11 +150,15 @@ private fun Buscador(texto: String, alBuscar: (String) -> Unit) {
             }
         },
         singleLine = true,
-        shape = MaterialTheme.shapes.extraLarge,
-        // Barra de búsqueda sin la línea inferior del campo de texto
+        shape = MaterialTheme.shapes.small,
+        // Barra de búsqueda gris y sin la línea inferior del campo de texto, como la de Jira
         colors = TextFieldDefaults.colors(
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
             focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent
+            unfocusedIndicatorColor = Color.Transparent,
+            focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant
         ),
         modifier = Modifier.fillMaxWidth()
     )
@@ -206,52 +229,14 @@ private fun Contador(estado: ListaIncidenciasUiState) {
         n == 1 -> "1 incidencia"
         else -> "$n incidencias"
     }
-    Text(
-        "$cantidad · de la más reciente a la más antigua",
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
-    )
-}
-
-@Composable
-private fun TarjetaIncidencia(incidencia: Incidencia, ahora: Instant, onClick: () -> Unit) {
-    OutlinedCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
-        Column(
-            Modifier.padding(Espaciado.m),
-            verticalArrangement = Arrangement.spacedBy(Espaciado.xs)
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    "${incidencia.codigoParaMostrar()} · ${incidencia.codigoEquipo}",
-                    style = MaterialTheme.typography.labelLarge,
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    fechaCorta(incidencia.fechaRegistro, ahora),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            Text(
-                incidencia.descripcion,
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                EtiquetaIncidencia(
-                    marca = incidencia.marca,
-                    critica = incidencia.critica,
-                    diasPendiente = incidencia.diasPendiente(ahora)
-                )
-                Spacer(Modifier.weight(1f))
-                Text(
-                    incidencia.tecnicoAsignadoNombre ?: SIN_TECNICO,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
+    Column {
+        Text(
+            "$cantidad · de la más reciente a la más antigua",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = Espaciado.m, end = Espaciado.m, top = Espaciado.m, bottom = Espaciado.s)
+        )
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
     }
 }
 
@@ -260,7 +245,7 @@ private fun SinResultados(hayDatos: Boolean, alLimpiar: () -> Unit) {
     Column(
         Modifier
             .fillMaxWidth()
-            .padding(vertical = Espaciado.xl),
+            .padding(horizontal = Espaciado.m, vertical = Espaciado.xl),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
@@ -270,7 +255,7 @@ private fun SinResultados(hayDatos: Boolean, alLimpiar: () -> Unit) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
-        if (hayDatos) TextButton(onClick = alLimpiar) { Text("Limpiar filtros") }
+        if (hayDatos) BotonTexto(onClick = alLimpiar) { Text("Limpiar filtros") }
     }
 }
 

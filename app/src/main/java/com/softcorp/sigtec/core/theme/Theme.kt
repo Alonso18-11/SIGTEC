@@ -61,6 +61,7 @@ fun SigtecTheme(
         MaterialTheme(
             colorScheme = esquema,
             typography = Tipografia,
+            shapes = Formas,
             content = content
         )
     }

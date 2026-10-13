@@ -2,13 +2,10 @@ package com.softcorp.sigtec.feature.acceso.presentation
 
 import android.content.Intent
 import android.provider.Settings
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.Fingerprint
@@ -34,9 +31,14 @@ import com.softcorp.sigtec.core.biometric.rememberVerificadorBiometrico
 import com.softcorp.sigtec.core.domain.model.Perfil
 import com.softcorp.sigtec.core.domain.model.PreferenciasHuella
 import com.softcorp.sigtec.core.domain.model.Usuario
-import com.softcorp.sigtec.core.theme.AreaTactilMinima
 import com.softcorp.sigtec.core.theme.Espaciado
 import com.softcorp.sigtec.core.theme.SigtecTheme
+import com.softcorp.sigtec.core.ui.components.Avatar
+import com.softcorp.sigtec.core.ui.components.BarraSuperior
+import com.softcorp.sigtec.core.ui.components.BotonPeligro
+import com.softcorp.sigtec.core.ui.components.BotonSecundario
+import com.softcorp.sigtec.core.ui.components.BotonTexto
+import com.softcorp.sigtec.core.ui.components.Seccion
 
 private val TamanoAvatar = 48.dp
 
@@ -75,7 +77,6 @@ fun AjustesSeguridadRoute(alVolver: () -> Unit, vm: AjustesSeguridadViewModel = 
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AjustesSeguridadScreen(
     estado: AjustesUiState,
@@ -87,20 +88,10 @@ fun AjustesSeguridadScreen(
     alConfirmarSalida: () -> Unit,
     alCancelarSalida: () -> Unit
 ) {
-    // La raíz ya aplica los márgenes de la barra de estado: aquí van en cero para no duplicarlos
+    // La raíz ya aplica los márgenes de la barra de estado; BarraSuperior ya los trae en cero
     Scaffold(
         contentWindowInsets = WindowInsets(0),
-        topBar = {
-            TopAppBar(
-                title = { Text("Ajustes de seguridad") },
-                navigationIcon = {
-                    IconButton(onClick = alVolver) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Volver")
-                    }
-                },
-                windowInsets = WindowInsets(0)
-            )
-        }
+        topBar = { BarraSuperior("Ajustes de seguridad", alVolver = alVolver) }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -108,89 +99,94 @@ fun AjustesSeguridadScreen(
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
                 .padding(Espaciado.m),
-            verticalArrangement = Arrangement.spacedBy(Espaciado.m)
+            verticalArrangement = Arrangement.spacedBy(Espaciado.l)
         ) {
             estado.usuario?.let { TarjetaUsuario(it) }
 
             // ---------- Acceso ----------
-            TituloSeccion("Acceso")
-            if (estado.huellaDeOtraPersona) {
-                FilaInformativa(
-                    Icons.Outlined.Fingerprint,
-                    "Ingresar con huella",
-                    "La huella de este celular está vinculada a ${estado.preferencias.propietarioNombre}. " +
-                            "Solo esa persona puede desactivarla."
-                )
-            } else {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Outlined.Fingerprint, contentDescription = null)
-                    Column(Modifier.weight(1f).padding(horizontal = Espaciado.m)) {
-                        Text("Ingresar con huella", style = MaterialTheme.typography.bodyLarge)
-                        Text(
-                            "Vincula este celular a tu cuenta: al bloquear SIGTEC o al abrirla, " +
-                                    "entras con tu huella.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+            Seccion("Acceso") {
+                Panel {
+                    if (estado.huellaDeOtraPersona) {
+                        FilaInformativa(
+                            Icons.Outlined.Fingerprint,
+                            "Ingresar con huella",
+                            "La huella de este celular está vinculada a ${estado.preferencias.propietarioNombre}. " +
+                                    "Solo esa persona puede desactivarla."
                         )
+                    } else {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Outlined.Fingerprint, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Column(Modifier.weight(1f).padding(horizontal = Espaciado.m)) {
+                                Text("Ingresar con huella", style = MaterialTheme.typography.titleSmall)
+                                Text(
+                                    "Vincula este celular a tu cuenta: al bloquear SIGTEC o al abrirla, " +
+                                            "entras con tu huella.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Switch(
+                                checked = estado.esPropietario,
+                                onCheckedChange = alCambiarHuella,
+                                enabled = estado.esPropietario || estado.puedeActivar
+                            )
+                        }
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        EstadoSensor(estado.disponibilidad, alRegistrarHuella)
                     }
-                    Switch(
-                        checked = estado.esPropietario,
-                        onCheckedChange = alCambiarHuella,
-                        enabled = estado.esPropietario || estado.puedeActivar
-                    )
                 }
-                EstadoSensor(estado.disponibilidad, alRegistrarHuella)
             }
 
             // ---------- Confirmaciones ----------
-            HorizontalDivider()
-            TituloSeccion("Confirmaciones")
-            FilaInformativa(
-                Icons.Outlined.Lock,
-                "Cierre de incidencias y solicitudes de repuesto",
-                "Siempre se confirman con tu huella o, si no hay sensor, con el bloqueo de pantalla " +
-                        "del celular. Esta opción no se puede desactivar."
-            )
+            Seccion("Confirmaciones") {
+                Panel {
+                    FilaInformativa(
+                        Icons.Outlined.Lock,
+                        "Cierre de incidencias y solicitudes de repuesto",
+                        "Siempre se confirman con tu huella o, si no hay sensor, con el bloqueo de pantalla " +
+                                "del celular. Esta opción no se puede desactivar."
+                    )
+                }
+            }
 
             // ---------- Privacidad ----------
-            HorizontalDivider()
-            TituloSeccion("Privacidad")
-            FilaInformativa(
-                Icons.Outlined.Shield,
-                null,
-                "SIGTEC no guarda ni envía tu huella. Android solo le indica a la aplicación " +
-                        "si la verificación fue correcta."
-            )
+            Seccion("Privacidad") {
+                Panel {
+                    FilaInformativa(
+                        Icons.Outlined.Shield,
+                        null,
+                        "SIGTEC no guarda ni envía tu huella. Android solo le indica a la aplicación " +
+                                "si la verificación fue correcta."
+                    )
+                }
+            }
 
             // ---------- Salida ----------
-            Spacer(Modifier.height(Espaciado.l))
-            if (estado.esPropietario) {
-                Button(
-                    onClick = alBloquear,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = AreaTactilMinima)
-                ) {
-                    Icon(Icons.Outlined.Lock, contentDescription = null)
-                    Spacer(Modifier.width(Espaciado.s))
-                    Text("Bloquear SIGTEC")
+            Column(verticalArrangement = Arrangement.spacedBy(Espaciado.s)) {
+                if (estado.esPropietario) {
+                    BotonSecundario(onClick = alBloquear, modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Outlined.Lock, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(Espaciado.s))
+                        Text("Bloquear SIGTEC")
+                    }
+                    NotaSalida("Tu sesión se conserva: vuelves a entrar con tu huella.")
+                    Spacer(Modifier.height(Espaciado.s))
                 }
-                NotaSalida("Tu sesión se conserva: vuelves a entrar con tu huella.")
+                BotonPeligro(
+                    onClick = alCerrarSesion,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.AutoMirrored.Outlined.Logout, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(Espaciado.s))
+                    Text("Cerrar sesión")
+                }
+                NotaSalida(
+                    if (estado.esPropietario)
+                        "Se borran los datos de este celular y se desvincula tu huella. " +
+                                "Úsalo si el celular pasará a otra persona."
+                    else "Se borran de este celular los datos de tu sesión."
+                )
             }
-            OutlinedButton(
-                onClick = alCerrarSesion,
-                modifier = Modifier.fillMaxWidth().heightIn(min = AreaTactilMinima),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
-            ) {
-                Icon(Icons.AutoMirrored.Outlined.Logout, contentDescription = null)
-                Spacer(Modifier.width(Espaciado.s))
-                Text("Cerrar sesión")
-            }
-            NotaSalida(
-                if (estado.esPropietario)
-                    "Se borran los datos de este celular y se desvincula tu huella. " +
-                            "Úsalo si el celular pasará a otra persona."
-                else "Se borran de este celular los datos de tu sesión."
-            )
         }
     }
 
@@ -212,34 +208,20 @@ private fun DialogoConfirmarSalida(pendientes: Int, alConfirmar: () -> Unit, alC
         title = { Text("¿Cerrar sesión?") },
         text = { Text("Tienes ${textoCambiosSinEnviar(pendientes)}. Si cierras sesión ahora, ${textoSePerdera(pendientes)}.") },
         confirmButton = {
-            TextButton(
-                onClick = alConfirmar,
-                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
-            ) { Text("Cerrar de todos modos") }
+            BotonTexto(onClick = alConfirmar, color = MaterialTheme.colorScheme.error) { Text("Cerrar de todos modos") }
         },
-        dismissButton = { TextButton(onClick = alCancelar) { Text("Cancelar") } }
+        dismissButton = { BotonTexto(onClick = alCancelar) { Text("Cancelar") } }
     )
 }
 
 @Composable
 private fun TarjetaUsuario(usuario: Usuario) {
-    Surface(color = MaterialTheme.colorScheme.surfaceContainer, shape = MaterialTheme.shapes.large) {
+    Panel {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(Espaciado.m),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Surface(
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                modifier = Modifier.size(TamanoAvatar)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text(
-                        usuario.nombre.split(" ").take(2).map { it.first() }.joinToString(""),
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                }
-            }
+            Avatar(usuario.nombre, tamano = TamanoAvatar)
             Column(Modifier.padding(start = Espaciado.m)) {
                 Text(usuario.nombre, style = MaterialTheme.typography.titleMedium)
                 Text(usuario.cargo, style = MaterialTheme.typography.bodyMedium)
@@ -253,17 +235,28 @@ private fun TarjetaUsuario(usuario: Usuario) {
     }
 }
 
+/** Grupo de ajustes en un panel blanco con borde fino, como la configuración de Jira. */
 @Composable
-private fun TituloSeccion(texto: String) {
-    Text(texto, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+private fun Panel(contenido: @Composable ColumnScope.() -> Unit) {
+    OutlinedCard(
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            Modifier.padding(Espaciado.m),
+            verticalArrangement = Arrangement.spacedBy(Espaciado.sm),
+            content = contenido
+        )
+    }
 }
 
 @Composable
 private fun FilaInformativa(icono: ImageVector, titulo: String?, texto: String) {
     Row {
-        Icon(icono, contentDescription = null)
+        Icon(icono, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         Column(Modifier.padding(start = Espaciado.m)) {
-            titulo?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
+            titulo?.let { Text(it, style = MaterialTheme.typography.titleSmall) }
             Text(
                 texto,
                 style = MaterialTheme.typography.bodyMedium,
@@ -294,7 +287,7 @@ private fun EstadoSensor(disponibilidad: DisponibilidadBiometrica, alRegistrarHu
                     MaterialTheme.colorScheme.onSurfaceVariant
         DisponibilidadBiometrica.SIN_HUELLA_REGISTRADA ->
             "Tu celular tiene sensor, pero no hay ninguna huella registrada" to
-                    SigtecTheme.estados.esperandoRepuesto.contenido
+                    SigtecTheme.estados.advertencia.contenido
         DisponibilidadBiometrica.SIN_SEGURIDAD ->
             "Configura un bloqueo de pantalla en tu celular para usar esta opción" to
                     MaterialTheme.colorScheme.error
@@ -302,7 +295,7 @@ private fun EstadoSensor(disponibilidad: DisponibilidadBiometrica, alRegistrarHu
     Column {
         Text(texto, style = MaterialTheme.typography.bodyMedium, color = color)
         if (disponibilidad == DisponibilidadBiometrica.SIN_HUELLA_REGISTRADA) {
-            TextButton(onClick = alRegistrarHuella) { Text("Registrar una huella") }
+            BotonTexto(onClick = alRegistrarHuella, modifier = Modifier.offset(x = -Espaciado.s)) { Text("Registrar una huella") }
         }
     }
 }
