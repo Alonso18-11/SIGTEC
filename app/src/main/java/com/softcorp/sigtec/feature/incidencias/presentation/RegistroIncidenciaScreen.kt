@@ -6,7 +6,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material3.*
@@ -23,9 +22,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.softcorp.sigtec.core.domain.ErrorDominio
-import com.softcorp.sigtec.core.theme.AreaTactilMinima
 import com.softcorp.sigtec.core.theme.Espaciado
 import com.softcorp.sigtec.core.theme.SigtecTheme
+import com.softcorp.sigtec.core.ui.components.BarraSuperior
+import com.softcorp.sigtec.core.ui.components.BotonPrincipal
+import com.softcorp.sigtec.core.ui.components.EncabezadoSeccion
 import com.softcorp.sigtec.core.ui.mensaje
 import java.time.Instant
 import java.time.ZoneId
@@ -34,6 +35,8 @@ import java.time.format.DateTimeFormatter
 private val formatoFecha = DateTimeFormatter.ofPattern("dd/MM/yyyy · HH:mm")
 
 private const val LINEAS_DESCRIPCION = 4
+
+private val AnchoEtiquetaDato = 148.dp
 
 @Composable
 fun RegistroIncidenciaRoute(
@@ -64,7 +67,6 @@ fun RegistroIncidenciaRoute(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegistroIncidenciaScreen(
     estado: RegistroIncidenciaUiState,
@@ -78,22 +80,12 @@ fun RegistroIncidenciaScreen(
 ) {
     val editable = !estado.guardando
 
-    // La raíz ya aplica los márgenes de la barra de estado: aquí van en cero para no duplicarlos.
+    // La raíz ya aplica los márgenes de la barra de estado; BarraSuperior ya los trae en cero.
     // imePadding en el Scaffold: con el teclado abierto, la barra de "Guardar" queda sobre él.
     Scaffold(
         modifier = Modifier.imePadding(),
         contentWindowInsets = WindowInsets(0),
-        topBar = {
-            TopAppBar(
-                title = { Text("Nueva incidencia") },
-                navigationIcon = {
-                    IconButton(onClick = alVolver) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Volver")
-                    }
-                },
-                windowInsets = WindowInsets(0)
-            )
-        },
+        topBar = { BarraSuperior("Nueva incidencia", alVolver = alVolver) },
         bottomBar = { BarraGuardar(estado, alGuardar) }
     ) { padding ->
         Column(
@@ -104,6 +96,7 @@ fun RegistroIncidenciaScreen(
                 .padding(Espaciado.m),
             verticalArrangement = Arrangement.spacedBy(Espaciado.m)
         ) {
+            EncabezadoSeccion("Datos del problema")
             // ---------- Equipo (el escaneo es la HU-09) ----------
             OutlinedTextField(
                 value = estado.codigoEquipo,
@@ -111,8 +104,12 @@ fun RegistroIncidenciaScreen(
                 label = { Text("Código del equipo *") },
                 placeholder = { Text("PC-CONT-014") },
                 trailingIcon = {
-                    FilledTonalIconButton(onClick = alEscanear, enabled = editable) {
-                        Icon(Icons.Outlined.PhotoCamera, contentDescription = "Escanear etiqueta")
+                    IconButton(onClick = alEscanear, enabled = editable) {
+                        Icon(
+                            Icons.Outlined.PhotoCamera,
+                            contentDescription = "Escanear etiqueta",
+                            tint = if (editable) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 },
                 // Neutral hasta la HU-09: el código también puede escribirse a mano
@@ -147,8 +144,12 @@ fun RegistroIncidenciaScreen(
                 onValueChange = alCambiarDescripcion,
                 label = { Text("Descripción del problema *") },
                 trailingIcon = {
-                    FilledTonalIconButton(onClick = alDictar, enabled = editable) {
-                        Icon(Icons.Outlined.Mic, contentDescription = "Dictar descripción")
+                    IconButton(onClick = alDictar, enabled = editable) {
+                        Icon(
+                            Icons.Outlined.Mic,
+                            contentDescription = "Dictar descripción",
+                            tint = if (editable) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 },
                 supportingText = { Text("Puedes dictarla con el micrófono y corregirla antes de guardar") },
@@ -159,79 +160,79 @@ fun RegistroIncidenciaScreen(
             )
 
             // ---------- Datos automáticos: no se editan ----------
-            Row(horizontalArrangement = Arrangement.spacedBy(Espaciado.m)) {
-                DatoAutomatico(
-                    etiqueta = "Fecha y hora (automática)",
-                    valor = formatoFecha.format(estado.fechaHora.atZone(ZoneId.systemDefault())),
-                    modifier = Modifier.weight(1f)
-                )
-                DatoAutomatico(
-                    etiqueta = "Registrado por",
-                    valor = estado.registradoPor ?: "—",
-                    modifier = Modifier.weight(1f)
-                )
+            EncabezadoSeccion("Datos automáticos", Modifier.padding(top = Espaciado.s))
+            OutlinedCard(
+                shape = MaterialTheme.shapes.medium,
+                colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    Modifier.padding(horizontal = Espaciado.m, vertical = Espaciado.sm),
+                    verticalArrangement = Arrangement.spacedBy(Espaciado.s)
+                ) {
+                    DatoAutomatico(
+                        etiqueta = "Fecha y hora",
+                        valor = formatoFecha.format(estado.fechaHora.atZone(ZoneId.systemDefault()))
+                    )
+                    DatoAutomatico(etiqueta = "Registrado por", valor = estado.registradoPor ?: "—")
+                }
             }
         }
     }
 }
 
 @Composable
-private fun DatoAutomatico(etiqueta: String, valor: String, modifier: Modifier = Modifier) {
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceContainerHighest,
-        shape = MaterialTheme.shapes.extraSmall,
-        modifier = modifier
-    ) {
-        Column(Modifier.padding(horizontal = Espaciado.m, vertical = Espaciado.s)) {
-            Text(
-                etiqueta,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(valor, style = MaterialTheme.typography.bodyLarge)
-        }
+private fun DatoAutomatico(etiqueta: String, valor: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            etiqueta,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.width(AnchoEtiquetaDato)
+        )
+        Text(valor, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
     }
 }
 
 @Composable
 private fun BarraGuardar(estado: RegistroIncidenciaUiState, alGuardar: () -> Unit) {
-    Column {
-        HorizontalDivider()
-        Column(
-            modifier = Modifier.padding(Espaciado.m),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(Espaciado.s)
-        ) {
-            estado.error?.let { error ->
+    Surface(color = MaterialTheme.colorScheme.surface) {
+        Column {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Column(
+                modifier = Modifier.padding(horizontal = Espaciado.m, vertical = Espaciado.sm),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(Espaciado.s)
+            ) {
+                estado.error?.let { error ->
+                    Text(
+                        error.mensaje(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error,
+                        textAlign = TextAlign.Center
+                    )
+                }
+                BotonPrincipal(
+                    onClick = alGuardar,
+                    enabled = estado.puedeGuardar,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    if (estado.guardando) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(Espaciado.l),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    } else {
+                        Text("Guardar incidencia")
+                    }
+                }
                 Text(
-                    error.mensaje(),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.error,
-                    textAlign = TextAlign.Center
+                    "La incidencia se guardará en estado Pendiente",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            Button(
-                onClick = alGuardar,
-                enabled = estado.puedeGuardar,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = AreaTactilMinima)
-            ) {
-                if (estado.guardando) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(Espaciado.l),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                } else {
-                    Text("Guardar incidencia")
-                }
-            }
-            Text(
-                "La incidencia se guardará en estado Pendiente",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
     }
 }

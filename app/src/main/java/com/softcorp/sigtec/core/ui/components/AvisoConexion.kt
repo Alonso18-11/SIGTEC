@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CloudUpload
@@ -14,12 +15,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -27,6 +28,7 @@ import androidx.lifecycle.viewModelScope
 import com.softcorp.sigtec.core.domain.model.EstadoDatos
 import com.softcorp.sigtec.core.domain.usecase.DescartarCambiosRechazados
 import com.softcorp.sigtec.core.domain.usecase.ObservarEstadoDatos
+import com.softcorp.sigtec.core.theme.ColorEstado
 import com.softcorp.sigtec.core.theme.Espaciado
 import com.softcorp.sigtec.core.theme.SigtecTheme
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -71,22 +73,37 @@ fun AvisoConexionContenido(
     alEntendido: () -> Unit = {}
 ) {
     val texto = textoAviso(estado) ?: return
-    val icono = when {
-        !estado.enLinea -> Icons.Outlined.WifiOff
-        estado.necesitanAtencion > 0 -> Icons.Outlined.ErrorOutline
-        else -> Icons.Outlined.CloudUpload
+    // Como los «section messages» de Jira: amarillo sin conexión, rojo si algo se rechazó, azul al enviar
+    val (icono, color) = when {
+        !estado.enLinea -> Icons.Outlined.WifiOff to SigtecTheme.estados.advertencia
+        estado.necesitanAtencion > 0 -> Icons.Outlined.ErrorOutline to ColorEstado(
+            contenido = SigtecTheme.estados.critico.contenido,
+            contenedor = MaterialTheme.colorScheme.errorContainer
+        )
+        else -> Icons.Outlined.CloudUpload to ColorEstado(
+            contenido = MaterialTheme.colorScheme.onPrimaryContainer,
+            contenedor = MaterialTheme.colorScheme.primaryContainer
+        )
     }
     Surface(
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        shape = MaterialTheme.shapes.medium,
+        color = color.contenedor,
+        shape = MaterialTheme.shapes.small,
         modifier = modifier.fillMaxWidth()
     ) {
-        Row(Modifier.padding(Espaciado.m), verticalAlignment = Alignment.CenterVertically) {
-            Icon(icono, contentDescription = null)
+        Row(
+            Modifier.padding(horizontal = Espaciado.sm, vertical = Espaciado.s),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(icono, contentDescription = null, tint = color.contenido, modifier = Modifier.size(20.dp))
             Spacer(Modifier.width(Espaciado.s))
-            Text(texto, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+            Text(
+                texto,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f)
+            )
             if (puedeDescartar(estado)) {
-                TextButton(onClick = alEntendido) { Text("Entendido") }
+                BotonTexto(onClick = alEntendido) { Text("Entendido") }
             }
         }
     }
@@ -171,7 +188,7 @@ private fun AvisoNecesitaAtencionPreview() = SigtecTheme {
 
 @Preview(name = "No se pudo enviar · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun AvisoNecesitaAtencionOscuroPreview() = SigtecTheme {
+private fun AvisoNecesitaAtencionOscuroPreview() = SigtecTheme(darkTheme = true) {
     AvisoConexionContenido(
         EstadoDatos(enLinea = true, ultimaDescarga = Instant.now(), pendientesPorEnviar = 0, necesitanAtencion = 2),
         Modifier.padding(Espaciado.m)

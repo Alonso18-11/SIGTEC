@@ -21,14 +21,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material3.Button
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
@@ -36,7 +33,6 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -57,6 +54,9 @@ import com.softcorp.sigtec.core.domain.model.TipoFalla
 import com.softcorp.sigtec.core.theme.AreaTactilMinima
 import com.softcorp.sigtec.core.theme.Espaciado
 import com.softcorp.sigtec.core.theme.SigtecTheme
+import com.softcorp.sigtec.core.ui.components.BarraSuperior
+import com.softcorp.sigtec.core.ui.components.BotonPrincipal
+import com.softcorp.sigtec.core.ui.components.EncabezadoSeccion
 import com.softcorp.sigtec.core.ui.components.EtiquetaIncidencia
 import com.softcorp.sigtec.core.ui.mensaje
 import com.softcorp.sigtec.feature.asignacion.domain.OpcionTecnico
@@ -97,7 +97,6 @@ fun AsignacionRoute(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AsignacionScreen(
     estado: AsignacionUiState,
@@ -105,20 +104,10 @@ fun AsignacionScreen(
     alElegir: (String) -> Unit,
     alAsignar: () -> Unit
 ) {
-    // La raíz ya aplica los márgenes de la barra de estado: aquí van en cero para no duplicarlos
+    // La raíz ya aplica los márgenes de la barra de estado; BarraSuperior ya los trae en cero
     Scaffold(
         contentWindowInsets = WindowInsets(0),
-        topBar = {
-            TopAppBar(
-                title = { Text("Asignar incidencia") },
-                navigationIcon = {
-                    IconButton(onClick = alVolver) {
-                        Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Volver")
-                    }
-                },
-                windowInsets = WindowInsets(0)
-            )
-        },
+        topBar = { BarraSuperior("Asignar incidencia", alVolver = alVolver) },
         bottomBar = { if (estado.opciones != null) BarraAsignar(estado, alAsignar) }
     ) { padding ->
         Box(
@@ -180,7 +169,11 @@ private fun Contenido(opciones: OpcionesAsignacion, estado: AsignacionUiState, a
 @Composable
 private fun TarjetaResumen(opciones: OpcionesAsignacion, ahora: Instant) {
     val incidencia = opciones.incidencia
-    OutlinedCard(Modifier.fillMaxWidth()) {
+    OutlinedCard(
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        modifier = Modifier.fillMaxWidth()
+    ) {
         Column(Modifier.padding(Espaciado.m), verticalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
             // «INC-0127 · IMP-RRHH-002 · Recursos Humanos»; la oficina se omite si el equipo no está en el catálogo
             Text(
@@ -213,10 +206,10 @@ private fun Encabezado() {
             .padding(top = Espaciado.s),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text("Elige un técnico", style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+        EncabezadoSeccion("Elige un técnico", Modifier.weight(1f))
         Text(
-            "Incidencias activas / límite",
-            style = MaterialTheme.typography.labelSmall,
+            "Activas / límite",
+            style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
@@ -257,21 +250,32 @@ private fun TarjetaTecnico(opcion: OpcionTecnico, elegida: Boolean, habilitada: 
                 modifier = Modifier
                     .size(TamanoAvatar)
                     .clip(CircleShape)
-                    .background(colores.secondaryContainer),
+                    // Elegida, la tarjeta ya es azul claro: el avatar pasa a blanco para no perderse
+                    .background(if (elegida) colores.surface else colores.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
-                Text(iniciales(tecnico.nombre), style = MaterialTheme.typography.labelLarge, color = colores.onSecondaryContainer)
+                Text(
+                    iniciales(tecnico.nombre),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = colores.onPrimaryContainer
+                )
             }
             Spacer(Modifier.width(Espaciado.m))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(tecnico.nombre, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                    Text(
+                        tecnico.nombre,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.weight(1f)
+                    )
                     Text("${tecnico.incidenciasActivas} / ${tecnico.limiteAtencion}", style = MaterialTheme.typography.labelLarge)
                 }
                 LinearProgressIndicator(
                     progress = { tecnico.cargaRelativa },
                     color = if (opcion.disponible) colores.primary else colores.error,
-                    trackColor = colores.surfaceContainerHighest,
+                    trackColor = colores.surfaceVariant,
                     modifier = Modifier.fillMaxWidth()
                 )
                 EstadoTecnico(opcion)
@@ -289,39 +293,39 @@ private fun EstadoTecnico(opcion: OpcionTecnico) {
     when {
         opcion.esActual -> Text("Asignado ahora", style = MaterialTheme.typography.bodySmall, color = colores.onSurfaceVariant)
         !opcion.disponible -> Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Outlined.Lock, contentDescription = null, tint = colores.error)
+            Icon(Icons.Outlined.Lock, contentDescription = null, tint = colores.error, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(Espaciado.xs))
             Text("Alcanzó su límite de atención", style = MaterialTheme.typography.bodySmall, color = colores.error)
         }
-        else -> Text("Disponible", style = MaterialTheme.typography.bodySmall, color = colores.primary)
+        else -> Text("Disponible", style = MaterialTheme.typography.bodySmall, color = SigtecTheme.estados.solucionado.contenido)
     }
 }
 
 @Composable
 private fun BarraAsignar(estado: AsignacionUiState, alAsignar: () -> Unit) {
     val nombre = estado.elegido?.tecnico?.nombre
-    Column {
-        HorizontalDivider()
-        Column(
-            modifier = Modifier.padding(Espaciado.m),
-            verticalArrangement = Arrangement.spacedBy(Espaciado.xs),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Deshabilitado mientras guarda: un segundo toque no repite la asignación
-            Button(
-                onClick = alAsignar,
-                enabled = estado.puedeAsignar,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = AreaTactilMinima)
+    Surface(color = MaterialTheme.colorScheme.surface) {
+        Column {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Column(
+                modifier = Modifier.padding(horizontal = Espaciado.m, vertical = Espaciado.sm),
+                verticalArrangement = Arrangement.spacedBy(Espaciado.xs),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(textoBotonAsignar(nombre, estado.esReasignacion))
-            }
-            nombre?.let {
-                Text(textoBandeja(it), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            estado.error?.let {
-                Text(it.mensaje(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+                // Deshabilitado mientras guarda: un segundo toque no repite la asignación
+                BotonPrincipal(
+                    onClick = alAsignar,
+                    enabled = estado.puedeAsignar,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(textoBotonAsignar(nombre, estado.esReasignacion))
+                }
+                nombre?.let {
+                    Text(textoBandeja(it), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                estado.error?.let {
+                    Text(it.mensaje(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+                }
             }
         }
     }
