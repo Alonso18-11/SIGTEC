@@ -150,9 +150,27 @@ private fun AvisoSinConexionPreview() = SigtecTheme {
     )
 }
 
+@Preview(name = "Sin conexión · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun AvisoSinConexionOscuroPreview() = SigtecTheme {
+    AvisoConexionContenido(
+        EstadoDatos(enLinea = false, ultimaDescarga = Instant.now(), pendientesPorEnviar = 2, necesitanAtencion = 0),
+        Modifier.padding(Espaciado.m)
+    )
+}
+
 @Preview(name = "Enviando", showBackground = true)
 @Composable
 private fun AvisoEnviandoPreview() = SigtecTheme {
+    AvisoConexionContenido(
+        EstadoDatos(enLinea = true, ultimaDescarga = Instant.now(), pendientesPorEnviar = 1, necesitanAtencion = 0),
+        Modifier.padding(Espaciado.m)
+    )
+}
+
+@Preview(name = "Enviando · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun AvisoEnviandoOscuroPreview() = SigtecTheme {
     AvisoConexionContenido(
         EstadoDatos(enLinea = true, ultimaDescarga = Instant.now(), pendientesPorEnviar = 1, necesitanAtencion = 0),
         Modifier.padding(Espaciado.m)
