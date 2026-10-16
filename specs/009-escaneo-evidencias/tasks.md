@@ -183,3 +183,56 @@
 - [ ] **T55 · `CapturaEvidencia` y `ObservarCapturaEvidencia`** (4.6). RF-924, RF-929, RF-931.
   Hecho cuando: compila.
 - [ ] **T56 · `ObservarCapturaEvidenciaTest`** (cinco casos). Mismos RF. Hecho cuando: la prueba pasa.
+
+## PR-32 — `CapturaEvidenciaViewModel` (base PR-31, trae PR-27, PR-29 y PR-30)
+- [ ] **T57 · `CapturaEvidenciaViewModel`** con el tipo en el `SavedStateHandle` (4.8). RF-924 a RF-931.
+  Hecho cuando: compila con Hilt.
+- [ ] **T58 · `CapturaEvidenciaViewModelTest`** (siete casos). Mismos RF. Hecho cuando: la prueba pasa.
+
+## PR-33 — miniatura (base `main`)
+- [ ] **T59 · Decodificar reducida y con la orientación del EXIF** (5.6, P-6). RF-932, RF-935.
+  Hecho cuando: compila.
+- [ ] **T60 · `MiniaturaEvidencia`** con carga, imagen y «Foto no disponible». RF-932, RF-935.
+  Hecho cuando: sus vistas previas muestran la carga y «Foto no disponible».
+
+## PR-34 — «Evidencia fotográfica» sin cámara (base PR-32, trae PR-33)
+- [ ] **T61 · Pantalla con el título, el subtítulo y el selector** (5.4). RF-924.
+  Hecho cuando: compila.
+- [ ] **T62 · Miniaturas, disparador, «N fotos», «Listo» y mensajes**, con vistas previas (0 y 2 fotos, guardando,
+  al máximo). RF-927, RF-929 a RF-931.
+  Hecho cuando: las vistas previas coinciden con el prototipo 14, salvo la barra (D-10) y la linterna (HU-10).
+
+## PR-35 — tomar la foto (base `main`)
+- [ ] **T63 · `TomarFoto`**: `ImageCapture` cercano a 1600 × 1200 con `setJpegQuality(85)` y una función `suspend`
+  que escribe en la ruta (P-5). RF-925. Hecho cuando: compila.
+
+## PR-36 — captura con la cámara (base PR-34, trae PR-13, PR-14 y PR-35)
+- [ ] **T64 · La Route arma el permiso y la cámara** y avisa `alFotoTomada` o `alFalloCaptura`. RF-924, RF-925, RF-928.
+  Hecho cuando: compila; la prueba en el celular va con PR-37.
+
+## PR-37 — captura en la navegación (base PR-36, trae PR-17)
+- [ ] **T65 · Reemplazar la `PantallaEnConstruccion` de `CapturarEvidencia`.** RF-924, RF-930.
+  Hecho cuando: en el celular se cumplen los puntos de PR-36 y PR-37 de la sección 7 (tamaño de las fotos incluido).
+
+## PR-38 — el repositorio de incidencias lee las fotos (base `main`)
+- [ ] **T66 · `observarEvidencias`** en `IncidenciaRepository` e `IncidenciaRepositoryImpl`. RF-932, RF-936.
+  Hecho cuando: compila.
+- [ ] **T67 · Fotos en `IncidenciaRepositoryFalso`.** RF: — Hecho cuando: las pruebas existentes pasan.
+
+## PR-39 — el detalle observa las fotos (base PR-38)
+- [ ] **T68 · `DetalleIncidencia.evidencias`** en `ObservarDetalleIncidencia`. RF-932, RF-936. Hecho cuando: compila.
+- [ ] **T69 · Casos nuevos de `ObservarDetalleIncidenciaTest`.** Mismos RF. Hecho cuando: la prueba pasa.
+
+## PR-40 — sección «Evidencias» (base PR-33)
+- [ ] **T70 · `SeccionEvidencias`** con vistas previas (5.5). RF-923, RF-932, RF-933.
+  Hecho cuando: las vistas previas coinciden con la sección del prototipo 5.
+
+## PR-41 — foto ampliada (base PR-33)
+- [ ] **T71 · `FotoAmpliada`** (5.5). RF-934, RF-935. Hecho cuando: su vista previa se ve en claro y oscuro.
+
+## PR-42 — fotos en el detalle (base PR-39, trae PR-40 y PR-41)
+- [ ] **T72 · `SeccionEvidencias(puedeAgregar = estado.puedeAtender)`** en `DetalleIncidenciaScreen`. RF-923, RF-932,
+  RF-933, RF-936. Hecho cuando: las vistas previas del jefe no muestran «Agregar foto».
+- [ ] **T73 · Ampliar una foto desde el detalle.** RF-934, RF-935. Hecho cuando: compila.
+- [ ] **T74 · Casos nuevos de `DetalleIncidenciaViewModelTest`.** RF-923, RF-932. Hecho cuando: la prueba pasa.
+
