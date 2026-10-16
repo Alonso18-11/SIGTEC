@@ -72,3 +72,17 @@ Esta HU le permite a cualquier persona del área leer el código desde la etique
 - RF-940: EL SISTEMA guarda las fotos en el almacenamiento interno de la app, nunca en la galería ni en un almacenamiento compartido: otras apps no pueden verlas y no hace falta ningún permiso de almacenamiento.
 - RF-941: EL SISTEMA deja las fotos fuera de la copia de seguridad automática de Android, para que no terminen en la cuenta de Google de quien usa el celular ni se restauren en otro. Ver D-9.
 - RF-942: CUANDO se borran los datos locales al cerrar sesión (RF-10, HU-01) o al entrar otra persona en el celular (RF-11, HU-01), EL SISTEMA borra también todas las fotos de evidencia del almacenamiento interno. Esto amplía RF-10 y RF-11 de `specs/001-inicio-sesion`, como dejó pendiente su decisión D-7 (`MEMORY.md`, «Pendientes conocidos»). Ver D-7 de esta spec.
+
+## Requisitos no funcionales
+- Idioma: textos de UI y mensajes de error en español; cada error sale de `error.mensaje()`.
+- Sin conexión: la lectura del código funciona sin internet desde el primer uso, porque el reconocimiento de texto viene dentro de la app y no se descarga después (sección 17 del producto). Tomar y ver fotos tampoco necesita conexión.
+- Fluidez: la vista de la cámara no se congela mientras se analiza el texto. Se analiza solo la imagen más reciente y se descartan las que llegan mientras se procesa la anterior. Con la etiqueta bien encuadrada y con luz, el código aparece en menos de 2 segundos (se verifica a mano).
+- Batería: la cámara se suelta en cuanto su pantalla deja de estar a la vista (RF-915).
+- Almacenamiento: cada foto se guarda reducida a 1600 píxeles en su lado mayor y comprimida, unos 300 a 500 KB. Con el máximo de 10 fotos (RF-929), una incidencia ocupa unos 5 MB como mucho.
+- Privacidad: nada de lo que ve la cámara al escanear se guarda (RF-914); las fotos no salen del celular (RF-939 a RF-941) y se borran con los datos locales (RF-942).
+- Diseño: las pantallas nuevas siguen el rediseño del PR #39: `BarraSuperior` clara con «Volver», en lugar de la barra oscura con «X» de los prototipos 13 y 14, que son anteriores a ese rediseño; botones de `Botones.kt`; solo roles de `MaterialTheme.colorScheme`, también para el oscurecido alrededor del marco y para el panel del código reconocido; vistas previas en claro y oscuro, y área táctil mínima en el disparador y en los botones. Los prototipos traen un botón de linterna que esta HU no incluye (es de la HU-10). Ver D-10.
+- Accesibilidad: el disparador, las miniaturas y la foto ampliada tienen una descripción para el lector de pantalla («Tomar foto», «Foto de la falla 1»…).
+- Pruebas: la fecha y hora de cada foto la decide quien invoca el caso de uso, nunca una llamada a `now()` dentro del dominio, para poder fijarla en las pruebas.
+- Stack cerrado: sin dependencias nuevas. La cámara y el reconocimiento de texto ya están en `gradle/libs.versions.toml` desde el esqueleto (principio 1 de la constitución).
+- Persistencia local: la tabla de evidencias ya existe, sin campos de sincronización, y no cambia; no hay migración de Room.
+- Plataforma: Android 8.0 (minSdk 26) o superior. En todas esas versiones el permiso de cámara se pide mientras la app está en uso.
