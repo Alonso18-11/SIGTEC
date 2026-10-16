@@ -253,3 +253,20 @@ push; las pruebas van en commits `test(...)` propios. Todos los PR de código te
 | PR | Archivos | Commits |
 |---|---|---|
 | PR-57 | ✏️ `specs/009-escaneo-evidencias/spec.md` («completa»), ✏️ `tasks.md` (marcadas), ✏️ `MEMORY.md` (línea de la HU-09) | 1. `docs(captura): pruebas manuales de la HU-09 en el celular` · 2. `docs(captura): spec de la HU-09 completa` · 3. `docs(captura): HU-09 completa en MEMORY` |
+
+## 3. Funciones puras de lógica
+
+Todas viven en Kotlin puro, sin `import android.*` (principio 3), y se prueban en la JVM.
+
+| # | Firma (dónde) | Regla | RF |
+|---|---|---|---|
+| 3.1 | `normalizarTexto(texto: String): String` (`CodigoEquipo.kt`) | Mayúsculas; los guiones `‐ ‑ ‒ – — ― −` pasan a `-`; `\s*-\s*` pasa a `-`. | RF-903 |
+| 3.2 | `candidatosCodigo(texto: String): List<String>` (`CodigoEquipo.kt`) | Sobre el texto normalizado busca `(?<![A-Z0-9-])([A-Z0-9]{2,4})-([A-Z0-9]{2,5})-([A-Z0-9]{3})(?![A-Z0-9-])`. Corrige cada parte según su posición: en las dos primeras, `0→O`, `1→I`, `5→S`, `8→B`, `2→Z`; en la última, `O→0`, `I→1`, `L→1`, `S→5`, `B→8`, `Z→2`. Se queda solo con lo que después cumple `[A-Z]{2,4}-[A-Z]{2,5}-[0-9]{3}`, sin repetidos y en orden de lectura. Una fecha como `2026-10-15` no pasa, porque `6` no se corrige a letra. | RF-903 |
+| 3.3 | `elegirCodigo(candidatos: List<String>, delCatalogo: Set<String>): LecturaCodigo?` (`CodigoEquipo.kt`) | `null` si no hay candidatos. Si alguno está en `delCatalogo`, el primero de esos, con `enCatalogo = true`. Si no, el primero de todos, con `enCatalogo = false`. | RF-904, RF-907 |
+| 3.4 | `RachaLectura.siguiente(codigo: String?): RachaLectura` y `val estable: Boolean` (`RachaLectura.kt`) | Sin código, la racha queda vacía. El mismo código suma 1 a `veces`; otro código empieza en 1. `estable` es `veces >= LECTURAS_IGUALES`, con `LECTURAS_IGUALES = 3`. | RF-905, RF-908 |
+| 3.5 | `vistaPermiso(tieneCamara: Boolean, concedido: Boolean, yaSePidio: Boolean, androidLoExplicaria: Boolean): VistaPermiso` (`PermisoCamara.kt`) | Sin cámara → `SIN_CAMARA`. Concedido → `CAMARA`. `androidLoExplicaria` (lo que responde `shouldShowRequestPermissionRationale`) → `NEGADO`. Sin pedir todavía → `EXPLICAR`. Ya se pidió y Android no lo explicaría → `IR_A_AJUSTES`. | RF-916 a RF-920, RF-922 |
+| 3.6 | `bloqueoParaFotos(usuario: Usuario?, incidencia: Incidencia?, cantidad: Int?): ErrorDominio?` (`ReglasEvidencia.kt`) | Sin usuario, sin `ATENDER_INCIDENCIA`, sin incidencia o con otro técnico asignado → `SinPermiso`. Estado `SOLUCIONADO` → `IncidenciaCerrada`. `cantidad != null && cantidad >= MAX_FOTOS` → `LimiteFotosAlcanzado`. Si no, `null`. Al eliminar se pasa `cantidad = null`, porque el máximo no aplica. | RF-923, RF-926, RF-929, RF-931, RF-937 |
+
+`vistaPermiso` vive en `presentation` porque traduce estados de Android, pero es una función pura y se prueba igual.
+Con ella no hace falta guardar entre sesiones si ya se pidió el permiso: si Android dejó de mostrar su diálogo, el
+primer «Permitir cámara» vuelve al instante negado y la siguiente vista ya es `IR_A_AJUSTES`.
