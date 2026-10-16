@@ -242,3 +242,192 @@
 - [ ] **T42 · Abrir el PR F**
   RF: —
   Hecho cuando: el PR está abierto con el CI en verde.
+
+## PR G — carpeta interna de las fotos (`feat/hu09-carpeta-fotos`, desde `main`)
+
+- [ ] **T43 · Crear la rama desde `main` al día**
+  RF: —
+  Hecho cuando: la rama coincide con `origin/main`.
+
+- [ ] **T44 · `AlmacenFotos` 🔶**
+  `core/data/AlmacenFotos.kt`: `@Singleton`, el constructor con `@ApplicationContext`, el constructor `internal`
+  con la carpeta raíz, `archivoNuevo`, `borrar` y `borrarTodo` (plan, PR G y P-4).
+  RF: RF-925, RF-928, RF-940, RF-942
+  Hecho cuando: `./gradlew assembleDebug` compila.
+
+- [ ] **T45 · `AlmacenFotosTest`**
+  En `core/data/` de `app/src/test`, con `TemporaryFolder` y los casos de la sección 7.
+  RF: RF-928, RF-940, RF-942
+  Hecho cuando: `./gradlew testDebugUnitTest --tests "*AlmacenFotosTest"` pasa.
+
+- [ ] **T46 · Fotos fuera de la copia en Android 11 o anterior 🔶**
+  `res/xml/backup_rules.xml`: `<exclude domain="file" path="evidencias/" />`.
+  RF: RF-941
+  Hecho cuando: `./gradlew lintDebug` no marca el archivo.
+
+- [ ] **T47 · Fotos fuera de la copia y de la transferencia en Android 12 o superior 🔶**
+  `res/xml/data_extraction_rules.xml`: la misma exclusión en `cloud-backup` y en `device-transfer`.
+  RF: RF-941
+  Hecho cuando: `./gradlew lintDebug` no marca el archivo.
+
+- [ ] **T48 · Abrir el PR G**
+  Sensibles: `core/data` nuevo y `res/xml` (D-7, D-9).
+  RF: —
+  Hecho cuando: el PR está abierto con el CI en verde.
+
+## PR H — reglas y casos de uso de las fotos (`feat/hu09-evidencias-dominio`, desde `main`)
+
+- [ ] **T49 · Crear la rama desde `main` al día**
+  RF: —
+  Hecho cuando: la rama coincide con `origin/main`.
+
+- [ ] **T50 · `LimiteFotosAlcanzado` y su mensaje ⚠️**
+  `data object LimiteFotosAlcanzado : ErrorDominio` en `core/domain/Resultado.kt` y «Llegaste al máximo de 10 fotos
+  por incidencia.» en `core/ui/MensajesError.kt` (D-2).
+  RF: RF-929
+  Hecho cuando: compila (el `when` exhaustivo de `mensaje()` cierra).
+
+- [ ] **T51 · `EvidenciaRepository`**
+  Interfaz en `feature/captura/domain/` con los métodos del plan (PR H).
+  RF: RF-924 a RF-929
+  Hecho cuando: compila.
+
+- [ ] **T52 · `ReglasEvidencia`**
+  `MAX_FOTOS = 10` y `bloqueoParaFotos` (plan 3.6).
+  RF: RF-923, RF-926, RF-929, RF-931, RF-937
+  Hecho cuando: compila.
+
+- [ ] **T53 · `ReglasEvidenciaTest`**
+  Los ocho casos de la sección 7.
+  RF: RF-923, RF-926, RF-929, RF-931, RF-937
+  Hecho cuando: `./gradlew testDebugUnitTest --tests "*ReglasEvidenciaTest"` pasa.
+
+- [ ] **T54 · `EvidenciaRepositoryFalso`**
+  En `feature/captura/data/` de `app/src/test`: incidencias y fotos en memoria (con `MutableStateFlow` para poder
+  reasignar en las pruebas), `fallar` y la lista de rutas descartadas.
+  RF: —
+  Hecho cuando: compila con `testDebugUnitTest`.
+
+- [ ] **T55 · `PrepararFoto`**
+  `FotoNueva(id, ruta)` y el caso de uso (plan 4.3).
+  RF: RF-925
+  Hecho cuando: compila.
+
+- [ ] **T56 · `GuardarEvidencia`**
+  Caso de uso de 4.4, con `ahora: Instant` recibido como parámetro.
+  RF: RF-925, RF-926, RF-928, RF-929
+  Hecho cuando: compila.
+
+- [ ] **T57 · `GuardarEvidenciaTest`**
+  Los seis casos de la sección 7, con `SesionRepositoryDemo`.
+  RF: RF-925, RF-926, RF-928, RF-929
+  Hecho cuando: `./gradlew testDebugUnitTest --tests "*GuardarEvidenciaTest"` pasa.
+
+- [ ] **T58 · `DescartarFoto`**
+  Caso de uso de 4.5.
+  RF: RF-928
+  Hecho cuando: compila.
+
+- [ ] **T59 · `ObservarCapturaEvidencia`**
+  `CapturaEvidencia(incidencia, evidencias, bloqueo)` y el caso de uso de 4.6.
+  RF: RF-924, RF-929, RF-931
+  Hecho cuando: compila.
+
+- [ ] **T60 · `ObservarCapturaEvidenciaTest`**
+  Los cinco casos de la sección 7.
+  RF: RF-924, RF-929, RF-931
+  Hecho cuando: `./gradlew testDebugUnitTest --tests "*ObservarCapturaEvidenciaTest"` pasa.
+
+- [ ] **T61 · Abrir el PR H**
+  Compartidos: `Resultado.kt` y `MensajesError.kt` (D-2).
+  RF: —
+  Hecho cuando: el PR está abierto con el CI en verde.
+
+## PR I — repositorio de evidencias (`feat/hu09-evidencias-datos`, desde `main` con G y H)
+
+- [ ] **T62 · Crear la rama desde `main` con G y H fusionados**
+  RF: —
+  Hecho cuando: `git log --oneline` muestra los commits de G y de H en `main`.
+
+- [ ] **T63 · `EvidenciaRepositoryImpl`**
+  En `feature/captura/data/`: `EvidenciaDao`, las lecturas de `IncidenciaDao`, `AlmacenFotos` y `@IoDispatcher`;
+  `guardar` borra el archivo si Room falla (plan 4.7).
+  RF: RF-925, RF-928, RF-939, RF-940
+  Hecho cuando: compila.
+
+- [ ] **T64 · `@Binds` del repositorio de evidencias**
+  En `CapturaModule`.
+  RF: —
+  Hecho cuando: `./gradlew assembleDebug` compila.
+
+- [ ] **T65 · Abrir el PR I**
+  RF: —
+  Hecho cuando: el PR está abierto con el CI en verde.
+
+## PR J — «Evidencia fotográfica» sin cámara (`feat/hu09-evidencia-pantalla`, apilada sobre I)
+
+- [ ] **T66 · Crear la rama**
+  RF: —
+  Hecho cuando: la rama tiene debajo los commits de I.
+
+- [ ] **T67 · `CapturaEvidenciaViewModel`**
+  Estado, tipo en el `SavedStateHandle`, `alCambiarTipo`, `alDisparar`, `alFotoTomada` y `alFalloCaptura`
+  (plan 4.8).
+  RF: RF-924 a RF-931
+  Hecho cuando: compila.
+
+- [ ] **T68 · `CapturaEvidenciaViewModelTest`**
+  Los siete casos de la sección 7, con `MainDispatcherRule`.
+  RF: RF-924 a RF-931
+  Hecho cuando: `./gradlew testDebugUnitTest --tests "*CapturaEvidenciaViewModelTest"` pasa.
+
+- [ ] **T69 · `MiniaturaEvidencia`**
+  Decodificación reducida con la orientación del EXIF, fuera del hilo principal, con «Foto no disponible» si no
+  puede (plan 5.6, P-6).
+  RF: RF-925, RF-932, RF-935
+  Hecho cuando: compila y su vista previa muestra el recuadro de carga y el de «Foto no disponible».
+
+- [ ] **T70 · `EvidenciaFotograficaScreen`**
+  Route + Screen con la ranura de la cámara (plan 5.4); vistas previas con 0 y 2 fotos, guardando y al máximo, en
+  claro y oscuro.
+  RF: RF-924, RF-927, RF-929 a RF-931
+  Hecho cuando: las vistas previas coinciden con el prototipo 14, salvo la barra (D-10) y la linterna (HU-10).
+
+- [ ] **T71 · Abrir el PR J**
+  RF: —
+  Hecho cuando: el PR está abierto con el CI en verde.
+
+## PR K — tomar la foto con la cámara (`feat/hu09-evidencia-camara`, apilada sobre J, con E en `main`)
+
+- [ ] **T72 · Crear la rama**
+  Desde la rama de J; `git pull origin main` para traer E (`VistaCamara`, `ConPermisoCamara`).
+  RF: —
+  Hecho cuando: la rama tiene los commits de J y de E.
+
+- [ ] **T73 · `TomarFoto`**
+  `ImageCapture` con la resolución cercana a 1600 × 1200 y `setJpegQuality(85)`, y una función `suspend` que
+  escribe en la ruta de `FotoNueva` (P-5).
+  RF: RF-925, RNF almacenamiento
+  Hecho cuando: compila.
+
+- [ ] **T74 · La Route arma el permiso y la cámara**
+  `ConPermisoCamara { VistaCamara(...) }` con `Preview` e `ImageCapture`; al disparar, captura y llama a
+  `alFotoTomada` o `alFalloCaptura` (plan 5.4).
+  RF: RF-924, RF-925, RF-928
+  Hecho cuando: compila.
+
+- [ ] **T75 · Conectar «Evidencia fotográfica» en la navegación**
+  En `CapturaNavigation.kt`, reemplazar la `PantallaEnConstruccion` de `CapturarEvidencia`; «Listo» y «Volver»
+  regresan.
+  RF: RF-924, RF-930
+  Hecho cuando: «Agregar foto» del detalle abre la pantalla.
+
+- [ ] **T76 · Verificación manual en el celular**
+  Los puntos de K de la sección 7, y el tamaño de cada foto con `adb shell run-as com.softcorp.sigtec ls -l
+  files/evidencias/<incidencia>` (unos 300 a 500 KB).
+  RF: RF-924 a RF-931, RNF almacenamiento
+  Hecho cuando: el resultado queda escrito en el PR.
+
+- [ ] **T77 · Abrir el PR K**
+  RF: —
+  Hecho cuando: el PR está abierto con el CI en verde.
