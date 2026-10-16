@@ -86,3 +86,36 @@ Esta HU le permite a cualquier persona del área leer el código desde la etique
 - Stack cerrado: sin dependencias nuevas. La cámara y el reconocimiento de texto ya están en `gradle/libs.versions.toml` desde el esqueleto (principio 1 de la constitución).
 - Persistencia local: la tabla de evidencias ya existe, sin campos de sincronización, y no cambia; no hay migración de Room.
 - Plataforma: Android 8.0 (minSdk 26) o superior. En todas esas versiones el permiso de cámara se pide mientras la app está en uso.
+
+## Casos límite
+- Etiqueta con más texto alrededor («SOFT CORPORATION · ACTIVO FIJO», «Área: Contabilidad»): solo el código cumple la forma de RF-903; el resto se ignora.
+- Lectura con confusiones o espacios (`PC-C0NT-O14`, `pc - cont - 014`): se normaliza a `PC-CONT-014` (RF-903).
+- Dos etiquetas a la vez en la imagen: gana la que está en el catálogo y, si no, la primera en el orden de lectura (RF-904).
+- La cámara se mueve y alterna entre dos lecturas distintas: no se da nada por reconocido hasta tener 3 lecturas iguales seguidas (RF-905).
+- Etiqueta borrosa, con reflejos, muy girada o sin luz: no se reconoce nada, la indicación sigue a la vista y el usuario puede volver y escribir el código a mano. La linterna para estos casos llega con la HU-10.
+- Catálogo vacío en el celular (primer uso sin haber sincronizado): todo código reconocido sale con el aviso de RF-907 y se puede usar; si sigue fuera del catálogo al guardar, el registro lo rechaza (RF-41).
+- El usuario ya había escrito un código y escanea otro: el escaneado lo reemplaza (RF-910). Si sale sin confirmar, queda el que había (RF-912).
+- Rotación o cambio de tema con «Escanear etiqueta» o «Evidencia fotográfica» abierta: se conservan el código reconocido, el tipo elegido en el selector y las fotos ya tomadas; la cámara se vuelve a abrir sola.
+- Llamada entrante o app en segundo plano con la cámara abierta: la cámara se suelta (RF-915) y se reanuda al volver.
+- Permiso negado: no hay cámara, pero el código se escribe a mano y el resto de la app funciona igual (RF-918).
+- Celular con una sola cámara, frontal: se usa esa en lugar de la trasera. Sin ninguna cámara, RF-920.
+- Foto tomada sin conexión: se guarda igual, porque nunca se sube (RF-939).
+- Incidencia «Por sincronizar»: no puede recibir fotos, porque solo el técnico asignado las toma y asignar exige que la incidencia ya tenga número (RF-610, HU-06).
+- Doble toque en el disparador: se toma una sola foto (RF-927).
+- La incidencia llega a 10 fotos mientras la pantalla está abierta: el disparador se deshabilita con el aviso de RF-929.
+- Reasignación con «Evidencia fotográfica» abierta: se aplica RF-931. Las fotos tomadas quedan en el celular del técnico anterior y se siguen viendo en su detalle; el técnico nuevo no las ve.
+- Celular sin espacio: la foto no se guarda y se muestra el error genérico (RF-928), sin archivos a medias.
+- El archivo de una foto desaparece por fuera de la app: su miniatura dice «Foto no disponible» (RF-935). Si alguien borra los datos de la app desde los ajustes de Android, se pierden las fotos y sus enlaces a la vez.
+- Incidencia cerrada: la sección «Evidencias» muestra las fotos, pero sin «Agregar foto» ni «Eliminar foto» (RF-923, RF-937).
+- Cerrar sesión o entrar otra persona con fotos en el celular: se borran junto con los demás datos locales (RF-942). Ver D-8 sobre avisarlo antes.
+
+## Fuera de alcance
+- La linterna en las pantallas de cámara, aunque aparece en los prototipos 13 y 14: es de la HU-10.
+- Dictar texto: es de la HU-10 («Dictar» sigue con `PantallaEnConstruccion`).
+- La pantalla del historial del equipo y su búsqueda (prototipo 11): son de la HU-16. Esta HU solo deja el escaneo listo para que esa búsqueda lo use (RF-913).
+- Escanear desde otras pantallas que no sean «Nueva incidencia» (por ejemplo, desde la lista de incidencias): no lo pide la HU.
+- Subir las fotos a la nube, verlas en otro celular o compartirlas: el proyecto no usa Cloud Storage (costo cero). Si la empresa lo pide más adelante, bastaría con cambiar la capa de datos (sección 16.1 del producto).
+- Leer códigos de barras o QR: las etiquetas tienen el código impreso como texto.
+- Editar, recortar o anotar una foto, elegir una de la galería o grabar video.
+- Fotos al registrar la incidencia (antes de que exista y tenga técnico): solo el técnico asignado toma fotos.
+- Cambiar el informe técnico (sus campos o su cierre con huella): la HU-08 queda igual; si se aprueba D-6, solo se le agrega la sección «Evidencias».
