@@ -622,3 +622,23 @@ lint antes de abrirlo o de marcarlo listo.
    (RF-906). No se toca la confirmación biométrica de cierres ni de repuestos.
 6. **Español en el negocio:** `LeerCodigoEquipo`, `RachaLectura`, `AlmacenFotos`, `VistaCamara`,
    `LectorTextoEtiqueta`; solo los sufijos que impone Android quedan en inglés (`ViewModel`, `Screen`, `Impl`).
+
+## 10. Resumen: archivos compartidos y Room por PR
+
+| PR | Compartidos ⚠️ (lista de `CLAUDE.md`) | Sensibles 🔶 | Room |
+|---|---|---|---|
+| PR-01 | — | `.github/workflows/ci.yml` (P-13) | — |
+| PR-10 | `AndroidManifest.xml` (D-11) | — | — |
+| PR-21 a PR-23 | — | `core/data/AlmacenFotos.kt` (nuevo, D-7), `res/xml/backup_rules.xml` y `data_extraction_rules.xml` (D-9) | — |
+| PR-24 | `core/domain/Resultado.kt`, `core/ui/MensajesError.kt` (D-2) | — | — |
+| PR-47 a PR-49 | — | `feature/atencion/presentation/*` de la HU-08 (D-6) | — |
+| PR-50, PR-51 | — | `core/data/SesionRepositoryFirebase.kt`, `core/sync/SincronizacionTiempoReal.kt`, `specs/001-inicio-sesion/spec.md` (D-7) | — |
+| PR-52 | — | `core/database/dao/EvidenciaDao.kt` | Consulta nueva; entidad igual, `version` no sube |
+| PR-53 | `core/domain/model/EstadoDatos.kt` (D-8) | `core/sync/EstadoDatosRepositoryImpl.kt` | — |
+| PR-54 a PR-56 | — | `core/domain/ReglasSesion.kt`, `EvaluarCierreSesion.kt`, `feature/acceso/presentation/*` y la spec 001 (modelo de sesión, D-8) | — |
+| PR-57 | `MEMORY.md` (solo la línea de la HU-09) | — | — |
+
+Los demás PR no tocan archivos compartidos ni sensibles. Ningún PR toca `libs.versions.toml`,
+`app/build.gradle.kts`, `SigtecDatabase.kt`, las entidades, `Rutas.kt`, `SigtecRaiz.kt`, `core/theme/*`,
+`core/di/*` ni `firebase/firestore.rules`. Los PR de PR-50 a PR-56 tocan el modelo de sesión: Alonso los revisa con
+ese foco (`CLAUDE.md`).
