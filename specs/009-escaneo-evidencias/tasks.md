@@ -99,3 +99,146 @@
   Compartidos: ninguno.
   RF: —
   Hecho cuando: el PR está abierto con el CI en verde.
+
+## PR C — permiso de cámara (`feat/hu09-permiso-camara`, desde `main`)
+
+- [ ] **T17 · Crear la rama desde `main` al día**
+  RF: —
+  Hecho cuando: la rama coincide con `origin/main`.
+
+- [ ] **T18 · Permiso de cámara en el manifest ⚠️**
+  En `AndroidManifest.xml`: `uses-permission` `CAMERA` y `uses-feature` `android.hardware.camera` con
+  `required="false"` (D-11).
+  RF: RF-916, RF-920
+  Hecho cuando: `./gradlew lintDebug` no muestra `PermissionImpliesUnsupportedHardware`.
+
+- [ ] **T19 · `VistaPermiso` y `vistaPermiso`**
+  En `feature/captura/presentation/PermisoCamara.kt`, la función pura de 3.5.
+  RF: RF-916 a RF-920, RF-922
+  Hecho cuando: compila.
+
+- [ ] **T20 · `PermisoCamaraTest`**
+  La tabla de la sección 7.
+  RF: RF-916 a RF-920, RF-922
+  Hecho cuando: `./gradlew testDebugUnitTest --tests "*PermisoCamaraTest"` pasa.
+
+- [ ] **T21 · `ExplicacionPermisoCamara`**
+  Composable sin estado con el texto y el botón de cada vista (plan 5.1); vistas previas de `EXPLICAR`, `NEGADO`,
+  `IR_A_AJUSTES` y `SIN_CAMARA` en claro y oscuro.
+  RF: RF-916, RF-918 a RF-920
+  Hecho cuando: las vistas previas se ven en Android Studio, sin colores ni tamaños fijos.
+
+- [ ] **T22 · `ConPermisoCamara`**
+  Composable con estado (plan 5.1): consulta, solicitud, «Abrir ajustes» y nueva consulta en cada `ON_RESUME`.
+  RF: RF-916 a RF-922
+  Hecho cuando: compila; se prueba en el celular con E.
+
+- [ ] **T23 · Abrir el PR C**
+  Compartidos: `AndroidManifest.xml` (D-11).
+  RF: —
+  Hecho cuando: el PR está abierto con el CI en verde.
+
+## PR D — «Escanear etiqueta» sin cámara (`feat/hu09-escaneo-pantalla`, apilada sobre B)
+
+- [ ] **T24 · Crear la rama**
+  Desde la rama de B (o desde `main`, si B ya se fusionó).
+  RF: —
+  Hecho cuando: la rama tiene debajo los commits de B.
+
+- [ ] **T25 · `EscaneoViewModel`**
+  `EscaneoUiState(racha, reconocido)`, el flujo de textos de capacidad 1 y `alLeerTexto` y `alVolverAEscanear`
+  (plan 4.2, P-9).
+  RF: RF-902, RF-905 a RF-908
+  Hecho cuando: compila.
+
+- [ ] **T26 · `EscaneoViewModelTest`**
+  Los cinco casos de la sección 7, con `MainDispatcherRule` y `CatalogoEquiposRepositoryFalso`.
+  RF: RF-905 a RF-908
+  Hecho cuando: `./gradlew testDebugUnitTest --tests "*EscaneoViewModelTest"` pasa.
+
+- [ ] **T27 · `EscanearEtiquetaScreen`**
+  Route + Screen con la ranura `vistaCamara`, el marco, la indicación y el panel del código (plan 5.2); vistas
+  previas buscando, reconocido y fuera del catálogo, en claro y oscuro.
+  RF: RF-901, RF-906, RF-907, RF-912
+  Hecho cuando: las vistas previas coinciden con el prototipo 13, salvo la barra (D-10) y la linterna (HU-10).
+
+- [ ] **T28 · Abrir el PR D**
+  RF: —
+  Hecho cuando: el PR está abierto con el CI en verde.
+
+## PR E — cámara y ML Kit en el escaneo (`feat/hu09-escaneo-camara`, apilada sobre D, con C en `main`)
+
+- [ ] **T29 · Crear la rama**
+  Desde la rama de D; `git pull origin main` para traer C.
+  RF: —
+  Hecho cuando: la rama tiene los commits de D y de C.
+
+- [ ] **T30 · `VistaCamara`**
+  `PreviewView` en `AndroidView`, `ProcessCameraProvider.awaitInstance`, casos de uso recibidos y enlazados al ciclo
+  de vida, cámara trasera o la que haya, y `alFallar` (P-2).
+  RF: RF-901, RF-915, RF-921
+  Hecho cuando: compila.
+
+- [ ] **T31 · `LectorTextoEtiqueta`**
+  `ImageAnalysis.Analyzer` con ML Kit que entrega el texto y cierra cada imagen (P-3); el reconocedor se cierra al
+  salir de la pantalla.
+  RF: RF-902, RF-914
+  Hecho cuando: compila.
+
+- [ ] **T32 · La Route arma el permiso y la cámara**
+  `ConPermisoCamara { VistaCamara(...) }` con `Preview` e `ImageAnalysis` (`KEEP_ONLY_LATEST`); solo pasa textos
+  mientras no haya un código reconocido.
+  RF: RF-901, RF-906, RF-916
+  Hecho cuando: compila.
+
+- [ ] **T33 · Conectar «Escanear etiqueta» en la navegación**
+  En `CapturaNavigation.kt`, reemplazar la `PantallaEnConstruccion`, declarar `CLAVE_CODIGO_ESCANEADO` y devolver el
+  código por `previousBackStackEntry?.savedStateHandle` (plan 5.3).
+  RF: RF-909, RF-912, RF-913
+  Hecho cuando: compila y el botón de cámara de «Nueva incidencia» abre la pantalla.
+
+- [ ] **T34 · Verificación manual en el celular**
+  Los puntos de E de la sección 7 del plan, con capturas en claro y oscuro (en el scratchpad, nunca en el repo).
+  RF: RF-901, RF-902, RF-905, RF-906, RF-915 a RF-921
+  Hecho cuando: el resultado queda escrito en «Cómo probarlo» del PR.
+
+- [ ] **T35 · Abrir el PR E**
+  RF: —
+  Hecho cuando: el PR está abierto con el CI en verde.
+
+## PR F — «Nueva incidencia» recibe el código (`feat/hu09-escaneo-registro`, apilada sobre E)
+
+- [ ] **T36 · Crear la rama**
+  RF: —
+  Hecho cuando: la rama tiene debajo los commits de E.
+
+- [ ] **T37 · El registro recuerda si el código vino de la cámara**
+  En `RegistroIncidenciaViewModel`: `codigoLeidoConCamara` en el estado, `alUsarCodigoEscaneado(codigo)` y
+  `alCambiarCodigo` que lo apaga.
+  RF: RF-910, RF-911
+  Hecho cuando: compila.
+
+- [ ] **T38 · Pruebas del registro con código escaneado**
+  Los tres casos nuevos de la sección 7 en `RegistroIncidenciaViewModelTest`.
+  RF: RF-910, RF-911
+  Hecho cuando: `./gradlew testDebugUnitTest --tests "*RegistroIncidenciaViewModelTest"` pasa.
+
+- [ ] **T39 · «Leído desde la etiqueta con la cámara»**
+  En `RegistroIncidenciaScreen`, el `supportingText` según el estado (y fuera el comentario «Neutral hasta la
+  HU-09»); vista previa con el código escaneado.
+  RF: RF-910
+  Hecho cuando: la vista previa coincide con el prototipo 4.
+
+- [ ] **T40 · El registro recibe el código al volver**
+  `IncidenciasNavigation` lee `CLAVE_CODIGO_ESCANEADO` de su entrada y la Route lo aplica y lo borra (plan 5.3).
+  RF: RF-909, RF-910
+  Hecho cuando: compila.
+
+- [ ] **T41 · Verificación manual en el celular**
+  Los puntos de F de la sección 7, incluida una rotación después de usar el código (no debe repetirse).
+  RF: RF-909 a RF-912
+  Hecho cuando: el resultado queda escrito en el PR.
+
+- [ ] **T42 · Abrir el PR F**
+  RF: —
+  Hecho cuando: el PR está abierto con el CI en verde.
