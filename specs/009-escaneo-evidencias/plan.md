@@ -210,3 +210,91 @@ seguido de su push.
   2. `test(incidencias): código escaneado y su indicación en el registro (HU-09)`
   3. `feat(incidencias): «Leído desde la etiqueta con la cámara» bajo el código (HU-09)`
   4. `feat(incidencias): el registro recibe el código al volver del escaneo (HU-09)`
+
+### Fotos de evidencia (PR G a K)
+
+#### PR G — carpeta interna de las fotos (`core`)
+| Archivo | Responsabilidad | RF |
+|---|---|---|
+| 🆕🔶 `core/data/AlmacenFotos.kt` | `@Singleton`. `@Inject constructor(@ApplicationContext)` más un constructor `internal` que recibe la carpeta raíz, para las pruebas. `archivoNuevo(incidenciaId, id)` (crea la subcarpeta), `borrar(ruta)` y `borrarTodo()`. La carpeta es `filesDir/evidencias` (P-4). Es el único lugar que conoce esa carpeta. | RF-925, RF-928, RF-940, RF-942 |
+| ✏️🔶 `res/xml/backup_rules.xml` | `<exclude domain="file" path="evidencias/" />` (Android 11 o anterior). | RF-941 |
+| ✏️🔶 `res/xml/data_extraction_rules.xml` | La misma exclusión en `cloud-backup` y en `device-transfer` (Android 12 o superior). | RF-941 |
+| 🆕 (test) `core/data/AlmacenFotosTest.kt` | Sobre una `TemporaryFolder` de JUnit 4 (sección 7). | RF-928, RF-942 |
+
+- **Sensibles 🔶:** `core/data` (archivo nuevo fuera del módulo de la HU, D-7) y `res/xml` (D-9).
+  **Cómo probarlo:** JUnit; nadie lo usa todavía.
+- **Commits:**
+  1. `feat(core): carpeta interna de las fotos de evidencia (HU-09)`
+  2. `test(core): crear y borrar fotos en una carpeta temporal (HU-09)`
+  3. `feat(core): fotos fuera de la copia de seguridad en Android 11 o anterior (HU-09)`
+  4. `feat(core): fotos fuera de la copia y la transferencia en Android 12 o superior (HU-09)`
+
+#### PR H — reglas y casos de uso de las fotos
+| Archivo | Responsabilidad | RF |
+|---|---|---|
+| ✏️⚠️ `core/domain/Resultado.kt` | `data object LimiteFotosAlcanzado : ErrorDominio`. | RF-929 (D-2) |
+| ✏️⚠️ `core/ui/MensajesError.kt` | «Llegaste al máximo de 10 fotos por incidencia.» | RF-929 |
+| 🆕 `feature/captura/domain/EvidenciaRepository.kt` | Interfaz: `observarIncidencia(id)`, `incidencia(id)` (lectura fresca), `observarEvidencias(incidenciaId)`, `contarEvidencias(incidenciaId)`, `rutaParaNuevaFoto(incidenciaId, evidenciaId)`, `guardar(evidencia)` (si falla, borra el archivo) y `descartarArchivo(ruta)`. | RF-924 a RF-929 |
+| 🆕 `feature/captura/domain/ReglasEvidencia.kt` | `MAX_FOTOS = 10` y la función pura `bloqueoParaFotos(...)` (3.6). | RF-923, RF-926, RF-929, RF-931 |
+| 🆕 `feature/captura/domain/PrepararFoto.kt` | Genera el id (UUID) y pide la ruta: `FotoNueva(id, ruta)` (4.3). | RF-925 |
+| 🆕 `feature/captura/domain/GuardarEvidencia.kt` | Caso de uso (4.4). | RF-925, RF-926, RF-928, RF-929 |
+| 🆕 `feature/captura/domain/DescartarFoto.kt` | Borra el archivo de una foto que no llegó a enlazarse (4.5). | RF-928 |
+| 🆕 `feature/captura/domain/ObservarCapturaEvidencia.kt` | Combina la incidencia, sus fotos y el usuario en `CapturaEvidencia(incidencia, evidencias, bloqueo)` (4.6). | RF-924, RF-929, RF-931 |
+| 🆕 (test) `feature/captura/data/EvidenciaRepositoryFalso.kt` | En memoria, con `fallar` y la lista de archivos descartados. | — |
+| 🆕 (test) `feature/captura/domain/ReglasEvidenciaTest.kt`, `GuardarEvidenciaTest.kt`, `ObservarCapturaEvidenciaTest.kt` | Casos de la sección 7. | RF-923, RF-926 a RF-929, RF-931 |
+
+- **Compartidos ⚠️:** `Resultado.kt` y `MensajesError.kt` (D-2). **Cómo probarlo:** solo JUnit.
+- **Commits:**
+  1. `feat(core): error LimiteFotosAlcanzado y su mensaje (HU-09)`
+  2. `feat(captura): contrato del repositorio de evidencias (HU-09)`
+  3. `feat(captura): regla de quién puede agregar fotos y hasta cuántas (HU-09)`
+  4. `test(captura): regla de las fotos por permiso, técnico, marca y máximo (HU-09)`
+  5. `test(captura): repositorio de evidencias falso (HU-09)`
+  6. `feat(captura): PrepararFoto con su id y su ruta (HU-09)`
+  7. `feat(captura): GuardarEvidencia verifica antes de enlazar la foto (HU-09)`
+  8. `test(captura): GuardarEvidencia sin permiso, cerrada, al máximo, correcta y con fallo (HU-09)`
+  9. `feat(captura): DescartarFoto borra la foto que no se enlazó (HU-09)`
+  10. `feat(captura): ObservarCapturaEvidencia junta la incidencia, sus fotos y el bloqueo (HU-09)`
+  11. `test(captura): ObservarCapturaEvidencia con y sin sesión, reasignada y al máximo (HU-09)`
+
+#### PR I — repositorio de evidencias
+| Archivo | Responsabilidad | RF |
+|---|---|---|
+| 🆕 `feature/captura/data/EvidenciaRepositoryImpl.kt` | `EvidenciaDao`, las lecturas de `IncidenciaDao` que ya usa `IncidenciaRepositoryImpl`, `AlmacenFotos` y `@IoDispatcher`. Si Room falla al guardar, borra el archivo. El `catch` sigue la convención (4.7). | RF-925, RF-928, RF-939, RF-940 |
+| ✏️ `feature/captura/di/CapturaModule.kt` | `@Binds` del repositorio de evidencias. | — |
+
+- **Compartidos:** ninguno. **Room:** sin cambios de entidad ni de DAO. **Cómo probarlo:** compila con Hilt; se
+  ve en el celular con K.
+- **Commits:**
+  1. `feat(captura): repositorio de evidencias en Room y en la carpeta interna (HU-09)`
+  2. `feat(captura): @Binds del repositorio de evidencias (HU-09)`
+
+#### PR J — «Evidencia fotográfica» sin cámara: ViewModel y pantalla
+| Archivo | Responsabilidad | RF |
+|---|---|---|
+| 🆕 `feature/captura/presentation/CapturaEvidenciaViewModel.kt` | `CapturaEvidenciaUiState(cargando, captura, tipo, guardando, error)`. El tipo elegido vive en el `SavedStateHandle` para sobrevivir a la rotación. `alCambiarTipo`, `alDisparar(): FotoNueva?`, `alFotoTomada(foto)` y `alFalloCaptura(foto)` (4.8). | RF-924 a RF-931 |
+| 🆕 `feature/captura/presentation/MiniaturaEvidencia.kt` | Composable que decodifica el archivo reducido fuera del hilo principal y muestra «Foto no disponible» si no puede (P-6). Rótulos «Falla 1» y «Pieza 1». | RF-925, RF-932, RF-935 |
+| 🆕 `feature/captura/presentation/EvidenciaFotograficaScreen.kt` | Route + Screen con una ranura `vistaCamara`: selector, «Se guardará como…», disparador, miniaturas, «N fotos» y «Listo» (sección 5.4); vistas previas en claro y oscuro. | RF-924, RF-927, RF-929 a RF-931 |
+| 🆕 (test) `feature/captura/presentation/CapturaEvidenciaViewModelTest.kt` | Casos de la sección 7, con `MainDispatcherRule`. | RF-924 a RF-931 |
+
+- **Compartidos:** ninguno. **Cómo probarlo:** JUnit y vistas previas; la ruta sigue en
+  `PantallaEnConstruccion` hasta K.
+- **Commits:**
+  1. `feat(captura): CapturaEvidenciaViewModel con el tipo, el disparo y el guardado (HU-09)`
+  2. `test(captura): CapturaEvidenciaViewModel dispara, guarda, falla y respeta el máximo (HU-09)`
+  3. `feat(captura): miniatura de una foto sin librerías nuevas (HU-09)`
+  4. `feat(captura): pantalla «Evidencia fotográfica» con su selector y sus miniaturas (HU-09)`
+
+#### PR K — tomar la foto con la cámara
+| Archivo | Responsabilidad | RF |
+|---|---|---|
+| 🆕 `feature/captura/presentation/TomarFoto.kt` | `ImageCapture` configurado (lado mayor de 1600 px y calidad JPEG 85) y una función `suspend` que escribe la foto en la ruta de `FotoNueva` (P-5). | RF-925, RNF almacenamiento |
+| ✏️ `feature/captura/presentation/EvidenciaFotograficaScreen.kt` | La Route arma `ConPermisoCamara { VistaCamara(...) }` con `ImageCapture`; al disparar, captura y avisa al `ViewModel` del resultado. | RF-924, RF-925, RF-928 |
+| ✏️ `feature/captura/presentation/CapturaNavigation.kt` | Reemplaza la `PantallaEnConstruccion` de `CapturarEvidencia`; «Listo» y «Volver» regresan. | RF-924, RF-930 |
+
+- **Compartidos:** ninguno. **Cómo probarlo:** en un celular, como técnico asignado, «Agregar foto» desde el
+  detalle (el botón ya existe) → tomar fotos de los dos tipos.
+- **Commits:**
+  1. `feat(captura): tomar la foto reducida y comprimida con CameraX (HU-09)`
+  2. `feat(captura): «Evidencia fotográfica» con el permiso y la cámara (HU-09)`
+  3. `feat(captura): conectar «Evidencia fotográfica» en la navegación (HU-09)`
