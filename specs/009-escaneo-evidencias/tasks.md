@@ -431,3 +431,213 @@
 - [ ] **T77 · Abrir el PR K**
   RF: —
   Hecho cuando: el PR está abierto con el CI en verde.
+
+## PR L — fotos en el detalle (`feat/hu09-evidencias-detalle`, apilada sobre J)
+
+- [ ] **T78 · Crear la rama**
+  Desde la rama de J (o desde `main`, si J ya se fusionó).
+  RF: —
+  Hecho cuando: la rama tiene debajo los commits de J.
+
+- [ ] **T79 · El repositorio de incidencias lee las fotos**
+  `observarEvidencias(incidenciaId)` en `IncidenciaRepository` y en `IncidenciaRepositoryImpl`, que inyecta
+  `EvidenciaDao` solo para leer.
+  RF: RF-932, RF-936
+  Hecho cuando: compila.
+
+- [ ] **T80 · Fotos en `IncidenciaRepositoryFalso`**
+  Lista de fotos en memoria por incidencia.
+  RF: —
+  Hecho cuando: las pruebas existentes siguen pasando.
+
+- [ ] **T81 · El detalle observa las fotos**
+  `DetalleIncidencia.evidencias` (por defecto vacía) y el `combine` de `ObservarDetalleIncidencia`.
+  RF: RF-932, RF-936
+  Hecho cuando: compila.
+
+- [ ] **T82 · Pruebas del detalle con fotos**
+  En `ObservarDetalleIncidenciaTest`: con fotos, sin fotos y en orden.
+  RF: RF-932, RF-936
+  Hecho cuando: `./gradlew testDebugUnitTest --tests "*ObservarDetalleIncidenciaTest"` pasa.
+
+- [ ] **T83 · `SeccionEvidencias`**
+  Composable sin estado de `feature/captura/presentation` (plan 5.5), con vistas previas con y sin fotos, con y
+  sin «Agregar foto», en claro y oscuro.
+  RF: RF-923, RF-932, RF-933
+  Hecho cuando: las vistas previas coinciden con la sección «Evidencias» del prototipo 5.
+
+- [ ] **T84 · `FotoAmpliada`**
+  `Dialog` a pantalla completa con la foto, su tipo y su fecha y hora (plan 5.5).
+  RF: RF-934, RF-935
+  Hecho cuando: compila y su vista previa se ve en claro y oscuro.
+
+- [ ] **T85 · Fotos en `DetalleIncidenciaScreen`**
+  Cambiar la sección actual por `SeccionEvidencias(puedeAgregar = estado.puedeAtender)` y abrir `FotoAmpliada` al
+  tocar una miniatura; vistas previas con fotos.
+  RF: RF-923, RF-932 a RF-936
+  Hecho cuando: «Agregar foto» ya no se ve como jefe ni como personal de sistemas en las vistas previas.
+
+- [ ] **T86 · Pruebas del `ViewModel` del detalle**
+  En `DetalleIncidenciaViewModelTest`: las fotos llegan al estado y `puedeAtender` sigue la regla de RF-923.
+  RF: RF-923, RF-932
+  Hecho cuando: `./gradlew testDebugUnitTest --tests "*DetalleIncidenciaViewModelTest"` pasa.
+
+- [ ] **T87 · Verificación manual en el celular**
+  Con K fusionado: los puntos de L de la sección 7 (también otro técnico y el jefe en otro celular).
+  RF: RF-923, RF-932 a RF-936, RF-939
+  Hecho cuando: el resultado queda escrito en el PR.
+
+- [ ] **T88 · Abrir el PR L**
+  RF: —
+  Hecho cuando: el PR está abierto con el CI en verde.
+
+## PR M — eliminar una foto (`feat/hu09-eliminar-foto`, apilada sobre L) — solo con D-5
+
+- [ ] **T89 · Crear la rama**
+  RF: —
+  Hecho cuando: la rama tiene debajo los commits de L.
+
+- [ ] **T90 · El repositorio elimina la foto y su archivo**
+  `eliminar(evidencia)` en `EvidenciaRepository`, `EvidenciaRepositoryImpl` (primero la fila, después el archivo)
+  y `EvidenciaRepositoryFalso`.
+  RF: RF-937
+  Hecho cuando: compila.
+
+- [ ] **T91 · `EliminarEvidencia`**
+  Caso de uso de 4.9.
+  RF: RF-937
+  Hecho cuando: compila.
+
+- [ ] **T92 · `EliminarEvidenciaTest`**
+  Sin permiso, otro técnico, incidencia cerrada, correcto y fallo del repositorio.
+  RF: RF-937
+  Hecho cuando: `./gradlew testDebugUnitTest --tests "*EliminarEvidenciaTest"` pasa.
+
+- [ ] **T93 · «Eliminar foto» en `FotoAmpliada`**
+  `BotonPeligro` y su `AlertDialog` («¿Eliminar esta foto? No se puede deshacer.»), solo con `puedeEliminar`.
+  RF: RF-937
+  Hecho cuando: la vista previa con `puedeEliminar` muestra el botón y la otra no.
+
+- [ ] **T94 · Eliminar desde el detalle**
+  `alEliminarFoto(evidencia)` y su error en `DetalleIncidenciaViewModel` (inyecta `EliminarEvidencia`, P-7);
+  `DetalleIncidenciaScreen` pasa `puedeEliminar = estado.puedeAtender`.
+  RF: RF-937
+  Hecho cuando: compila.
+
+- [ ] **T95 · Pruebas de eliminar desde el detalle**
+  En `DetalleIncidenciaViewModelTest`: con éxito y con error.
+  RF: RF-937
+  Hecho cuando: `./gradlew testDebugUnitTest --tests "*DetalleIncidenciaViewModelTest"` pasa.
+
+- [ ] **T96 · Verificación manual y abrir el PR M**
+  Eliminar una foto en el celular y comprobar que su archivo ya no está.
+  RF: RF-937
+  Hecho cuando: el PR está abierto con el CI en verde y la prueba escrita.
+
+## PR N — «Evidencias» en el informe técnico (`feat/hu09-evidencias-informe`, apilada sobre L) — solo con D-6
+
+- [ ] **T97 · Crear la rama**
+  RF: —
+  Hecho cuando: la rama tiene debajo los commits de L.
+
+- [ ] **T98 · El informe observa las fotos 🔶**
+  `InformeTecnicoViewModel` combina `ObservarCapturaEvidencia(incidenciaId)` en su estado.
+  RF: RF-938
+  Hecho cuando: compila.
+
+- [ ] **T99 · Pruebas del informe con fotos 🔶**
+  En `InformeTecnicoViewModelTest`: las fotos llegan al estado y lo escrito se conserva.
+  RF: RF-938
+  Hecho cuando: `./gradlew testDebugUnitTest --tests "*InformeTecnicoViewModelTest"` pasa.
+
+- [ ] **T100 · Sección «Evidencias» en el informe 🔶**
+  `SeccionEvidencias` antes de «Confirmar cierre con huella» en `InformeTecnicoScreen`; vistas previas.
+  RF: RF-938
+  Hecho cuando: la vista previa coincide con la sección «Evidencias» del prototipo 9.
+
+- [ ] **T101 · «Agregar foto» desde el informe 🔶**
+  La Route recibe `alAgregarFoto` y `AtencionNavigation` navega a `Ruta.CapturarEvidencia(id)`.
+  RF: RF-938
+  Hecho cuando: compila.
+
+- [ ] **T102 · Verificación manual y abrir el PR N**
+  En el celular: escribir parte del informe, agregar una foto, volver y comprobar que lo escrito sigue ahí.
+  RF: RF-938
+  Hecho cuando: el PR está abierto con el CI en verde y la prueba escrita.
+
+## PR O — borrar las fotos con los datos locales (`feat/hu09-borrar-fotos-sesion`, desde `main` con G) — solo con D-7
+
+- [ ] **T103 · Crear la rama desde `main` con G fusionado**
+  RF: —
+  Hecho cuando: `main` tiene `AlmacenFotos`.
+
+- [ ] **T104 · Borrar las fotos al cerrar sesión 🔶**
+  `SesionRepositoryFirebase` inyecta `AlmacenFotos` y llama a `borrarTodo()` después de `clearAllTables()` en
+  `cerrarSesion()` (plan 4.10).
+  RF: RF-942
+  Hecho cuando: compila.
+
+- [ ] **T105 · Borrar las fotos al entrar otra persona 🔶**
+  Lo mismo en `SincronizacionTiempoReal`, después del `clearAllTables()` de `debeBorrarDatosAlEntrar`.
+  RF: RF-942
+  Hecho cuando: compila.
+
+- [ ] **T106 · RF-10 y RF-11 de la spec 001 incluyen las fotos**
+  En `specs/001-inicio-sesion/spec.md`, quitar «Las fotos se agregarán cuando exista la HU de captura» y nombrar las
+  fotos entre los datos locales.
+  RF: RF-942
+  Hecho cuando: el texto de la spec 001 coincide con el código.
+
+- [ ] **T107 · Pendiente de las fotos resuelto en `MEMORY.md`**
+  `git pull origin main` y quitar la línea «Fotos: cuando exista la HU de captura… (D-7)».
+  RF: —
+  Hecho cuando: la línea ya no está.
+
+- [ ] **T108 · Verificación manual en el celular**
+  Los puntos de O de la sección 7 (cerrar sesión, y entrar otra persona sin cerrar).
+  RF: RF-942
+  Hecho cuando: el resultado queda escrito en el PR.
+
+- [ ] **T109 · Abrir el PR O**
+  Pedir a Alonso que revise con foco el modelo de sesión y `core/sync`.
+  RF: —
+  Hecho cuando: el PR está abierto con el CI en verde.
+
+## PR Q — aviso de las fotos al cerrar sesión (`feat/hu09-aviso-fotos-cierre`, apilada sobre O) — solo con D-8 (a)
+
+- [ ] **T110 · Escribir las tareas de Q**
+  Cuando se responda D-8, agregar aquí sus tareas (RF nuevo en la spec 009 y ajuste de RF-13 en la spec 001).
+  RF: —
+  Hecho cuando: las tareas están escritas y aprobadas.
+
+## PR P — pruebas manuales y cierre (`docs/hu09-cierre`, desde la rama del último PR fusionado)
+
+- [ ] **T111 · Crear la rama y comprobar que no quedó nada fuera**
+  Para cada rama apilada, `git log main..<rama>` no debe mostrar commits sin fusionar (lo que pasó en la HU-08).
+  RF: —
+  Hecho cuando: ninguna rama de la HU tiene commits fuera de `main`.
+
+- [ ] **T112 · Pruebas manuales de punta a punta**
+  Las de «Criterios de finalización» de la spec, en un celular real, con capturas en claro y oscuro.
+  RF: RF-901 a RF-942
+  Hecho cuando: cada prueba queda anotada con su resultado en el PR.
+
+- [ ] **T113 · Spec completa**
+  «Estado: borrador» → «Estado: completa», con la fecha y qué se probó; quitar de la spec los RF de las decisiones
+  que no se aprobaron.
+  RF: —
+  Hecho cuando: la spec describe lo que hace el código.
+
+- [ ] **T114 · Tareas marcadas**
+  Marcar en este archivo las tareas hechas y anotar las que no se hicieron y por qué.
+  RF: —
+  Hecho cuando: no queda ninguna casilla sin explicar.
+
+- [ ] **T115 · HU-09 completa en `MEMORY.md`**
+  `git pull origin main` y dejar la línea de la HU-09 como «completa (RF-901 a RF-942)».
+  RF: —
+  Hecho cuando: la línea está actualizada.
+
+- [ ] **T116 · Abrir el PR P**
+  RF: —
+  Hecho cuando: el PR está abierto con el CI en verde.
