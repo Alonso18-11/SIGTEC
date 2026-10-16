@@ -128,3 +128,58 @@
 - [ ] **T36 · `IncidenciasNavigation` lee la clave y la Route la aplica y la borra** (5.3). RF-909, RF-910.
   Hecho cuando: en el celular se cumplen los puntos de PR-20 de la sección 7, incluida una rotación.
 
+## PR-21 — carpeta de las fotos (base `main`)
+- [ ] **T37 · `AlmacenFotos` 🔶** en `core/data/` (P-4). RF-925, RF-928, RF-940, RF-942.
+  Hecho cuando: compila.
+- [ ] **T38 · `AlmacenFotosTest`** con `TemporaryFolder`. RF-928, RF-940, RF-942.
+  Hecho cuando: la prueba pasa.
+
+## PR-22 — copia en Android 11 o anterior (base `main`)
+- [ ] **T39 · `<exclude domain="file" path="evidencias/" />`** en `res/xml/backup_rules.xml` 🔶. RF-941.
+  Hecho cuando: `lintDebug` no lo marca.
+
+## PR-23 — copia y transferencia en Android 12 o superior (base `main`)
+- [ ] **T40 · La misma exclusión en `cloud-backup` y `device-transfer`** de `res/xml/data_extraction_rules.xml` 🔶.
+  RF-941. Hecho cuando: `lintDebug` no lo marca.
+
+## PR-24 — error del máximo de fotos (base `main`)
+- [ ] **T41 · `LimiteFotosAlcanzado` ⚠️** en `core/domain/Resultado.kt`. RF-929.
+  Hecho cuando: compila hasta el `when` de `mensaje()`, que obliga a T42.
+- [ ] **T42 · Su mensaje ⚠️** en `core/ui/MensajesError.kt`. RF-929.
+  Hecho cuando: compila.
+
+## PR-25 — regla de las fotos (base PR-24)
+- [ ] **T43 · `ReglasEvidencia`** con `MAX_FOTOS` y `bloqueoParaFotos` (3.6). RF-923, RF-926, RF-929, RF-931, RF-937.
+  Hecho cuando: compila.
+- [ ] **T44 · `ReglasEvidenciaTest`** (ocho casos). Mismos RF.
+  Hecho cuando: la prueba pasa.
+
+## PR-26 — contrato de evidencias (base `main`)
+- [ ] **T45 · `EvidenciaRepository`** (interfaz). RF-924 a RF-929.
+  Hecho cuando: compila.
+- [ ] **T46 · `EvidenciaRepositoryFalso`** con flujos en memoria, `fallar` y rutas descartadas. RF: —
+  Hecho cuando: compila con `testDebugUnitTest`.
+
+## PR-27 — repositorio de evidencias (base PR-26, trae PR-06 y PR-21)
+- [ ] **T47 · `EvidenciaRepositoryImpl`** (4.7). RF-925, RF-928, RF-939, RF-940.
+  Hecho cuando: compila.
+- [ ] **T48 · `@Binds` en `CapturaModule`.** RF: —
+  Hecho cuando: `assembleDebug` compila con Hilt.
+
+## PR-28 — `PrepararFoto` (base PR-26)
+- [ ] **T49 · `PrepararFoto` y `FotoNueva`** (4.3). RF-925. Hecho cuando: compila.
+- [ ] **T50 · `PrepararFotoTest`.** RF-925. Hecho cuando: la prueba pasa.
+
+## PR-29 — `GuardarEvidencia` (base PR-28, trae PR-25)
+- [ ] **T51 · `GuardarEvidencia`** con `ahora` como parámetro (4.4). RF-925, RF-926, RF-928, RF-929.
+  Hecho cuando: compila.
+- [ ] **T52 · `GuardarEvidenciaTest`** (seis casos). Mismos RF. Hecho cuando: la prueba pasa.
+
+## PR-30 — `DescartarFoto` (base PR-26)
+- [ ] **T53 · `DescartarFoto`** (4.5). RF-928. Hecho cuando: compila.
+- [ ] **T54 · `DescartarFotoTest`.** RF-928. Hecho cuando: la prueba pasa.
+
+## PR-31 — `ObservarCapturaEvidencia` (base PR-25, trae PR-26)
+- [ ] **T55 · `CapturaEvidencia` y `ObservarCapturaEvidencia`** (4.6). RF-924, RF-929, RF-931.
+  Hecho cuando: compila.
+- [ ] **T56 · `ObservarCapturaEvidenciaTest`** (cinco casos). Mismos RF. Hecho cuando: la prueba pasa.
