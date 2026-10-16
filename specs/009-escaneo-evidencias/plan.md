@@ -48,3 +48,56 @@
 - **Cámara del emulador.** El emulador simula la cámara con una escena virtual o la webcam de la PC; sirve para
   ver que la pantalla abre, pero el reconocimiento real y las fotos se prueban en un celular (spec, «Criterios de
   finalización»).
+
+## 1. División en PR, dependencias y orden de fusión
+
+El PR de esta spec es el #40 (`docs/hu09-camara-spec`). La implementación se divide en 16 PR, más uno opcional
+(Q) que depende de D-8. M, N, O y Q dependen de una decisión: si no se aprueba, el PR no se abre y sus RF se
+quitan de la spec.
+
+| PR | Rama | Título del PR | Sale de | Depende de | En paralelo con |
+|---|---|---|---|---|---|
+| A | `feat/hu09-lectura-codigo` | `feat(captura): extraer el código del equipo del texto leído (HU-09)` | `main` | — | C, G, H |
+| B | `feat/hu09-leer-codigo-catalogo` | `feat(captura): leer el código prefiriendo el catálogo del celular (HU-09)` | rama de A (**apilada**) | A | C, G, H |
+| C | `feat/hu09-permiso-camara` | `feat(captura): permiso de cámara pedido al usarla, con su explicación (HU-09)` | `main` | — | A, B, D, G, H |
+| D | `feat/hu09-escaneo-pantalla` | `feat(captura): pantalla «Escanear etiqueta» y su ViewModel (HU-09)` | rama de B (**apilada**) | B | C, G, H |
+| E | `feat/hu09-escaneo-camara` | `feat(captura): leer la etiqueta con CameraX y ML Kit (HU-09)` | rama de D (**apilada**), con C ya en `main` | C, D | G a J |
+| F | `feat/hu09-escaneo-registro` | `feat(incidencias): «Nueva incidencia» recibe el código escaneado (HU-09)` | rama de E (**apilada**) | E | G a J |
+| G | `feat/hu09-carpeta-fotos` | `feat(core): carpeta interna de las fotos, fuera de la copia de seguridad (HU-09)` | `main` | — | A a F, H |
+| H | `feat/hu09-evidencias-dominio` | `feat(captura): reglas y casos de uso de las fotos de evidencia (HU-09)` | `main` | — | A a G |
+| I | `feat/hu09-evidencias-datos` | `feat(captura): repositorio de evidencias en Room y en la carpeta interna (HU-09)` | `main` con G y H | G, H | A a F |
+| J | `feat/hu09-evidencia-pantalla` | `feat(captura): pantalla «Evidencia fotográfica» y su ViewModel (HU-09)` | rama de I (**apilada**) | I | A a F |
+| K | `feat/hu09-evidencia-camara` | `feat(captura): tomar la foto con CameraX y guardarla (HU-09)` | rama de J (**apilada**), con E ya en `main` | E, J | L, O |
+| L | `feat/hu09-evidencias-detalle` | `feat(incidencias): fotos en el detalle, ampliadas y «Agregar foto» solo para el técnico asignado (HU-09)` | rama de J (**apilada**) | J | K, O |
+| M | `feat/hu09-eliminar-foto` | `feat(incidencias): eliminar una foto desde la vista ampliada (HU-09)` — **solo con D-5** | rama de L (**apilada**) | L | N, O |
+| N | `feat/hu09-evidencias-informe` | `feat(atencion): sección «Evidencias» en el informe técnico (HU-09)` — **solo con D-6** | rama de L (**apilada**) | L | M, O |
+| O | `feat/hu09-borrar-fotos-sesion` | `feat(core): borrar las fotos al cerrar sesión o al entrar otra persona (HU-09)` — **solo con D-7** | `main` con G | G | A a N |
+| Q | `feat/hu09-aviso-fotos-cierre` | `feat(acceso): avisar cuántas fotos se borran al cerrar sesión (HU-09)` — **solo con D-8 (a)** | rama de O (**apilada**) | O | M, N |
+| P | `docs/hu09-cierre` | `docs(captura): cierre de la HU-09 con las pruebas manuales (HU-09)` | rama del último PR fusionado | todos | — |
+
+**Orden de fusión:** A → B → D; C en cualquier momento antes de E; E → F. En paralelo: G y H desde el principio,
+I cuando estén los dos, y luego J. K necesita E y J; L necesita J; M y N necesitan L. O solo necesita G, y Q
+necesita O. P va al final.
+
+**Por qué esta división:**
+- **A y B separados.** A es Kotlin puro con sus pruebas: se revisa en minutos y no toca Android ni Hilt. B agrega
+  el repositorio del catálogo, su `@Binds` y el caso de uso que junta todo.
+- **C aparte y temprano.** Es el único PR del escaneo que toca un archivo compartido (`AndroidManifest.xml`,
+  D-11); conviene que Alonso lo revise solo.
+- **D y E separados, igual que J y K.** D (y J) traen el `ViewModel`, sus pruebas y la pantalla con vistas
+  previas, sin cámara: se revisan y prueban en la JVM. E (y K) conectan la cámara real, que solo se verifica en un
+  celular. Así, si la cámara da problemas, no frena la revisión de la lógica.
+- **F aparte.** Es otro módulo (`incidencias`, HU-03) y es el punto donde el escaneo por fin se ve completo.
+- **G aparte.** Crea el único lugar de `core` que conoce la carpeta de fotos (lo usan I y O) y toca las reglas de
+  copia de seguridad (`res/xml`): son decisiones de infraestructura (D-7, D-9) que conviene revisar solas.
+- **H, I separados.** Dominio con el error nuevo (`Resultado.kt` y `MensajesError.kt`, compartidos, D-2) y sus
+  pruebas; después, los datos.
+- **L, M y N separados.** L cumple el criterio de la HU en el detalle. M y N dependen de decisiones (D-5, D-6):
+  si no se aprueban, simplemente no se abren.
+- **O y Q aparte.** Tocan el modelo de sesión y `core/sync`, que `CLAUDE.md` pide coordinar con Alonso; van en
+  PR propios para que él los revise con foco.
+- **P al final.** Pruebas manuales de punta a punta en un celular y cierre de la spec.
+
+**Ramas apiladas.** Si el PR anterior sigue en revisión, la rama siguiente sale de la suya y, cuando el anterior
+se fusiona, se actualiza con `git pull origin main`. Antes de dar por cerrado cada PR apilado, se revisa
+`git log main..<rama>`: en la HU-08, dos PR apilados quedaron fuera de la fusión por el squash (`MEMORY.md`).
