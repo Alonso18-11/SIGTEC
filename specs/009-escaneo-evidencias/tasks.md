@@ -267,3 +267,51 @@
 - [ ] **T85 · `alAgregarFoto` en la Route y en `AtencionNavigation` 🔶.** RF-938.
   Hecho cuando: en el celular, lo escrito en el informe sigue ahí al volver de tomar una foto.
 
+## PR-50 — borrar al cerrar sesión (base PR-21)
+- [ ] **T86 · `borrarTodo()` después de `clearAllTables()` en `SesionRepositoryFirebase` 🔶** (4.10). RF-942.
+  Hecho cuando: compila.
+- [ ] **T87 · RF-10 de la spec 001 incluye las fotos.** RF-942.
+  Hecho cuando: en el celular, la carpeta queda vacía después de cerrar sesión.
+
+## PR-51 — borrar al entrar otra persona (base PR-21)
+- [ ] **T88 · Lo mismo en `SincronizacionTiempoReal` 🔶.** RF-942. Hecho cuando: compila.
+- [ ] **T89 · RF-11 de la spec 001 incluye las fotos.** RF-942. Hecho cuando: el texto coincide con el código.
+- [ ] **T90 · Quitar de `MEMORY.md` el pendiente de las fotos**, después de `git pull origin main`. RF: —
+  Hecho cuando: en el celular, la carpeta queda vacía al entrar otra persona.
+
+## PR-52 — contar las fotos (base `main`)
+- [ ] **T91 · `EvidenciaDao.contar(): Flow<Int>` 🔶.** RF-943. Hecho cuando: compila.
+- [ ] **T92 · `EvidenciaDaoTest` (instrumentada).** RF-932, RF-943.
+  Hecho cuando: `./gradlew connectedDebugAndroidTest` pasa en un celular o emulador.
+
+## PR-53 — el estado de los datos cuenta las fotos (base PR-52)
+- [ ] **T93 · `EstadoDatos.fotosEnCelular = 0` ⚠️.** RF-943. Hecho cuando: compila.
+- [ ] **T94 · `EstadoDatosRepositoryImpl` combina `EvidenciaDao.contar()` 🔶.** RF-943. Hecho cuando: compila.
+
+## PR-54 — la regla de borrado cuenta las fotos (base PR-53)
+- [ ] **T95 · `evaluarBorrado(pendientes, fotos = 0)` y `DecisionBorrado.Confirmar` con fotos 🔶** (4.11). RF-943.
+  Hecho cuando: compila.
+- [ ] **T96 · Casos nuevos de `ReglasSesionTest`.** RF-943. Hecho cuando: la prueba pasa.
+- [ ] **T97 · `EvaluarCierreSesion` pasa las fotos 🔶.** RF-943. Hecho cuando: compila.
+- [ ] **T98 · Casos nuevos de `EvaluarCierreSesionTest`.** RF-943. Hecho cuando: la prueba pasa.
+
+## PR-55 — textos de las fotos (base `main`)
+- [ ] **T99 · `textoFotosEvidencia` 🔶.** RF-943. Hecho cuando: compila.
+- [ ] **T100 · `textoAvisoSalida`** con cambios, con fotos y con ambos 🔶 (4.11). RF-943. Hecho cuando: compila.
+- [ ] **T101 · Casos nuevos de `TextosSalidaTest`.** RF-943. Hecho cuando: la prueba pasa.
+
+## PR-56 — el aviso de cierre cuenta las fotos (base PR-54, trae PR-55)
+- [ ] **T102 · El diálogo de `AjustesSeguridadScreen` usa `textoAvisoSalida` 🔶.** RF-943.
+  Hecho cuando: sus vistas previas muestran los tres casos en claro y oscuro.
+- [ ] **T103 · RF-13 de la spec 001 cuenta las fotos.** RF-943.
+  Hecho cuando: en el celular se ve el aviso con fotos y sin cambios, y con los dos.
+
+## PR-57 — cierre (base: la rama del último PR fusionado)
+- [ ] **T104 · Comprobar que nada quedó fuera**: `git log main..<rama>` vacío en cada rama de la HU. RF: —
+  Hecho cuando: ninguna rama tiene commits sin fusionar.
+- [ ] **T105 · Pruebas manuales de punta a punta** («Criterios de finalización» de la spec) en un celular real.
+  RF-901 a RF-943. Hecho cuando: cada prueba está anotada con su resultado.
+- [ ] **T106 · Spec «completa»**, con la fecha y qué se probó. RF: — Hecho cuando: la spec describe el código.
+- [ ] **T107 · Tareas marcadas**, con el motivo de las que no se hicieron. RF: — Hecho cuando: no queda ninguna sin explicar.
+- [ ] **T108 · HU-09 «completa (RF-901 a RF-943)» en `MEMORY.md`**, después de `git pull origin main`. RF: —
+  Hecho cuando: la línea está actualizada.
