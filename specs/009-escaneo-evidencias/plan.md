@@ -388,3 +388,104 @@ textoFotosEvidencia(f): "1 foto de evidencia" o "$f fotos de evidencia"
 ```
 `fotos` tiene valor por defecto para que los llamadores de RF-11 (`EvaluarIngresoDeOtraPersona`) no cambien hasta
 que se decida D-13.
+
+## 5. Cómo se pinta en Compose
+
+Todas las pantallas nuevas usan `Scaffold(contentWindowInsets = WindowInsets(0))` con `BarraSuperior(titulo,
+alVolver)`, solo roles de `MaterialTheme.colorScheme` y estilos de `MaterialTheme.typography`, `Espaciado.*` y
+los botones de `Botones.kt`. Las `Screen` reciben estado y lambdas, y la vista de la cámara llega como una ranura
+`vistaCamara: @Composable () -> Unit`: así las vistas previas muestran un recuadro `surfaceVariant` con «Vista de la
+cámara», como el prototipo, sin abrir ninguna cámara.
+
+### 5.1 `ConPermisoCamara(textoNegado, contenido)` (PR-11 a PR-13)
+- `concedido` sale de `ContextCompat.checkSelfPermission` y se vuelve a leer en cada `ON_RESUME`
+  (`LifecycleEventEffect`), para enterarse al volver de los ajustes (RF-919) o si lo quitaron desde ahí (RF-922).
+- `yaSePidio` es un `rememberSaveable`; `androidLoExplicaria` sale de `shouldShowRequestPermissionRationale` de la
+  `Activity` (`MainActivity` ya es una `AppCompatActivity`); `tieneCamara`, de
+  `hasSystemFeature(FEATURE_CAMERA_ANY)`.
+- `rememberLauncherForActivityResult(RequestPermission())` pide el permiso; «Abrir ajustes» lanza
+  `ACTION_APPLICATION_DETAILS_SETTINGS` con el paquete de la app.
+- `when (vistaPermiso(...))`: `CAMARA` dibuja `contenido()`; las demás dibujan `ExplicacionPermisoCamara`: ícono,
+  título, el texto de RF-916 o de RF-918 a RF-920 y `BotonPrincipal` «Permitir cámara» o «Abrir ajustes».
+
+### 5.2 «Escanear etiqueta» (PR-09 y PR-16)
+- `BarraSuperior("Escanear etiqueta", alVolver)` y, debajo, un `Box` que ocupa todo: la ranura de la cámara y, encima,
+  un `Canvas` que oscurece con `colorScheme.scrim` (con transparencia) todo lo que queda fuera del marco y dibuja
+  sus cuatro esquinas con `colorScheme.primary`. El marco mide el 85 % del ancho, con proporción 2:1, como la
+  etiqueta.
+- Bajo el marco, la indicación en una pastilla `inverseSurface`/`inverseOnSurface`, que se lee sobre cualquier
+  imagen en claro y en oscuro (texto blanco fijo no está permitido fuera del tema).
+- Con un código reconocido, un panel `surface` abajo: ícono de check sobre `SigtecTheme.estados.solucionado`,
+  «Código reconocido · sin conexión» (`bodyMedium`, `onSurfaceVariant`), el código (`headlineSmall`) y, si no está en
+  el catálogo, «No está en el catálogo de este celular» con ícono y el color de `SigtecTheme.estados.sinAsignar`;
+  luego `BotonSecundario` «Volver a escanear» y `BotonPrincipal` «Usar este código», cada uno con `weight(1f)`.
+- En PR-16, la Route arma `ConPermisoCamara(textoNegado = "También puedes escribir el código a mano en el formulario.")
+  { VistaCamara(casos = [Preview, ImageAnalysis con LectorTextoEtiqueta]) }` y solo pasa textos al `ViewModel`
+  mientras `reconocido == null`.
+
+### 5.3 Devolver el código por `savedStateHandle` (PR-17 y PR-20, P-8)
+```kotlin
+// CapturaNavigation.kt: la única clave del resultado, también para la HU-16
+const val CLAVE_CODIGO_ESCANEADO = "codigoEscaneado"
+
+composable<Ruta.EscanearEtiqueta> {
+    EscanearEtiquetaRoute(
+        alVolver = { navController.popBackStack() },
+        alUsarCodigo = { codigo ->
+            navController.previousBackStackEntry?.savedStateHandle?.set(CLAVE_CODIGO_ESCANEADO, codigo)
+            navController.popBackStack()
+        }
+    )
+}
+
+// IncidenciasNavigation.kt
+composable<Ruta.RegistroIncidencia> { entrada ->
+    val codigoEscaneado by entrada.savedStateHandle
+        .getStateFlow<String?>(CLAVE_CODIGO_ESCANEADO, null).collectAsStateWithLifecycle()
+    RegistroIncidenciaRoute(
+        /* … lo de hoy … */
+        codigoEscaneado = codigoEscaneado,
+        alConsumirCodigo = { entrada.savedStateHandle[CLAVE_CODIGO_ESCANEADO] = null }
+    )
+}
+
+// RegistroIncidenciaRoute
+LaunchedEffect(codigoEscaneado) {
+    codigoEscaneado?.let { vm.alUsarCodigoEscaneado(it); alConsumirCodigo() }
+}
+```
+Como la clave se borra al usarla, una rotación o un cambio de tema no vuelve a aplicar el código (el aprendizaje de
+`MEMORY.md` sobre las claves de `LaunchedEffect`).
+
+### 5.4 «Evidencia fotográfica» (PR-34 y PR-36)
+- `BarraSuperior("Evidencia fotográfica", alVolver)` y, debajo, «INC-0124 · PC-CONT-014» (`bodyMedium`,
+  `onSurfaceVariant`), porque `BarraSuperior` no tiene subtítulo.
+- `SingleChoiceSegmentedButtonRow` con «Falla» y «Pieza cambiada».
+- La ranura de la cámara, recortada con la forma del tema, con la pastilla «Se guardará como: foto de la falla».
+- Una fila desplazable de `MiniaturaEvidencia` de 64 dp, cada una con su rótulo («Falla 1», «Pieza 1»).
+- Abajo: «N fotos» (`bodyMedium`), el disparador y `BotonPrincipal` «Listo». El disparador es un círculo de 72 dp
+  con borde `primary` y `contentDescription = "Tomar foto"`, deshabilitado mientras guarda o con bloqueo (P-11).
+- Sobre esa fila, el mensaje del bloqueo (RF-929, RF-931) o del error (`error.mensaje()`).
+- En PR-36, la Route arma `ConPermisoCamara { VistaCamara(casos = [Preview, ImageCapture]) }`. Al disparar:
+  `vm.alDisparar()?.let { foto -> lanzar tomarFoto(imageCapture, foto.ruta) y avisar alFotoTomada(foto) o
+  alFalloCaptura(foto) }`.
+
+### 5.5 `SeccionEvidencias` y `FotoAmpliada` (PR-40, PR-41, PR-45 y PR-48)
+- `Seccion("Evidencias")` con un `FlowRow` de miniaturas cuadradas de 96 dp (borde punteado `outlineVariant` mientras
+  carga, como el prototipo), cada una con su rótulo y tocable; si `puedeAgregar`, al final va el
+  `BotonSecundario` «Agregar foto» que ya existe; debajo, la nota de RF-933 (`bodySmall`, `onSurfaceVariant`).
+- `FotoAmpliada` es un `Dialog` a pantalla completa (`usePlatformDefaultWidth = false`) con `BarraSuperior(tipo,
+  alVolver)`, la foto ajustada al ancho y la fecha y hora de captura. En PR-45 suma `BotonPeligro` «Eliminar foto» y
+  un `AlertDialog` de confirmación.
+
+### 5.6 `MiniaturaEvidencia(ruta, ladoPx)` (PR-33, P-6)
+```text
+estado = produceState(Cargando, ruta) {
+    value = withContext(Dispatchers.IO) { decodificarReducida(ruta, ladoPx) } ?: NoDisponible
+}
+decodificarReducida: BitmapFactory con inJustDecodeBounds → inSampleSize (potencia de 2) → decodificar →
+                     girar con Matrix según la orientación de android.media.ExifInterface
+                     (CameraX guarda la orientación en el EXIF, no en los píxeles)
+Cargando → recuadro punteado · NoDisponible → «Foto no disponible» · Lista → Image(bitmap, contentScale = Crop)
+```
+`FotoAmpliada` usa la misma función con un lado de 2048 px.
