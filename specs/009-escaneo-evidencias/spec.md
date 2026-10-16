@@ -66,3 +66,9 @@ Esta HU le permite a cualquier persona del área leer el código desde la etique
 - RF-936: EL SISTEMA actualiza la sección «Evidencias» sola cuando se agrega o se elimina una foto, sin salir del detalle, igual que el resto del detalle (HU-04).
 - RF-937: CUANDO el técnico asignado, mientras la incidencia siga pendiente, pulsa «Eliminar foto» en la foto ampliada y lo confirma («¿Eliminar esta foto? No se puede deshacer.»), EL SISTEMA borra el enlace y el archivo. La regla se verifica en el dominio igual que en RF-926. Con la incidencia cerrada no se puede eliminar ninguna foto: queda como respaldo del informe. Ver D-5.
 - RF-938: EL SISTEMA muestra la misma sección «Evidencias», con sus miniaturas y «Agregar foto», en «Informe técnico» (prototipo 9), para que el técnico fotografíe la pieza cambiada sin salir del cierre. Al volver de «Evidencia fotográfica», lo escrito en el informe se conserva. Ver D-6.
+
+### Las fotos viven solo en este celular (costo cero)
+- RF-939: EL SISTEMA nunca sube las fotos ni sus enlaces a Firestore ni a ningún otro servicio: no quedan pendientes de sincronizar y, en otro celular, la misma incidencia aparece sin fotos (sección 16.1 del producto, plan Spark).
+- RF-940: EL SISTEMA guarda las fotos en el almacenamiento interno de la app, nunca en la galería ni en un almacenamiento compartido: otras apps no pueden verlas y no hace falta ningún permiso de almacenamiento.
+- RF-941: EL SISTEMA deja las fotos fuera de la copia de seguridad automática de Android, para que no terminen en la cuenta de Google de quien usa el celular ni se restauren en otro. Ver D-9.
+- RF-942: CUANDO se borran los datos locales al cerrar sesión (RF-10, HU-01) o al entrar otra persona en el celular (RF-11, HU-01), EL SISTEMA borra también todas las fotos de evidencia del almacenamiento interno. Esto amplía RF-10 y RF-11 de `specs/001-inicio-sesion`, como dejó pendiente su decisión D-7 (`MEMORY.md`, «Pendientes conocidos»). Ver D-7 de esta spec.
