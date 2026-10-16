@@ -32,6 +32,7 @@ Las reglas permanentes van en `CLAUDE.md`, no aquí.
 - Doble `RelojFalso` (`app/src/test/.../core/sync/RelojFalso.kt`) listo pero sin usar: falta una prueba completa de `SincronizadorIncidencias`/`SincronizacionTiempoReal` que lo aproveche.
 - Room subió de `version = 1` a `version = 2` por `necesitaAtencion` en `IncidenciaEntity`/`MovimientoEntity`.
 - Reemplazar `fallbackToDestructiveMigration` por migraciones reales antes de publicar.
+- Copia de seguridad de Android: `allowBackup="true"` con las reglas de ejemplo respalda en la cuenta de Google la base Room y las preferencias de la huella (y podría restaurarlas en otro celular). La HU-09 solo excluye las fotos (D-9 de la spec 009); lo demás va en un PR aparte.
 - Google Play (urgente): las cuentas personales nuevas necesitan una prueba cerrada con ~12 testers durante 14 días antes de publicar. Crear la cuenta y empezar la prueba al menos 3 semanas antes de la entrega; verificar la regla vigente en Play Console.
 - Issues, milestones y etiquetas de GitHub sin crear.
 
