@@ -101,3 +101,112 @@ necesita O. P va al final.
 **Ramas apiladas.** Si el PR anterior sigue en revisión, la rama siguiente sale de la suya y, cuando el anterior
 se fusiona, se actualiza con `git pull origin main`. Antes de dar por cerrado cada PR apilado, se revisa
 `git log main..<rama>`: en la HU-08, dos PR apilados quedaron fuera de la fusión por el squash (`MEMORY.md`).
+
+## 2. Archivos y commits por PR
+
+Leyenda: 🆕 se crea · ✏️ se modifica · ⚠️ compartido de la lista de `CLAUDE.md` (necesita visto bueno; se
+aprueba junto con este plan) · 🔶 sensible fuera de esa lista (`core/data`, `core/sync`, `res/xml`, archivos
+de otro módulo `feature/`) · sin marca: archivo del módulo de la HU. Cada commit lleva `(HU-09)` al final y va
+seguido de su push.
+
+### Escaneo del código (PR A a F)
+
+#### PR A — extraer el código del texto (Kotlin puro)
+| Archivo | Responsabilidad | RF |
+|---|---|---|
+| 🆕 `feature/captura/domain/CodigoEquipo.kt` | `normalizarTexto`, `candidatosCodigo`, `elegirCodigo` y `data class LecturaCodigo(codigo, enCatalogo)` (sección 3.1 a 3.3). | RF-903, RF-904 |
+| 🆕 `feature/captura/domain/RachaLectura.kt` | `data class RachaLectura(codigo, veces)` con `siguiente(lectura)` y `estable` (3.4). | RF-905, RF-908 |
+| 🆕 (test) `feature/captura/domain/CodigoEquipoTest.kt` | Casos de la sección 7. | RF-903, RF-904 |
+| 🆕 (test) `feature/captura/domain/RachaLecturaTest.kt` | Casos de la sección 7. | RF-905, RF-908 |
+
+- **Compartidos:** ninguno. **Room:** sin cambios. **Cómo probarlo:** solo JUnit.
+- **Commits:**
+  1. `feat(captura): normalizar el texto leído de la etiqueta (HU-09)`
+  2. `feat(captura): candidatos con la forma de los códigos de equipo (HU-09)`
+  3. `feat(captura): elegir el código prefiriendo los del catálogo (HU-09)`
+  4. `test(captura): extracción del código con confusiones, espacios y varios candidatos (HU-09)`
+  5. `feat(captura): racha de lecturas iguales para dar un código por reconocido (HU-09)`
+  6. `test(captura): la racha se cumple con 3 lecturas iguales y se reinicia (HU-09)`
+
+#### PR B — leer el código con el catálogo del celular
+| Archivo | Responsabilidad | RF |
+|---|---|---|
+| 🆕 `feature/captura/domain/CatalogoEquiposRepository.kt` | Interfaz: `suspend fun existe(codigo): Boolean`. | RF-904, RF-907 |
+| 🆕 `feature/captura/domain/LeerCodigoEquipo.kt` | Caso de uso (pseudocódigo 4.1). | RF-902 a RF-904, RF-907 |
+| 🆕 `feature/captura/data/CatalogoEquiposRepositoryImpl.kt` | `CatalogoDao.equipoPorCodigo`, `@IoDispatcher`; el `catch` relanza `CancellationException`, registra con `Log.w` y responde `false`. | RF-904 |
+| 🆕 `feature/captura/di/CapturaModule.kt` | `@Binds` del repositorio. | — |
+| 🆕 (test) `feature/captura/data/CatalogoEquiposRepositoryFalso.kt` | Catálogo en memoria con los 4 equipos de prueba. | — |
+| 🆕 (test) `feature/captura/domain/LeerCodigoEquipoTest.kt` | Casos de la sección 7. | RF-904, RF-907 |
+
+- **Compartidos:** ninguno (`CatalogoDao` se usa tal cual). **Cómo probarlo:** solo JUnit.
+- **Commits:**
+  1. `feat(captura): contrato del catálogo de equipos para el escaneo (HU-09)`
+  2. `feat(captura): caso de uso LeerCodigoEquipo (HU-09)`
+  3. `test(captura): catálogo falso con los equipos de prueba (HU-09)`
+  4. `test(captura): LeerCodigoEquipo prefiere el catálogo y avisa si no está (HU-09)`
+  5. `feat(captura): catálogo de equipos sobre Room (HU-09)`
+  6. `feat(captura): módulo de Hilt del escaneo (HU-09)`
+
+#### PR C — permiso de cámara
+| Archivo | Responsabilidad | RF |
+|---|---|---|
+| ✏️⚠️ `AndroidManifest.xml` | `<uses-permission android:name="android.permission.CAMERA" />` y `<uses-feature android:name="android.hardware.camera" android:required="false" />` (lint `PermissionImpliesUnsupportedHardware`). | RF-916, RF-920 (D-11) |
+| 🆕 `feature/captura/presentation/PermisoCamara.kt` | `enum class VistaPermiso` y la función pura `vistaPermiso(...)` (3.5). | RF-916 a RF-920, RF-922 |
+| 🆕 `feature/captura/presentation/ExplicacionPermisoCamara.kt` | Composable sin estado con el texto de cada `VistaPermiso` y sus botones; vistas previas en claro y oscuro. | RF-916, RF-918 a RF-920 |
+| 🆕 `feature/captura/presentation/ConPermisoCamara.kt` | Composable con estado: consulta el permiso, lo pide, abre los ajustes y vuelve a consultarlo al volver a primer plano (sección 5.1). | RF-916 a RF-922 |
+| 🆕 (test) `feature/captura/presentation/PermisoCamaraTest.kt` | Tabla de la sección 7. | RF-916 a RF-920, RF-922 |
+
+- **Compartidos ⚠️:** `AndroidManifest.xml` (D-11). **Cómo probarlo:** vistas previas y JUnit; en el celular
+  llega con E.
+- **Commits:**
+  1. `feat(captura): permiso de cámara en el manifest, sin exigirla (HU-09)`
+  2. `feat(captura): regla de qué mostrar según el permiso de cámara (HU-09)`
+  3. `test(captura): regla del permiso de cámara (HU-09)`
+  4. `feat(captura): explicación del permiso de cámara con sus vistas previas (HU-09)`
+  5. `feat(captura): pedir el permiso de cámara al usarla y volver a revisarlo (HU-09)`
+
+#### PR D — «Escanear etiqueta» sin cámara: ViewModel y pantalla
+| Archivo | Responsabilidad | RF |
+|---|---|---|
+| 🆕 `feature/captura/presentation/EscaneoViewModel.kt` | `EscaneoUiState(racha, reconocido)`; los textos entran por un flujo de capacidad 1 que descarta los viejos y se procesan en orden; `alLeerTexto`, `alVolverAEscanear` (4.2). | RF-902, RF-905 a RF-908 |
+| 🆕 `feature/captura/presentation/EscanearEtiquetaScreen.kt` | `EscanearEtiquetaRoute` + `EscanearEtiquetaScreen`, con una ranura `vistaCamara` (sección 5.2); vistas previas buscando, reconocido y fuera del catálogo, en claro y oscuro. | RF-901, RF-906, RF-907, RF-912 |
+| 🆕 (test) `feature/captura/presentation/EscaneoViewModelTest.kt` | Casos de la sección 7, con `MainDispatcherRule`. | RF-905 a RF-908 |
+
+- **Compartidos:** ninguno. **Cómo probarlo:** JUnit y vistas previas (la navegación sigue en
+  `PantallaEnConstruccion` hasta E).
+- **Commits:**
+  1. `feat(captura): EscaneoViewModel con la racha y el código reconocido (HU-09)`
+  2. `test(captura): EscaneoViewModel reconoce, se detiene y vuelve a escanear (HU-09)`
+  3. `feat(captura): pantalla «Escanear etiqueta» con su marco y el código reconocido (HU-09)`
+
+#### PR E — cámara y ML Kit en el escaneo
+| Archivo | Responsabilidad | RF |
+|---|---|---|
+| 🆕 `feature/captura/presentation/VistaCamara.kt` | `PreviewView` en `AndroidView`; `ProcessCameraProvider.awaitInstance` (P-2); enlaza los casos de uso que recibe al ciclo de vida de la pantalla; cámara trasera o la que haya; avisa si no abre. | RF-901, RF-915, RF-921 |
+| 🆕 `feature/captura/presentation/LectorTextoEtiqueta.kt` | `ImageAnalysis.Analyzer` con el reconocedor de ML Kit; cierra cada imagen al terminar (P-3). | RF-902, RNF fluidez |
+| ✏️ `feature/captura/presentation/EscanearEtiquetaScreen.kt` | La Route arma `ConPermisoCamara { VistaCamara(...) }` y entrega cada texto a `alLeerTexto`. | RF-901, RF-916 |
+| ✏️ `feature/captura/presentation/CapturaNavigation.kt` | Reemplaza la `PantallaEnConstruccion` de `EscanearEtiqueta`; `const val CLAVE_CODIGO_ESCANEADO`; «Usar este código» lo deja en `previousBackStackEntry?.savedStateHandle` y vuelve. | RF-909, RF-912, RF-913 |
+
+- **Compartidos:** ninguno. **Cómo probarlo:** en un celular, abrir «Nueva incidencia» → cámara → leer una
+  etiqueta. El formulario todavía no recibe el código (llega en F).
+- **Commits:**
+  1. `feat(captura): vista de cámara reutilizable con CameraX (HU-09)`
+  2. `feat(captura): lector de texto de la etiqueta con ML Kit (HU-09)`
+  3. `feat(captura): «Escanear etiqueta» con el permiso y la cámara (HU-09)`
+  4. `feat(captura): «Usar este código» devuelve el código a quien abrió el escaneo (HU-09)`
+
+#### PR F — «Nueva incidencia» recibe el código
+| Archivo | Responsabilidad | RF |
+|---|---|---|
+| ✏️ `feature/incidencias/presentation/RegistroIncidenciaViewModel.kt` | `codigoLeidoConCamara` en el estado; `alUsarCodigoEscaneado(codigo)`; `alCambiarCodigo` lo apaga. | RF-910, RF-911 |
+| ✏️ `feature/incidencias/presentation/RegistroIncidenciaScreen.kt` | La Route recibe `codigoEscaneado` y `alConsumirCodigo`; `supportingText` «Leído desde la etiqueta con la cámara»; vista previa nueva. | RF-910 |
+| ✏️ `feature/incidencias/presentation/IncidenciasNavigation.kt` | Lee `CLAVE_CODIGO_ESCANEADO` del `savedStateHandle` de su propia entrada y lo borra al usarlo (sección 5.3). | RF-909, RF-910 |
+| ✏️ (test) `RegistroIncidenciaViewModelTest.kt` | Casos nuevos de la sección 7. | RF-910, RF-911 |
+
+- **Compartidos:** ninguno (es el módulo de la HU-03). **Cómo probarlo:** el flujo completo del escaneo en el
+  celular.
+- **Commits:**
+  1. `feat(incidencias): el registro guarda si el código vino de la cámara (HU-09)`
+  2. `test(incidencias): código escaneado y su indicación en el registro (HU-09)`
+  3. `feat(incidencias): «Leído desde la etiqueta con la cámara» bajo el código (HU-09)`
+  4. `feat(incidencias): el registro recibe el código al volver del escaneo (HU-09)`
