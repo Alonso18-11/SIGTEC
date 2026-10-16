@@ -236,3 +236,34 @@
 - [ ] **T73 · Ampliar una foto desde el detalle.** RF-934, RF-935. Hecho cuando: compila.
 - [ ] **T74 · Casos nuevos de `DetalleIncidenciaViewModelTest`.** RF-923, RF-932. Hecho cuando: la prueba pasa.
 
+## PR-43 — el repositorio elimina (base PR-27)
+- [ ] **T75 · `eliminar`** en `EvidenciaRepository` y `EvidenciaRepositoryImpl` (fila y luego archivo). RF-937.
+  Hecho cuando: compila.
+- [ ] **T76 · `eliminar` en `EvidenciaRepositoryFalso`.** RF: — Hecho cuando: compila con `testDebugUnitTest`.
+
+## PR-44 — `EliminarEvidencia` (base PR-43, trae PR-25)
+- [ ] **T77 · `EliminarEvidencia`** (4.9). RF-937. Hecho cuando: compila.
+- [ ] **T78 · `EliminarEvidenciaTest`.** RF-937. Hecho cuando: la prueba pasa.
+
+## PR-45 — botón «Eliminar foto» (base PR-41)
+- [ ] **T79 · `BotonPeligro` y su confirmación** en `FotoAmpliada`. RF-937.
+  Hecho cuando: la vista previa con `puedeEliminar` muestra el botón y la otra no.
+
+## PR-46 — eliminar desde el detalle (base PR-42, trae PR-44 y PR-45)
+- [ ] **T80 · `alEliminarFoto`** en `DetalleIncidenciaViewModel` y `puedeEliminar` en la pantalla. RF-937.
+  Hecho cuando: compila.
+- [ ] **T81 · Casos de eliminar en `DetalleIncidenciaViewModelTest`.** RF-937.
+  Hecho cuando: la prueba pasa y, en el celular, el archivo de la foto eliminada ya no está.
+
+## PR-47 — el informe observa las fotos (base PR-31, trae PR-27)
+- [ ] **T82 · `InformeTecnicoViewModel` combina `ObservarCapturaEvidencia` 🔶.** RF-938. Hecho cuando: compila.
+- [ ] **T83 · Casos nuevos de `InformeTecnicoViewModelTest` 🔶.** RF-938. Hecho cuando: la prueba pasa.
+
+## PR-48 — sección en el informe (base PR-47, trae PR-40)
+- [ ] **T84 · `SeccionEvidencias` antes de «Confirmar cierre con huella» 🔶.** RF-938.
+  Hecho cuando: la vista previa coincide con el prototipo 9.
+
+## PR-49 — «Agregar foto» desde el informe (base PR-48)
+- [ ] **T85 · `alAgregarFoto` en la Route y en `AtencionNavigation` 🔶.** RF-938.
+  Hecho cuando: en el celular, lo escrito en el informe sigue ahí al volver de tomar una foto.
+
