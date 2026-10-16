@@ -604,3 +604,21 @@ lint antes de abrirlo o de marcarlo listo.
 | RF-941 | `backup_rules.xml`, `data_extraction_rules.xml` | Revisión de PR-22 y PR-23 |
 | RF-942 | `SesionRepositoryFirebase`, `SincronizacionTiempoReal`, `AlmacenFotos.borrarTodo` (D-7) | `AlmacenFotosTest` + manual |
 | RF-943 | `EvidenciaDao.contar`, `EstadoDatos.fotosEnCelular`, `evaluarBorrado`, `textoAvisoSalida`, `AjustesSeguridadScreen` (D-8) | `EvidenciaDaoTest`, `ReglasSesionTest`, `EvaluarCierreSesionTest`, `TextosSalidaTest` + manual |
+
+## 9. Respeto a la constitución
+1. **Stack cerrado:** sin dependencias nuevas. CameraX, ML Kit y `kotlinx-coroutines-play-services` ya estaban en
+   `libs.versions.toml`; P-3 descarta `camera-mlkit-vision` y P-6 descarta Coil por la misma razón.
+2. **Spec antes que código:** la spec se aprobó antes del primer PR de código. PR-50, PR-51 y PR-56 actualizan
+   RF-10, RF-11 y RF-13 de la spec 001 en el mismo PR que cambia ese comportamiento.
+3. **Lógica fuera de la pantalla:** las reglas viven en `feature/captura/domain`, en Kotlin puro (`CodigoEquipo`,
+   `RachaLectura`, `ReglasEvidencia` y los casos de uso). `vistaPermiso` es una función pura. Las `Screen` solo
+   dibujan; `ConPermisoCamara`, `VistaCamara`, `LectorTextoEtiqueta` y `TomarFoto` son el pegamento con Android y
+   no deciden reglas.
+4. **Toda regla tiene prueba:** sección 7. Lo que no se puede probar en la JVM (cámara, ML Kit, Firebase) se prueba
+   a mano en un celular real y queda escrito en cada PR.
+5. **Datos del usuario protegidos:** el escaneo no guarda imágenes ni texto (RF-914); las fotos quedan en el
+   almacenamiento interno, fuera de la copia de seguridad, y se borran con los datos locales (RF-940 a RF-942).
+   La lectura del código es IA en el propio celular (ML Kit): no cambia ningún dato sin que la persona lo confirme
+   (RF-906). No se toca la confirmación biométrica de cierres ni de repuestos.
+6. **Español en el negocio:** `LeerCodigoEquipo`, `RachaLectura`, `AlmacenFotos`, `VistaCamara`,
+   `LectorTextoEtiqueta`; solo los sufijos que impone Android quedan en inglés (`ViewModel`, `Screen`, `Impl`).
