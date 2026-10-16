@@ -716,3 +716,23 @@ lint antes de abrirlo o de marcarlo listo.
 | RF-940 | `AlmacenFotos` (`filesDir`) | `AlmacenFotosTest` |
 | RF-941 | `backup_rules.xml`, `data_extraction_rules.xml` | Revisión del PR G |
 | RF-942 | `SesionRepositoryFirebase`, `SincronizacionTiempoReal`, `AlmacenFotos.borrarTodo` (solo con D-7) | `AlmacenFotosTest` + manual |
+
+## 9. Respeto a la constitución
+1. **Stack cerrado:** sin dependencias nuevas. CameraX, ML Kit y `kotlinx-coroutines-play-services` ya estaban en
+   `libs.versions.toml`; P-3 descarta `camera-mlkit-vision` y P-6 descarta Coil por la misma razón.
+2. **Spec antes que código:** esta spec y este plan se aprueban antes del primer PR de código. M, N, O y Q solo se
+   abren si se aprueban D-5, D-6, D-7 y D-8; si no, sus RF salen de la spec. O actualiza RF-10 y RF-11 de la
+   spec 001 en el mismo PR que cambia ese comportamiento.
+3. **Lógica fuera de la pantalla:** las reglas viven en `feature/captura/domain`, en Kotlin puro (`CodigoEquipo`,
+   `RachaLectura`, `ReglasEvidencia` y los casos de uso). `vistaPermiso` es una función pura. Las `Screen` solo
+   dibujan; `ConPermisoCamara`, `VistaCamara`, `LectorTextoEtiqueta` y `TomarFoto` son el pegamento con Android y
+   no deciden reglas.
+4. **Toda regla tiene prueba:** sección 7. Lo que no se puede probar en la JVM (cámara, ML Kit, Firebase) se prueba
+   a mano en un celular real y queda escrito en cada PR.
+5. **Datos del usuario protegidos:** el escaneo no guarda imágenes ni texto (RF-914); las fotos quedan en el
+   almacenamiento interno, fuera de la copia de seguridad, y se borran con los datos locales (RF-940 a RF-942).
+   La lectura del código es IA en el propio celular (ML Kit): no cambia ningún dato sin que la persona lo confirme
+   (RF-906). No se toca la confirmación biométrica de cierres ni de repuestos.
+6. **Español en el negocio:** `LeerCodigoEquipo`, `RachaLectura`, `AlmacenFotos`, `VistaCamara`,
+   `LectorTextoEtiqueta`; solo los sufijos que impone Android quedan en inglés (`ViewModel`, `Screen`, `Impl`).
+
