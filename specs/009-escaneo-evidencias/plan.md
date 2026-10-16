@@ -629,3 +629,49 @@ Las decisiones de producto (D-1 a D-12) están en «Dudas abiertas» de `spec.md
 | P-10 | `GuardarEvidencia` vuelve a verificar todo después de tomar la foto, aunque el disparador estuviera habilitado. | La incidencia puede cerrarse o reasignarse mientras se toma (RF-931); si no pasa, se borra el archivo. | Verificar solo antes de disparar: dejaría fotos enlazadas a una incidencia ajena. |
 | P-11 | El disparador es circular. | Es la forma que todos reconocen como «tomar foto». Es la única excepción a las esquinas de 3 a 8 dp del rediseño. | Un botón rectangular de `Botones.kt`: confunde con «Listo». |
 | P-12 | Las fotos se guardan al tomarlas, una por una, y no al pulsar «Listo». | Si la app se cierra o falla a mitad, no se pierde nada (RF-930). | Juntarlas y guardarlas al final: una sola falla perdería todas. |
+
+## 7. Estrategia de pruebas
+
+`./gradlew testDebugUnitTest` con JUnit 4, `kotlinx-coroutines-test`, `MainDispatcherRule` y dobles propios
+(`SesionRepositoryDemo`, `IncidenciaRepositoryFalso`, y los nuevos `CatalogoEquiposRepositoryFalso` y
+`EvidenciaRepositoryFalso`). No se agregan librerías. Las pruebas de `captura` van en
+`feature/captura/{domain,data,presentation}`, con el mismo paquete que la clase real.
+
+| Prueba (PR) | Casos | RF |
+|---|---|---|
+| `CodigoEquipoTest` (A) | Mayúsculas, guiones raros y espacios alrededor del guion; `PC-C0NT-O14` → `PC-CONT-014`; el texto del prototipo 13 («SOFT CORPORATION · ACTIVO FIJO», «Área: Contabilidad») da solo `PC-CONT-014`; una fecha (`2026-10-15`) y un anexo (`Anexo 2314`) no son candidatos; dos códigos salen sin repetir y en orden; `elegirCodigo` prefiere el del catálogo, toma el primero si ninguno está y devuelve `null` sin candidatos. | RF-903, RF-904, RF-907 |
+| `RachaLecturaTest` (A) | Tres iguales seguidas dan `estable`; dos iguales y una distinta, no; una lectura sin código reinicia; una racha nueva empieza vacía. | RF-905, RF-908 |
+| `LeerCodigoEquipoTest` (B) | Código del catálogo → `enCatalogo = true`; fuera del catálogo → `false`; dos códigos con uno en el catálogo → ese; texto sin código → `null`. | RF-904, RF-907 |
+| `PermisoCamaraTest` (C) | La tabla de 3.5: sin cámara; concedido; sin pedir; negado con explicación; negado sin explicación después de pedirlo; quitado desde ajustes. | RF-916 a RF-920, RF-922 |
+| `EscaneoViewModelTest` (D) | Tres textos con el mismo código → `reconocido`; alternancia → nada; con un código reconocido, los textos nuevos se ignoran; `alVolverAEscanear` limpia todo; un código fuera del catálogo llega con `enCatalogo = false`. | RF-905 a RF-908 |
+| `RegistroIncidenciaViewModelTest` (F, se amplía) | El código escaneado reemplaza el escrito y enciende `codigoLeidoConCamara`; editarlo a mano lo apaga; recibir un código limpia un error anterior. | RF-910, RF-911 |
+| `AlmacenFotosTest` (G) | `archivoNuevo` crea la subcarpeta de la incidencia dentro de la raíz; `borrar` borra ese archivo y no falla si ya no existe; `borrarTodo` vacía la carpeta de fotos y no toca nada fuera de ella. | RF-928, RF-940, RF-942 |
+| `ReglasEvidenciaTest` (H) | Sin usuario; jefe (sin `ATENDER_INCIDENCIA`); otro técnico; incidencia inexistente; cerrada; con 10 fotos; con 9 fotos pasa; con `cantidad = null` (eliminar) pasa aunque tenga 10. | RF-923, RF-926, RF-929, RF-931, RF-937 |
+| `GuardarEvidenciaTest` (H) | Sin sesión → `SinPermiso` y el archivo descartado; otro técnico → `SinPermiso` y descartado; cerrada → `IncidenciaCerrada` y descartado; al máximo → `LimiteFotosAlcanzado` y descartado; correcto → la evidencia con su tipo, su ruta y `fechaCaptura == ahora`; el repositorio falla → el error y nada guardado. | RF-925, RF-926, RF-928, RF-929 |
+| `ObservarCapturaEvidenciaTest` (H) | Técnico asignado sin bloqueo; sin sesión → `SinPermiso`; al llegar a 10 → `LimiteFotosAlcanzado`; al reasignarse en el repositorio falso → `SinPermiso`; incidencia inexistente → `null`. | RF-924, RF-929, RF-931 |
+| `CapturaEvidenciaViewModelTest` (J) | Empieza en «Falla» y cambia; el tipo sale del `SavedStateHandle` (rotación); `alDisparar` devuelve una `FotoNueva` y deshabilita el disparador; un segundo `alDisparar` mientras guarda devuelve `null`; `alFotoTomada` guarda con el tipo elegido y vuelve a habilitar; `alFalloCaptura` descarta el archivo y muestra el error; con bloqueo, `alDisparar` devuelve `null`. | RF-924 a RF-931 |
+| `ObservarDetalleIncidenciaTest` y `DetalleIncidenciaViewModelTest` (L, se amplían) | Las fotos llegan al detalle en orden; sin fotos, lista vacía; `puedeAtender` (que muestra «Agregar foto») solo para el técnico asignado mientras siga pendiente. | RF-923, RF-932, RF-936 |
+| `EliminarEvidenciaTest` y `DetalleIncidenciaViewModelTest` (M) | Sin permiso; otro técnico; cerrada → `IncidenciaCerrada`; correcto; fallo del repositorio; el error llega al estado del detalle. | RF-937 |
+| `InformeTecnicoViewModelTest` (N, se amplía) | Las fotos llegan al estado del informe; lo escrito en el formulario se conserva. | RF-938 |
+
+**No se agregan pruebas instrumentadas:** no cambia ninguna entidad ni ningún DAO (`EvidenciaDao` se usa tal cual),
+que es lo que `CLAUDE.md` pide cubrir con ellas.
+
+**Sin prueba JVM, igual que en las HU anteriores:** `CatalogoEquiposRepositoryImpl` y `EvidenciaRepositoryImpl`
+(dependen de Room, como los demás `*RepositoryImpl`), `VistaCamara`, `LectorTextoEtiqueta`, `TomarFoto`,
+`ConPermisoCamara` y `MiniaturaEvidencia` (dependen de la cámara, de ML Kit o de Android), y el borrado en
+`SesionRepositoryFirebase`/`SincronizacionTiempoReal` (Firebase; `borrarTodo()` sí se prueba en G).
+
+**Verificado a mano en un celular real** (el emulador simula la cámara), con capturas en claro y oscuro:
+- E: el permiso (explicación, negar, negar otra vez, «Abrir ajustes»), la lectura de las 4 etiquetas de prueba en
+  modo avión, la velocidad (menos de 2 segundos) y que la cámara se suelta al salir.
+- F: el código llega a «Nueva incidencia» con su indicación; editarlo la quita; salir sin confirmar no cambia nada.
+- K: fotos de los dos tipos, el máximo de 10, el doble toque, y el disparador deshabilitado si la incidencia se
+  cierra desde otro celular.
+- L, M y N: las fotos en el detalle (y en el informe con D-6), ampliadas, eliminadas (con D-5), y otro técnico sin
+  «Agregar foto»; como jefe, en otro celular, la misma incidencia sin fotos.
+- O: después de cerrar sesión, y después de entrar otra persona, la carpeta `files/evidencias` vacía
+  (`adb shell run-as com.softcorp.sigtec ls files/evidencias`).
+
+**Cierre de cada PR:** `./gradlew assembleDebug testDebugUnitTest lintDebug` en verde y sin advertencias nuevas de
+lint antes de abrirlo o de marcarlo listo.
