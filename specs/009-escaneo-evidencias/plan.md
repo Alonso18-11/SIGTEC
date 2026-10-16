@@ -736,3 +736,24 @@ lint antes de abrirlo o de marcarlo listo.
 6. **Español en el negocio:** `LeerCodigoEquipo`, `RachaLectura`, `AlmacenFotos`, `VistaCamara`,
    `LectorTextoEtiqueta`; solo los sufijos que impone Android quedan en inglés (`ViewModel`, `Screen`, `Impl`).
 
+## 10. Resumen: archivos compartidos y Room por PR (requieren visto bueno)
+
+| PR | Compartidos ⚠️ (lista de `CLAUDE.md`) | Sensibles 🔶 | Room |
+|---|---|---|---|
+| A, B, D, E, J, K | — | — | Sin cambios |
+| C | `AndroidManifest.xml` (permiso de cámara, D-11) | — | Sin cambios |
+| F | — | — (es el módulo de la HU-03) | Sin cambios |
+| G | — | `core/data/AlmacenFotos.kt` (archivo nuevo fuera del módulo, D-7), `res/xml/backup_rules.xml` y `res/xml/data_extraction_rules.xml` (D-9) | Sin cambios |
+| H | `core/domain/Resultado.kt` y `core/ui/MensajesError.kt` (`LimiteFotosAlcanzado`, D-2) | — | Sin cambios |
+| I | — | — | Sin cambios: usa `EvidenciaDao` e `IncidenciaDao` tal cual |
+| L, M | — | — (el detalle es de la HU-04; usa composables de `captura`, P-7) | Sin cambios |
+| N | — | `feature/atencion/presentation/*` de la HU-08 (D-6) | Sin cambios |
+| O | — | `core/data/SesionRepositoryFirebase.kt` (modelo de sesión), `core/sync/SincronizacionTiempoReal.kt` y `specs/001-inicio-sesion/spec.md` (D-7) | Sin cambios |
+| Q | — | `feature/acceso/*` (modelo de sesión, D-8) | Sin cambios |
+| P | `MEMORY.md` (solo la línea de la HU-09) | — | Sin cambios |
+
+Ningún PR toca `libs.versions.toml`, `app/build.gradle.kts`, `SigtecDatabase.kt`, las entidades, `Rutas.kt`,
+`SigtecRaiz.kt`, `core/theme/*`, `core/di/*` ni `firebase/firestore.rules`. `version` de Room no sube.
+
+**Pendiente de visto bueno antes de implementar:** las decisiones D-1 a D-12 de la spec y, con ellas, los archivos
+de esta tabla.
