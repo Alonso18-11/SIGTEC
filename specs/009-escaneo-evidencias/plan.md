@@ -298,3 +298,95 @@ seguido de su push.
   1. `feat(captura): tomar la foto reducida y comprimida con CameraX (HU-09)`
   2. `feat(captura): «Evidencia fotográfica» con el permiso y la cámara (HU-09)`
   3. `feat(captura): conectar «Evidencia fotográfica» en la navegación (HU-09)`
+
+### Fotos en el detalle y en el informe, borrado y cierre (PR L a Q y P)
+
+#### PR L — fotos en el detalle
+| Archivo | Responsabilidad | RF |
+|---|---|---|
+| ✏️ `feature/incidencias/domain/IncidenciaRepository.kt` | `fun observarEvidencias(incidenciaId): Flow<List<Evidencia>>`. | RF-932, RF-936 |
+| ✏️ `feature/incidencias/data/IncidenciaRepositoryImpl.kt` | Inyecta `EvidenciaDao`, solo para leer (igual que `InformeTecnicoDao` en la HU-08). | RF-932 |
+| ✏️ `feature/incidencias/domain/ObservarDetalleIncidencia.kt` | `DetalleIncidencia` agrega `evidencias: List<Evidencia> = emptyList()`, combinando `repo.observarEvidencias(id)`. | RF-932, RF-936 |
+| 🆕 `feature/captura/presentation/SeccionEvidencias.kt` | Composable sin estado: miniaturas en filas que se acomodan al ancho, la nota «Las fotos se guardan solo en el celular que las tomó.», «Sin fotos en este celular.» y «Agregar foto» solo si `puedeAgregar` (sección 5.5). Lo reutiliza N. | RF-923, RF-932, RF-933 |
+| 🆕 `feature/captura/presentation/FotoAmpliada.kt` | `Dialog` a pantalla completa con la foto, su tipo y su fecha y hora; se cierra con «Volver» o atrás. | RF-934, RF-935 |
+| ✏️ `feature/incidencias/presentation/DetalleIncidenciaScreen.kt` | Cambia la sección actual por `SeccionEvidencias(puedeAgregar = estado.puedeAtender)`; recuerda qué foto está ampliada; vistas previas con fotos. | RF-923, RF-932 a RF-936 |
+| ✏️ (test) `feature/incidencias/data/IncidenciaRepositoryFalso.kt` | Fotos en memoria. | — |
+| ✏️ (test) `feature/incidencias/domain/ObservarDetalleIncidenciaTest.kt` | Con fotos, sin fotos y el orden. | RF-932, RF-936 |
+| ✏️ (test) `DetalleIncidenciaViewModelTest.kt` | Las fotos llegan al estado; `puedeAtender` sigue la regla de RF-923. | RF-923, RF-932 |
+
+- **Compartidos:** ninguno. `DetalleIncidenciaScreen` importa dos composables de `feature/captura` (P-7).
+  **Cómo probarlo:** con K fusionado, el flujo completo de las fotos en el celular.
+- **Commits:**
+  1. `feat(incidencias): el repositorio lee las fotos de la incidencia (HU-09)`
+  2. `test(incidencias): fotos en el repositorio falso de incidencias (HU-09)`
+  3. `feat(incidencias): el detalle observa también las fotos de la incidencia (HU-09)`
+  4. `test(incidencias): el detalle con fotos, sin fotos y en orden (HU-09)`
+  5. `feat(captura): sección «Evidencias» reutilizable (HU-09)`
+  6. `feat(captura): foto ampliada con su tipo y su fecha (HU-09)`
+  7. `feat(incidencias): fotos en el detalle y «Agregar foto» solo para el técnico asignado (HU-09)`
+  8. `test(incidencias): las fotos llegan al estado del detalle (HU-09)`
+
+#### PR M — eliminar una foto (solo con D-5)
+| Archivo | Responsabilidad | RF |
+|---|---|---|
+| ✏️ `feature/captura/domain/EvidenciaRepository.kt`, `data/EvidenciaRepositoryImpl.kt` y (test) `EvidenciaRepositoryFalso.kt` | `eliminar(evidencia)`: borra la fila y después el archivo. | RF-937 |
+| 🆕 `feature/captura/domain/EliminarEvidencia.kt` | Caso de uso (4.9). | RF-937 |
+| 🆕 (test) `feature/captura/domain/EliminarEvidenciaTest.kt` | Casos de la sección 7. | RF-937 |
+| ✏️ `feature/captura/presentation/FotoAmpliada.kt` | «Eliminar foto» (`BotonPeligro`) con su confirmación, solo si `puedeEliminar`. | RF-937 |
+| ✏️ `feature/incidencias/presentation/DetalleIncidenciaViewModel.kt` | `alEliminarFoto(evidencia)` con su error; inyecta `EliminarEvidencia` (P-7). | RF-937 |
+| ✏️ `feature/incidencias/presentation/DetalleIncidenciaScreen.kt` | Pasa `puedeEliminar = estado.puedeAtender` y la acción. | RF-937 |
+| ✏️ (test) `DetalleIncidenciaViewModelTest.kt` | Eliminar con éxito y con error. | RF-937 |
+
+- **Compartidos:** ninguno. **Commits:**
+  1. `feat(captura): el repositorio elimina la foto y su archivo (HU-09)`
+  2. `feat(captura): EliminarEvidencia solo para el técnico asignado y pendiente (HU-09)`
+  3. `test(captura): EliminarEvidencia sin permiso, cerrada, correcta y con fallo (HU-09)`
+  4. `feat(captura): «Eliminar foto» con confirmación en la foto ampliada (HU-09)`
+  5. `feat(incidencias): eliminar una foto desde el detalle (HU-09)`
+  6. `test(incidencias): eliminar una foto desde el detalle (HU-09)`
+
+#### PR N — «Evidencias» en el informe técnico (solo con D-6)
+| Archivo | Responsabilidad | RF |
+|---|---|---|
+| ✏️🔶 `feature/atencion/presentation/InformeTecnicoViewModel.kt` | Combina `ObservarCapturaEvidencia(incidenciaId)` para las fotos y para saber si puede agregar. | RF-938 |
+| ✏️🔶 `feature/atencion/presentation/InformeTecnicoScreen.kt` | `SeccionEvidencias` antes de «Confirmar cierre con huella», como en el prototipo 9; la Route recibe `alAgregarFoto`; vistas previas. | RF-938 |
+| ✏️🔶 `feature/atencion/presentation/AtencionNavigation.kt` | `alAgregarFoto` navega a `Ruta.CapturarEvidencia(id)`. | RF-938 |
+| ✏️🔶 (test) `InformeTecnicoViewModelTest.kt` | Las fotos llegan al estado y lo escrito se conserva. | RF-938 |
+
+- **Sensibles 🔶:** el módulo `atencion` de la HU-08 (Alonso). **Commits:**
+  1. `feat(atencion): el informe observa las fotos de la incidencia (HU-09)`
+  2. `test(atencion): fotos en el estado del informe sin perder lo escrito (HU-09)`
+  3. `feat(atencion): sección «Evidencias» en el informe técnico (HU-09)`
+  4. `feat(atencion): «Agregar foto» desde el informe técnico (HU-09)`
+
+#### PR O — borrar las fotos con los datos locales (solo con D-7)
+| Archivo | Responsabilidad | RF |
+|---|---|---|
+| ✏️🔶 `core/data/SesionRepositoryFirebase.kt` | Inyecta `AlmacenFotos`; después de `clearAllTables()` en `cerrarSesion()` llama a `borrarTodo()`. Cubre también `cerrarSesionPorRevocacion`, que usa `cerrarSesion()`. | RF-942 |
+| ✏️🔶 `core/sync/SincronizacionTiempoReal.kt` | Lo mismo después del `clearAllTables()` de `debeBorrarDatosAlEntrar` (D-12 de la spec 001). | RF-942 |
+| ✏️ `specs/001-inicio-sesion/spec.md` | RF-10 y RF-11 incluyen las fotos; se quita «Las fotos se agregarán cuando exista la HU de captura». | RF-942 |
+| ✏️ `MEMORY.md` | Se quita el pendiente «Fotos: … (D-7)», después de `git pull origin main`. | — |
+
+- **Sensibles 🔶:** modelo de sesión y `core/sync`: revisión de Alonso (D-7). **Cómo probarlo:** a mano en el
+  celular (Firebase no se prueba en la JVM, igual que RF-10 en la spec 001); `borrarTodo()` ya tiene prueba en G.
+- **Commits:**
+  1. `feat(core): borrar las fotos al cerrar sesión (HU-09)`
+  2. `feat(core): borrar las fotos al entrar otra persona (HU-09)`
+  3. `docs(acceso): RF-10 y RF-11 incluyen las fotos de evidencia (HU-09)`
+  4. `docs(core): pendiente de las fotos resuelto en MEMORY (HU-09)`
+
+#### PR Q — aviso de las fotos al cerrar sesión (solo con D-8, opción a)
+Se detalla cuando se responda D-8. Ampliaría la confirmación de RF-13 (`feature/acceso`, HU-01) con «y N fotos de
+evidencia», contando las filas de `EvidenciaDao`; toca el modelo de sesión y necesita la revisión de Alonso.
+
+#### PR P — pruebas manuales y cierre
+| Archivo | Cambio |
+|---|---|
+| ✏️ `specs/009-escaneo-evidencias/spec.md` | «Estado: borrador» → «Estado: completa», con la fecha y qué se probó. |
+| ✏️ `specs/009-escaneo-evidencias/tasks.md` | Tareas marcadas. |
+| ✏️ `MEMORY.md` | Línea de la HU-09: «completa (RF-901 a RF-942)», después de `git pull origin main`. |
+
+- **Commits:**
+  1. `docs(captura): pruebas manuales de la HU-09 en el celular (HU-09)`
+  2. `docs(captura): spec de la HU-09 completa (HU-09)`
+  3. `docs(captura): HU-09 completa en MEMORY (HU-09)`
