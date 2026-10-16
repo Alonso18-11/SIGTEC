@@ -119,7 +119,7 @@ Esta HU le permite a cualquier persona del área leer el código desde la etique
 - Leer códigos de barras o QR: las etiquetas tienen el código impreso como texto.
 - Editar, recortar o anotar una foto, elegir una de la galería o grabar video.
 - Fotos al registrar la incidencia (antes de que exista y tenga técnico): solo el técnico asignado toma fotos.
-- Cambiar el informe técnico (sus campos o su cierre con huella): la HU-08 queda igual; si se aprueba D-6, solo se le agrega la sección «Evidencias».
+- Cambiar el informe técnico (sus campos o su cierre con huella): la HU-08 queda igual; solo se le agrega la sección «Evidencias» (D-6).
 
 ## Criterios de finalización
 - RF-901 a RF-942 implementados. RF-937 (eliminar fotos) y RF-938 (evidencias en «Informe técnico») solo si se aprueban D-5 y D-6; si no, se quitan de esta spec antes de implementar.
