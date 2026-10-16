@@ -270,3 +270,121 @@ Todas viven en Kotlin puro, sin `import android.*` (principio 3), y se prueban e
 `vistaPermiso` vive en `presentation` porque traduce estados de Android, pero es una función pura y se prueba igual.
 Con ella no hace falta guardar entre sesiones si ya se pidió el permiso: si Android dejó de mostrar su diálogo, el
 primer «Permitir cámara» vuelve al instante negado y la siguiente vista ya es `IR_A_AJUSTES`.
+
+## 4. Algoritmos en pseudocódigo
+
+### 4.1 `LeerCodigoEquipo(texto)` (RF-902 a RF-904, RF-907)
+```text
+candidatos = candidatosCodigo(texto)
+si candidatos está vacía: devolver null
+delCatalogo = candidatos que cumplen catalogo.existe(c)       // uno o dos por imagen
+devolver elegirCodigo(candidatos, delCatalogo)
+```
+No llama a `VerificarPermiso`: leer no cambia datos ni muestra nada que la persona no tenga ya delante (P-1).
+
+### 4.2 `EscaneoViewModel` (RF-905 a RF-908)
+```text
+textos = MutableSharedFlow<String>(extraBufferCapacity = 1, onBufferOverflow = DROP_OLDEST)
+al crearse: viewModelScope.launch { textos.collect { procesar(it) } }      // en orden, uno a la vez (P-9)
+
+alLeerTexto(texto):                       // lo llama el analizador desde su hilo
+    si estado.reconocido == null: textos.tryEmit(texto)
+
+procesar(texto):
+    si estado.reconocido != null: terminar                                 // RF-906: ya no analiza
+    lectura = leerCodigo(texto)
+    racha = estado.racha.siguiente(lectura?.codigo)
+    estado = estado.copy(racha = racha, reconocido = lectura si racha.estable, si no null)
+
+alVolverAEscanear():  estado = EscaneoUiState()                             // RF-908
+```
+Mientras hay un código reconocido, la pantalla tampoco le pasa imágenes al lector (RF-906).
+
+### 4.3 `PrepararFoto(incidenciaId)` (RF-925)
+```text
+id = UUID nuevo
+devolver FotoNueva(id, ruta = repo.rutaParaNuevaFoto(incidenciaId, id))
+```
+
+### 4.4 `GuardarEvidencia(incidenciaId, foto, tipo, ahora)` (RF-925, RF-926, RF-928, RF-929)
+```text
+usuario = verificarPermiso(ATENDER_INCIDENCIA)
+    si es error: repo.descartarArchivo(foto.ruta); devolver el error
+incidencia = repo.incidencia(incidenciaId)                  // lectura fresca: pudo cambiar al disparar
+cantidad = repo.contarEvidencias(incidenciaId)
+bloqueo = bloqueoParaFotos(usuario, incidencia, cantidad)
+    si no es null: repo.descartarArchivo(foto.ruta); devolver Error(bloqueo)
+evidencia = Evidencia(foto.id, incidenciaId, tipo, foto.ruta, fechaCaptura = ahora)
+devolver repo.guardar(evidencia) convertido a Resultado<Evidencia>   // si Room falla, guardar ya borró el archivo
+```
+
+### 4.5 `DescartarFoto(foto)` (RF-928)
+```text
+repo.descartarArchivo(foto.ruta)                            // la cámara falló o escribió a medias
+```
+
+### 4.6 `ObservarCapturaEvidencia(incidenciaId)` (RF-924, RF-929, RF-931)
+```text
+combine(repo.observarIncidencia(id), repo.observarEvidencias(id), observarUsuarioActual()) {
+    incidencia, fotos, usuario ->
+    incidencia?.let { CapturaEvidencia(it, fotos, bloqueo = bloqueoParaFotos(usuario, it, fotos.size)) }
+}
+```
+Como observa Room, si la incidencia se cierra o se reasigna desde otro celular, el bloqueo aparece solo (RF-931).
+
+### 4.7 `EvidenciaRepositoryImpl.guardar` (RF-928)
+```text
+withContext(io) {
+    try   { evidenciaDao.guardar(evidencia.toEntity()); Exito(Unit) }
+    catch CancellationException { almacen.borrar(evidencia.rutaArchivo); relanzar }
+    catch Exception e { almacen.borrar(evidencia.rutaArchivo); Log.w(TAG, "No se pudo enlazar la foto", e)
+                        Error(Desconocido(e.message)) }
+}
+```
+`rutaParaNuevaFoto` devuelve `almacen.archivoNuevo(incidenciaId, id).absolutePath` (P-4).
+
+### 4.8 `CapturaEvidenciaViewModel` (RF-924 a RF-931)
+```text
+tipo = savedStateHandle.getStateFlow("tipo", FALLA)                      // sobrevive a la rotación
+estado = combine(observarCaptura(id), tipo, accion) en un CapturaEvidenciaUiState
+
+alDisparar(): FotoNueva?
+    si accion.guardando o estado.captura?.bloqueo != null: devolver null    // RF-927, RF-929, RF-931
+    accion.guardando = true; accion.error = null
+    devolver prepararFoto(id)
+
+alFotoTomada(foto):   launch { r = guardarEvidencia(id, foto, tipo.value, Instant.now())
+                               accion = (guardando = false, error = r como error o null) }
+alFalloCaptura(foto): launch { descartarFoto(foto); accion = (guardando = false, error = Desconocido(null)) }
+```
+
+### 4.9 `EliminarEvidencia(evidencia)` (RF-937, D-5)
+```text
+usuario = verificarPermiso(ATENDER_INCIDENCIA); si es error, devolverlo
+incidencia = repo.incidencia(evidencia.incidenciaId)
+bloqueoParaFotos(usuario, incidencia, cantidad = null)?.let { devolver Error(it) }
+devolver repo.eliminar(evidencia)                          // primero la fila, después el archivo
+```
+
+### 4.10 Borrado de las fotos con los datos locales (RF-942, D-7)
+```text
+clearAllTables()           // primero Room: ninguna fila queda apuntando a un archivo ya borrado
+almacen.borrarTodo()       // si falla, se registra con Log.w y no impide cerrar sesión ni entrar;
+                           // los archivos sin fila no se ven y se borran en el siguiente borrado
+```
+
+### 4.11 Aviso de las fotos al cerrar sesión (RF-943, D-8)
+```text
+evaluarBorrado(pendientes, fotos = 0):                       // ReglasSesion.kt
+    si pendientes > 0 o fotos > 0: Confirmar(pendientes, fotos) si no: SinRiesgo
+EvaluarCierreSesion():
+    estado = observarEstadoDatos().first()
+    evaluarBorrado(estado.pendientesPorEnviar + estado.necesitanAtencion, estado.fotosEnCelular)
+textoAvisoSalida(pendientes, fotos):                         // TextosSalida.kt
+    con los dos: "Tienes ${textoCambiosSinEnviar(p)} y ${textoFotosEvidencia(f)} en este celular. Si cierras sesión ahora, se perderán."
+    solo fotos:  "Tienes ${textoFotosEvidencia(f)} en este celular. Si cierras sesión ahora, ${textoSePerdera(f)}."
+    solo cambios: el texto de RF-13, sin cambios
+textoFotosEvidencia(f): "1 foto de evidencia" o "$f fotos de evidencia"
+```
+`fotos` tiene valor por defecto para que los llamadores de RF-11 (`EvaluarIngresoDeOtraPersona`) no cambien hasta
+que se decida D-13.
