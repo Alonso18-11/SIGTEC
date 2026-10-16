@@ -562,3 +562,45 @@ emulador, no en el CI.
 
 **Cierre de cada PR:** `./gradlew assembleDebug testDebugUnitTest lintDebug` en verde y sin advertencias nuevas de
 lint antes de abrirlo o de marcarlo listo.
+
+## 8. Cobertura de RF
+
+| RF | Dónde vive | Prueba |
+|---|---|---|
+| RF-901 | `EscanearEtiquetaScreen`, `VistaCamara`; el botón de cámara del registro ya existe | Vistas previas + manual (PR-16) |
+| RF-902 | `LectorTextoEtiqueta` + `LeerCodigoEquipo` | `LeerCodigoEquipoTest` + manual en modo avión |
+| RF-903 | `normalizarTexto`, `candidatosCodigo` | `CodigoEquipoTest` |
+| RF-904 | `elegirCodigo`, `LeerCodigoEquipo` | `CodigoEquipoTest`, `LeerCodigoEquipoTest` |
+| RF-905 | `RachaLectura`, `EscaneoViewModel` | `RachaLecturaTest`, `EscaneoViewModelTest` |
+| RF-906 | `EscaneoViewModel` (deja de procesar), panel de `EscanearEtiquetaScreen` | `EscaneoViewModelTest` + vistas previas |
+| RF-907 | `elegirCodigo` (`enCatalogo`), panel con el aviso | `CodigoEquipoTest`, `LeerCodigoEquipoTest`, `EscaneoViewModelTest` |
+| RF-908 | `EscaneoViewModel.alVolverAEscanear` | `EscaneoViewModelTest` |
+| RF-909 | `CapturaNavigation` (`previousBackStackEntry?.savedStateHandle`) | Manual (PR-17, PR-20) |
+| RF-910 | `RegistroIncidenciaViewModel`, `RegistroIncidenciaScreen`, `IncidenciasNavigation` | `RegistroIncidenciaViewModelTest` + manual |
+| RF-911 | `RegistroIncidenciaViewModel.alCambiarCodigo` | `RegistroIncidenciaViewModelTest` |
+| RF-912 | `CapturaNavigation` («Volver» sin dejar nada) | Manual |
+| RF-913 | `CLAVE_CODIGO_ESCANEADO`, única forma de devolver el código | Manual con el registro; la HU-16 la reutiliza |
+| RF-914 | `LectorTextoEtiqueta` (no escribe nada) | Revisión de PR-15 |
+| RF-915 | `VistaCamara` (enlazada al ciclo de vida) | Manual |
+| RF-916 a RF-920, RF-922 | `vistaPermiso`, `ConPermisoCamara`, `ExplicacionPermisoCamara`, manifest | `PermisoCamaraTest` + vistas previas + manual |
+| RF-921 | `VistaCamara` (error al abrir) | Manual, con otra app usando la cámara |
+| RF-923 | `DetalleIncidenciaScreen` (`puedeAtender`), `bloqueoParaFotos` | `ReglasEvidenciaTest`, `DetalleIncidenciaViewModelTest` |
+| RF-924 | `EvidenciaFotograficaScreen`, `ObservarCapturaEvidencia` | `ObservarCapturaEvidenciaTest`, `CapturaEvidenciaViewModelTest` |
+| RF-925 | `PrepararFoto`, `TomarFoto`, `GuardarEvidencia`, `AlmacenFotos` | `GuardarEvidenciaTest`, `AlmacenFotosTest` + manual |
+| RF-926 | `GuardarEvidencia` con `bloqueoParaFotos` | `GuardarEvidenciaTest`, `ReglasEvidenciaTest` |
+| RF-927 | `CapturaEvidenciaViewModel.alDisparar` | `CapturaEvidenciaViewModelTest` + manual |
+| RF-928 | `GuardarEvidencia`, `DescartarFoto`, `EvidenciaRepositoryImpl.guardar` | `GuardarEvidenciaTest`, `CapturaEvidenciaViewModelTest` + manual |
+| RF-929 | `bloqueoParaFotos`, `LimiteFotosAlcanzado` | `ReglasEvidenciaTest`, `GuardarEvidenciaTest`, `ObservarCapturaEvidenciaTest` |
+| RF-930 | `CapturaNavigation`; cada foto se guarda al tomarla (P-12) | Manual |
+| RF-931 | `ObservarCapturaEvidencia` (reactivo) y `GuardarEvidencia` (P-10) | `ObservarCapturaEvidenciaTest` + manual con dos celulares |
+| RF-932, RF-936 | `ObservarDetalleIncidencia`, `SeccionEvidencias` | `ObservarDetalleIncidenciaTest`, `DetalleIncidenciaViewModelTest` |
+| RF-933 | `SeccionEvidencias` | Vistas previas + manual |
+| RF-934 | `FotoAmpliada` | Vistas previas + manual |
+| RF-935 | `MiniaturaEvidencia` | Manual, borrando un archivo con `adb shell run-as` |
+| RF-937 | `EliminarEvidencia`, `FotoAmpliada`, `DetalleIncidenciaViewModel` (D-5) | `EliminarEvidenciaTest`, `DetalleIncidenciaViewModelTest` |
+| RF-938 | `InformeTecnicoViewModel`, `InformeTecnicoScreen` (D-6) | `InformeTecnicoViewModelTest` |
+| RF-939 | `EvidenciaEntity` sin campos de sincronización; `core/sync` no la conoce | Revisión + manual con otro celular |
+| RF-940 | `AlmacenFotos` (`filesDir`) | `AlmacenFotosTest` |
+| RF-941 | `backup_rules.xml`, `data_extraction_rules.xml` | Revisión de PR-22 y PR-23 |
+| RF-942 | `SesionRepositoryFirebase`, `SincronizacionTiempoReal`, `AlmacenFotos.borrarTodo` (D-7) | `AlmacenFotosTest` + manual |
+| RF-943 | `EvidenciaDao.contar`, `EstadoDatos.fotosEnCelular`, `evaluarBorrado`, `textoAvisoSalida`, `AjustesSeguridadScreen` (D-8) | `EvidenciaDaoTest`, `ReglasSesionTest`, `EvaluarCierreSesionTest`, `TextosSalidaTest` + manual |
