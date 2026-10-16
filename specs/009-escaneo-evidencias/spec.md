@@ -108,7 +108,7 @@ Esta HU le permite a cualquier persona del área leer el código desde la etique
 - Celular sin espacio: la foto no se guarda y se muestra el error genérico (RF-928), sin archivos a medias.
 - El archivo de una foto desaparece por fuera de la app: su miniatura dice «Foto no disponible» (RF-935). Si alguien borra los datos de la app desde los ajustes de Android, se pierden las fotos y sus enlaces a la vez.
 - Incidencia cerrada: la sección «Evidencias» muestra las fotos, pero sin «Agregar foto» ni «Eliminar foto» (RF-923, RF-937).
-- Cerrar sesión o entrar otra persona con fotos en el celular: se borran junto con los demás datos locales (RF-942). Ver D-8 sobre avisarlo antes.
+- Cerrar sesión o entrar otra persona con fotos en el celular: se borran junto con los demás datos locales (RF-942); antes de cerrar sesión, el aviso las cuenta (RF-943).
 
 ## Fuera de alcance
 - La linterna en las pantallas de cámara, aunque aparece en los prototipos 13 y 14: es de la HU-10.
