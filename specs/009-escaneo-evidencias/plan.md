@@ -137,3 +137,119 @@ filtro para que todos los PR tengan su check. Conviene fusionarlo primero: las r
 **Orden de trabajo:** el de la tabla. Los que salen de `main` pueden revisarse y fusionarse en cualquier orden; los
 apilados, después de su base. El flujo completo se ve en el celular en PR-17 y PR-20 (escaneo), PR-37 (fotos),
 PR-42 (detalle), PR-49 (informe), PR-51 (borrado) y PR-56 (aviso).
+
+## 2. Archivos y commits por PR
+
+Leyenda: 🆕 se crea · ✏️ se modifica · ⚠️ compartido de la lista de `CLAUDE.md` (aprobado con D-1 a D-12) ·
+🔶 sensible fuera de esa lista · sin marca: módulo de la HU. Cada commit lleva `(HU-09)` al final y va seguido de su
+push; las pruebas van en commits `test(...)` propios. Todos los PR de código terminan con
+`./gradlew assembleDebug testDebugUnitTest lintDebug` en verde.
+
+### Proceso
+| PR | Archivos | Commits |
+|---|---|---|
+| PR-01 | ✏️🔶 `.github/workflows/ci.yml`: `pull_request` sin filtro de rama base (P-13). | 1. `chore(ci): correr el CI también en los PR apilados` |
+
+### Lectura del código (PR-02 a PR-09)
+| PR | Archivos | Commits |
+|---|---|---|
+| PR-02 | 🆕 `feature/captura/domain/CodigoEquipo.kt` (`normalizarTexto`, 3.1); 🆕 (test) `CodigoEquipoTest.kt` | 1. `feat(captura): normalizar el texto leído de la etiqueta` · 2. `test(captura): mayúsculas, guiones y espacios del texto leído` |
+| PR-03 | ✏️ `CodigoEquipo.kt` (`candidatosCodigo`, 3.2); ✏️ (test) `CodigoEquipoTest.kt` | 1. `feat(captura): candidatos con la forma de los códigos de equipo` · 2. `test(captura): candidatos con confusiones, texto alrededor, fechas y anexos` |
+| PR-04 | ✏️ `CodigoEquipo.kt` (`LecturaCodigo`, `elegirCodigo`, 3.3); ✏️ (test) `CodigoEquipoTest.kt` | 1. `feat(captura): elegir el código prefiriendo el catálogo` · 2. `test(captura): elegir con y sin catálogo, y sin candidatos` |
+| PR-05 | 🆕 `feature/captura/domain/RachaLectura.kt` (3.4); 🆕 (test) `RachaLecturaTest.kt` | 1. `feat(captura): racha de lecturas iguales` · 2. `test(captura): la racha se cumple con 3 lecturas iguales y se reinicia` |
+| PR-06 | 🆕 `feature/captura/domain/CatalogoEquiposRepository.kt`; 🆕 `feature/captura/data/CatalogoEquiposRepositoryImpl.kt` (`CatalogoDao.equipoPorCodigo`, `@IoDispatcher`, `catch` de la convención); 🆕 `feature/captura/di/CapturaModule.kt`; 🆕 (test) `feature/captura/data/CatalogoEquiposRepositoryFalso.kt` | 1. `feat(captura): contrato del catálogo de equipos` · 2. `feat(captura): catálogo de equipos sobre Room` · 3. `feat(captura): módulo de Hilt de captura` · 4. `test(captura): catálogo falso con los equipos de prueba` |
+| PR-07 | 🆕 `feature/captura/domain/LeerCodigoEquipo.kt` (4.1); 🆕 (test) `LeerCodigoEquipoTest.kt` | 1. `feat(captura): caso de uso LeerCodigoEquipo` · 2. `test(captura): LeerCodigoEquipo prefiere el catálogo y avisa si no está` |
+| PR-08 | 🆕 `feature/captura/presentation/EscaneoViewModel.kt` (4.2, P-9); 🆕 (test) `EscaneoViewModelTest.kt` | 1. `feat(captura): EscaneoViewModel con la racha y el código reconocido` · 2. `test(captura): EscaneoViewModel reconoce, se detiene y vuelve a escanear` |
+| PR-09 | 🆕 `feature/captura/presentation/EscanearEtiquetaScreen.kt` (Route + Screen con la ranura `vistaCamara`, 5.2; vistas previas) | 1. `feat(captura): pantalla «Escanear etiqueta» con su marco` · 2. `feat(captura): panel del código reconocido y aviso fuera del catálogo` |
+
+### Permiso y cámara (PR-10 a PR-17)
+| PR | Archivos | Commits |
+|---|---|---|
+| PR-10 | ✏️⚠️ `AndroidManifest.xml`: `CAMERA` y `uses-feature android.hardware.camera` con `required="false"` (D-11). | 1. `feat(captura): permiso de cámara en el manifest, sin exigirla` |
+| PR-11 | 🆕 `feature/captura/presentation/PermisoCamara.kt` (`VistaPermiso`, `vistaPermiso`, 3.5); 🆕 (test) `PermisoCamaraTest.kt` | 1. `feat(captura): regla de qué mostrar según el permiso de cámara` · 2. `test(captura): regla del permiso de cámara` |
+| PR-12 | 🆕 `feature/captura/presentation/ExplicacionPermisoCamara.kt` (5.1; vistas previas de cada vista) | 1. `feat(captura): explicación del permiso de cámara` · 2. `feat(captura): vistas previas de la explicación del permiso` |
+| PR-13 | 🆕 `feature/captura/presentation/ConPermisoCamara.kt` (5.1) | 1. `feat(captura): pedir el permiso de cámara al usarla` · 2. `feat(captura): volver a revisar el permiso al regresar de los ajustes` |
+| PR-14 | 🆕 `feature/captura/presentation/VistaCamara.kt` (P-2) | 1. `feat(captura): vista de cámara reutilizable con CameraX` · 2. `feat(captura): aviso cuando la cámara no se puede abrir` |
+| PR-15 | 🆕 `feature/captura/presentation/LectorTextoEtiqueta.kt` (P-3) | 1. `feat(captura): lector de texto de la etiqueta con ML Kit` |
+| PR-16 | ✏️ `EscanearEtiquetaScreen.kt`: la Route arma `ConPermisoCamara { VistaCamara(...) }` con el lector. | 1. `feat(captura): «Escanear etiqueta» con el permiso y la cámara` |
+| PR-17 | ✏️ `feature/captura/presentation/CapturaNavigation.kt`: reemplaza la `PantallaEnConstruccion`, `CLAVE_CODIGO_ESCANEADO` y la devolución (5.3). | 1. `feat(captura): clave del código escaneado` · 2. `feat(captura): «Escanear etiqueta» en la navegación` |
+
+### Registro (PR-18 a PR-20)
+| PR | Archivos | Commits |
+|---|---|---|
+| PR-18 | ✏️ `feature/incidencias/presentation/RegistroIncidenciaViewModel.kt`; ✏️ (test) `RegistroIncidenciaViewModelTest.kt` | 1. `feat(incidencias): el registro recuerda si el código vino de la cámara` · 2. `test(incidencias): código escaneado y su indicación en el registro` |
+| PR-19 | ✏️ `RegistroIncidenciaScreen.kt`: `supportingText` según el estado y vista previa. | 1. `feat(incidencias): «Leído desde la etiqueta con la cámara» bajo el código` |
+| PR-20 | ✏️ `IncidenciasNavigation.kt` y la Route de `RegistroIncidenciaScreen.kt` (5.3). | 1. `feat(incidencias): el registro recibe el código al volver del escaneo` |
+
+### Carpeta y copia de seguridad (PR-21 a PR-23)
+| PR | Archivos | Commits |
+|---|---|---|
+| PR-21 | 🆕🔶 `core/data/AlmacenFotos.kt` (P-4); 🆕 (test) `core/data/AlmacenFotosTest.kt` | 1. `feat(core): carpeta interna de las fotos de evidencia` · 2. `test(core): crear y borrar fotos en una carpeta temporal` |
+| PR-22 | ✏️🔶 `res/xml/backup_rules.xml` | 1. `feat(core): fotos fuera de la copia de seguridad en Android 11 o anterior` |
+| PR-23 | ✏️🔶 `res/xml/data_extraction_rules.xml` | 1. `feat(core): fotos fuera de la copia y la transferencia en Android 12 o superior` |
+
+### Dominio de las fotos (PR-24 a PR-31)
+| PR | Archivos | Commits |
+|---|---|---|
+| PR-24 | ✏️⚠️ `core/domain/Resultado.kt`; ✏️⚠️ `core/ui/MensajesError.kt` (D-2) | 1. `feat(core): error LimiteFotosAlcanzado` · 2. `feat(core): mensaje del máximo de fotos` |
+| PR-25 | 🆕 `feature/captura/domain/ReglasEvidencia.kt` (3.6); 🆕 (test) `ReglasEvidenciaTest.kt` | 1. `feat(captura): regla de quién agrega fotos y hasta cuántas` · 2. `test(captura): regla por permiso, técnico, marca y máximo` |
+| PR-26 | 🆕 `feature/captura/domain/EvidenciaRepository.kt`; 🆕 (test) `feature/captura/data/EvidenciaRepositoryFalso.kt` | 1. `feat(captura): contrato del repositorio de evidencias` · 2. `test(captura): repositorio de evidencias falso` |
+| PR-27 | 🆕 `feature/captura/data/EvidenciaRepositoryImpl.kt` (4.7); ✏️ `CapturaModule.kt` | 1. `feat(captura): repositorio de evidencias en Room y en la carpeta interna` · 2. `feat(captura): @Binds del repositorio de evidencias` |
+| PR-28 | 🆕 `feature/captura/domain/PrepararFoto.kt` (4.3); 🆕 (test) `PrepararFotoTest.kt` | 1. `feat(captura): PrepararFoto con su id y su ruta` · 2. `test(captura): PrepararFoto da ids distintos dentro de la incidencia` |
+| PR-29 | 🆕 `feature/captura/domain/GuardarEvidencia.kt` (4.4); 🆕 (test) `GuardarEvidenciaTest.kt` | 1. `feat(captura): GuardarEvidencia verifica antes de enlazar la foto` · 2. `test(captura): GuardarEvidencia sin permiso, cerrada, al máximo, correcta y con fallo` |
+| PR-30 | 🆕 `feature/captura/domain/DescartarFoto.kt` (4.5); 🆕 (test) `DescartarFotoTest.kt` | 1. `feat(captura): DescartarFoto borra la foto que no se enlazó` · 2. `test(captura): DescartarFoto` |
+| PR-31 | 🆕 `feature/captura/domain/ObservarCapturaEvidencia.kt` (4.6); 🆕 (test) `ObservarCapturaEvidenciaTest.kt` | 1. `feat(captura): ObservarCapturaEvidencia junta la incidencia, sus fotos y el bloqueo` · 2. `test(captura): ObservarCapturaEvidencia con y sin sesión, reasignada y al máximo` |
+
+### Captura de evidencia (PR-32 a PR-37)
+| PR | Archivos | Commits |
+|---|---|---|
+| PR-32 | 🆕 `feature/captura/presentation/CapturaEvidenciaViewModel.kt` (4.8); 🆕 (test) `CapturaEvidenciaViewModelTest.kt` | 1. `feat(captura): CapturaEvidenciaViewModel con el tipo y el disparo` · 2. `test(captura): CapturaEvidenciaViewModel dispara, guarda, falla y respeta el máximo` |
+| PR-33 | 🆕 `feature/captura/presentation/MiniaturaEvidencia.kt` (5.6, P-6) | 1. `feat(captura): decodificar una foto reducida con su orientación` · 2. `feat(captura): miniatura de una foto con «Foto no disponible»` |
+| PR-34 | 🆕 `feature/captura/presentation/EvidenciaFotograficaScreen.kt` (5.4; vistas previas) | 1. `feat(captura): pantalla «Evidencia fotográfica» con su selector` · 2. `feat(captura): miniaturas, disparador y «Listo» de la evidencia` |
+| PR-35 | 🆕 `feature/captura/presentation/TomarFoto.kt` (P-5) | 1. `feat(captura): tomar la foto reducida y comprimida con CameraX` |
+| PR-36 | ✏️ `EvidenciaFotograficaScreen.kt`: la Route arma el permiso y la cámara con `ImageCapture`. | 1. `feat(captura): «Evidencia fotográfica» con el permiso y la cámara` |
+| PR-37 | ✏️ `CapturaNavigation.kt`: reemplaza la `PantallaEnConstruccion` de `CapturarEvidencia`. | 1. `feat(captura): «Evidencia fotográfica» en la navegación` |
+
+### Detalle (PR-38 a PR-42)
+| PR | Archivos | Commits |
+|---|---|---|
+| PR-38 | ✏️ `feature/incidencias/domain/IncidenciaRepository.kt`, ✏️ `data/IncidenciaRepositoryImpl.kt` (inyecta `EvidenciaDao` solo para leer); ✏️ (test) `IncidenciaRepositoryFalso.kt` | 1. `feat(incidencias): el repositorio lee las fotos de la incidencia` · 2. `test(incidencias): fotos en el repositorio falso de incidencias` |
+| PR-39 | ✏️ `feature/incidencias/domain/ObservarDetalleIncidencia.kt`; ✏️ (test) `ObservarDetalleIncidenciaTest.kt` | 1. `feat(incidencias): el detalle observa también las fotos` · 2. `test(incidencias): el detalle con fotos, sin fotos y en orden` |
+| PR-40 | 🆕 `feature/captura/presentation/SeccionEvidencias.kt` (5.5; vistas previas) | 1. `feat(captura): sección «Evidencias» reutilizable` |
+| PR-41 | 🆕 `feature/captura/presentation/FotoAmpliada.kt` (5.5) | 1. `feat(captura): foto ampliada con su tipo y su fecha` |
+| PR-42 | ✏️ `DetalleIncidenciaScreen.kt` (P-7); ✏️ (test) `DetalleIncidenciaViewModelTest.kt` | 1. `feat(incidencias): fotos en el detalle y «Agregar foto» solo para el técnico asignado` · 2. `feat(incidencias): ampliar una foto desde el detalle` · 3. `test(incidencias): las fotos llegan al estado del detalle` |
+
+### Eliminar una foto, D-5 (PR-43 a PR-46)
+| PR | Archivos | Commits |
+|---|---|---|
+| PR-43 | ✏️ `EvidenciaRepository.kt`, ✏️ `EvidenciaRepositoryImpl.kt`, ✏️ (test) `EvidenciaRepositoryFalso.kt` | 1. `feat(captura): el repositorio elimina la foto y su archivo` · 2. `test(captura): eliminar en el repositorio falso` |
+| PR-44 | 🆕 `feature/captura/domain/EliminarEvidencia.kt` (4.9); 🆕 (test) `EliminarEvidenciaTest.kt` | 1. `feat(captura): EliminarEvidencia solo para el técnico asignado y pendiente` · 2. `test(captura): EliminarEvidencia sin permiso, cerrada, correcta y con fallo` |
+| PR-45 | ✏️ `FotoAmpliada.kt`: `BotonPeligro` y su confirmación. | 1. `feat(captura): «Eliminar foto» con confirmación en la foto ampliada` |
+| PR-46 | ✏️ `DetalleIncidenciaViewModel.kt`, ✏️ `DetalleIncidenciaScreen.kt`; ✏️ (test) `DetalleIncidenciaViewModelTest.kt` | 1. `feat(incidencias): eliminar una foto desde el detalle` · 2. `test(incidencias): eliminar una foto desde el detalle` |
+
+### Informe técnico, D-6 (PR-47 a PR-49)
+| PR | Archivos | Commits |
+|---|---|---|
+| PR-47 | ✏️🔶 `feature/atencion/presentation/InformeTecnicoViewModel.kt`; ✏️🔶 (test) `InformeTecnicoViewModelTest.kt` | 1. `feat(atencion): el informe observa las fotos de la incidencia` · 2. `test(atencion): fotos en el estado del informe sin perder lo escrito` |
+| PR-48 | ✏️🔶 `InformeTecnicoScreen.kt` | 1. `feat(atencion): sección «Evidencias» en el informe técnico` |
+| PR-49 | ✏️🔶 la Route de `InformeTecnicoScreen.kt` y ✏️🔶 `AtencionNavigation.kt` | 1. `feat(atencion): «Agregar foto» desde el informe técnico` |
+
+### Borrado con los datos locales, D-7 (PR-50 y PR-51)
+| PR | Archivos | Commits |
+|---|---|---|
+| PR-50 | ✏️🔶 `core/data/SesionRepositoryFirebase.kt` (4.10); ✏️ `specs/001-inicio-sesion/spec.md` (RF-10) | 1. `feat(core): borrar las fotos al cerrar sesión` · 2. `docs(acceso): RF-10 incluye las fotos de evidencia` |
+| PR-51 | ✏️🔶 `core/sync/SincronizacionTiempoReal.kt` (4.10); ✏️ `specs/001-inicio-sesion/spec.md` (RF-11); ✏️ `MEMORY.md` | 1. `feat(core): borrar las fotos al entrar otra persona` · 2. `docs(acceso): RF-11 incluye las fotos de evidencia` · 3. `docs(core): pendiente de las fotos resuelto en MEMORY` |
+
+### Aviso de las fotos al cerrar sesión, D-8 (PR-52 a PR-56)
+| PR | Archivos | Commits |
+|---|---|---|
+| PR-52 | ✏️🔶 `core/database/dao/EvidenciaDao.kt` (`contar(): Flow<Int>`); 🆕 (androidTest) `EvidenciaDaoTest.kt` | 1. `feat(core): EvidenciaDao cuenta las fotos del celular` · 2. `test(core): EvidenciaDao cuenta y ordena las fotos` |
+| PR-53 | ✏️⚠️ `core/domain/model/EstadoDatos.kt` (`fotosEnCelular: Int = 0`); ✏️🔶 `core/sync/EstadoDatosRepositoryImpl.kt` | 1. `feat(core): el estado de los datos incluye las fotos del celular` · 2. `feat(core): contar las fotos al observar el estado de los datos` |
+| PR-54 | ✏️🔶 `core/domain/ReglasSesion.kt` (`evaluarBorrado`, `DecisionBorrado.Confirmar` con fotos, 4.11); ✏️🔶 `core/domain/usecase/EvaluarCierreSesion.kt`; ✏️ (test) `ReglasSesionTest.kt`, `EvaluarCierreSesionTest.kt` | 1. `feat(core): la regla de borrado cuenta las fotos` · 2. `test(core): confirmar con fotos y sin cambios sin enviar` · 3. `feat(core): EvaluarCierreSesion pasa las fotos del celular` · 4. `test(core): EvaluarCierreSesion con fotos` |
+| PR-55 | ✏️🔶 `feature/acceso/presentation/TextosSalida.kt` (`textoFotosEvidencia`, `textoAvisoSalida`, 4.11); ✏️ (test) `TextosSalidaTest.kt` | 1. `feat(acceso): texto de las fotos de evidencia en singular y plural` · 2. `feat(acceso): texto del aviso de salida con cambios y fotos` · 3. `test(acceso): textos del aviso con cambios, con fotos y con ambos` |
+| PR-56 | ✏️🔶 `AjustesSeguridadViewModel.kt` y `AjustesSeguridadScreen.kt`; ✏️ `specs/001-inicio-sesion/spec.md` (RF-13) | 1. `feat(acceso): el aviso de cierre de sesión cuenta las fotos` · 2. `docs(acceso): RF-13 cuenta las fotos de evidencia` |
+
+### Cierre (PR-57)
+| PR | Archivos | Commits |
+|---|---|---|
+| PR-57 | ✏️ `specs/009-escaneo-evidencias/spec.md` («completa»), ✏️ `tasks.md` (marcadas), ✏️ `MEMORY.md` (línea de la HU-09) | 1. `docs(captura): pruebas manuales de la HU-09 en el celular` · 2. `docs(captura): spec de la HU-09 completa` · 3. `docs(captura): HU-09 completa en MEMORY` |
