@@ -119,3 +119,16 @@ Esta HU le permite a cualquier persona del área leer el código desde la etique
 - Editar, recortar o anotar una foto, elegir una de la galería o grabar video.
 - Fotos al registrar la incidencia (antes de que exista y tenga técnico): solo el técnico asignado toma fotos.
 - Cambiar el informe técnico (sus campos o su cierre con huella): la HU-08 queda igual; si se aprueba D-6, solo se le agrega la sección «Evidencias».
+
+## Criterios de finalización
+- RF-901 a RF-942 implementados. RF-937 (eliminar fotos) y RF-938 (evidencias en «Informe técnico») solo si se aprueban D-5 y D-6; si no, se quitan de esta spec antes de implementar.
+- Pruebas unitarias (JVM): la regla que extrae el código del texto (normalización, confusiones según la posición, forma del código, varios candidatos con y sin catálogo, texto sin código); la regla de las 3 lecturas iguales seguidas y su reinicio; la regla que decide qué mostrar según el permiso (sin pedir, concedido, negado, no volver a preguntar, sin cámara); el caso de uso de guardar una foto (sin sesión, otro técnico, incidencia cerrada, máximo alcanzado, guardado correcto con su fecha, fallo de Room que no deja el archivo); el de eliminarla, si se aprueba D-5; el manejo de los archivos de fotos sobre una carpeta temporal (crear, borrar una, borrar todas); y los `ViewModel` de «Escanear etiqueta», «Evidencia fotográfica», «Nueva incidencia» (código escaneado e indicación) y del detalle (fotos y «Agregar foto» solo para el técnico asignado mientras siga pendiente).
+- Si cambia alguna consulta de Room, su prueba instrumentada pasa en un celular. La entidad no cambia y `version` no sube.
+- `./gradlew assembleDebug testDebugUnitTest lintDebug` en verde y sin advertencias nuevas de lint.
+- `specs/001-inicio-sesion/spec.md` actualizada en el mismo PR que implementa RF-942 (RF-10 y RF-11 ya no dicen «las fotos se agregarán cuando exista la HU de captura»), y la línea de la HU-09 en `MEMORY.md` dice «completa».
+- Prueba manual en un celular real (no solo en el emulador, porque su cámara es simulada), con capturas en claro y oscuro:
+  - Como personal de sistemas, escanear una etiqueta de cada uno de los 4 equipos de prueba, impresa o en otra pantalla, en modo avión, y comprobar que el código llega a «Nueva incidencia» con «Leído desde la etiqueta con la cámara»; escanear un código que no está en el catálogo y ver el aviso; salir sin confirmar y ver que el formulario no cambió.
+  - Negar el permiso de cámara, negarlo de nuevo, concederlo desde «Abrir ajustes» y ver que la cámara se abre al volver.
+  - Como técnico asignado, tomar fotos de falla y de pieza cambiada en una incidencia en atención, verlas en el detalle, ampliarlas, eliminar una (si se aprueba D-5), llegar al máximo de 10 y comprobar que, como jefe en otro celular, la misma incidencia no tiene fotos.
+  - Con otro técnico, comprobar que no ve «Agregar foto»; cerrar la incidencia y comprobar que las fotos siguen y ya no se pueden agregar ni eliminar.
+  - Cerrar sesión y comprobar que la carpeta de fotos de la app quedó vacía; repetir entrando con otra persona sin cerrar sesión.
