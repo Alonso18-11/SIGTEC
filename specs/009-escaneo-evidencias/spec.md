@@ -130,9 +130,9 @@ Esta HU le permite a cualquier persona del área leer el código desde la etique
 - Prueba manual en un celular real (no solo en el emulador, porque su cámara es simulada), con capturas en claro y oscuro:
   - Como personal de sistemas, escanear una etiqueta de cada uno de los 4 equipos de prueba, impresa o en otra pantalla, en modo avión, y comprobar que el código llega a «Nueva incidencia» con «Leído desde la etiqueta con la cámara»; escanear un código que no está en el catálogo y ver el aviso; salir sin confirmar y ver que el formulario no cambió.
   - Negar el permiso de cámara, negarlo de nuevo, concederlo desde «Abrir ajustes» y ver que la cámara se abre al volver.
-  - Como técnico asignado, tomar fotos de falla y de pieza cambiada en una incidencia en atención, verlas en el detalle, ampliarlas, eliminar una (si se aprueba D-5), llegar al máximo de 10 y comprobar que, como jefe en otro celular, la misma incidencia no tiene fotos.
+  - Como técnico asignado, tomar fotos de falla y de pieza cambiada en una incidencia en atención, verlas en el detalle y en «Informe técnico», ampliarlas, eliminar una, llegar al máximo de 10 y comprobar que, como jefe en otro celular, la misma incidencia no tiene fotos.
   - Con otro técnico, comprobar que no ve «Agregar foto»; cerrar la incidencia y comprobar que las fotos siguen y ya no se pueden agregar ni eliminar.
-  - Cerrar sesión y comprobar que la carpeta de fotos de la app quedó vacía; repetir entrando con otra persona sin cerrar sesión.
+  - Cerrar sesión con fotos y sin cambios sin enviar, y ver el aviso de RF-943; confirmar y comprobar que la carpeta de fotos de la app quedó vacía; repetir entrando con otra persona sin cerrar sesión.
 
 ## Dudas abiertas
 Decisiones que necesitan el visto bueno antes de implementar. Cada una trae la propuesta de esta spec; las marcadas con [NECESITA ACLARACIÓN] no tienen una respuesta clara en el código ni en el documento del producto.
