@@ -69,3 +69,62 @@
 - [ ] **T19 · Panel del código reconocido y aviso fuera del catálogo** (5.2). RF-906, RF-907.
   Hecho cuando: las vistas previas «reconocido» y «fuera del catálogo» coinciden con el prototipo 13, salvo la
   barra (D-10) y la linterna (HU-10).
+
+## PR-10 — permiso en el manifest (base `main`)
+- [ ] **T20 · `CAMERA` y la cámara no obligatoria ⚠️** en `AndroidManifest.xml` (D-11). RF-916, RF-920.
+  Hecho cuando: `./gradlew lintDebug` no muestra `PermissionImpliesUnsupportedHardware`.
+
+## PR-11 — regla del permiso (base `main`)
+- [ ] **T21 · `VistaPermiso` y `vistaPermiso`** en `feature/captura/presentation/PermisoCamara.kt` (3.5).
+  RF-916 a RF-920, RF-922. Hecho cuando: compila.
+- [ ] **T22 · `PermisoCamaraTest`** con la tabla de la sección 7. RF-916 a RF-920, RF-922.
+  Hecho cuando: la prueba pasa.
+
+## PR-12 — explicación del permiso (base PR-11)
+- [ ] **T23 · `ExplicacionPermisoCamara`** sin estado, con el texto y el botón de cada vista (5.1).
+  RF-916, RF-918 a RF-920. Hecho cuando: compila.
+- [ ] **T24 · Vistas previas** de `EXPLICAR`, `NEGADO`, `IR_A_AJUSTES` y `SIN_CAMARA` en claro y oscuro. RF: —
+  Hecho cuando: se ven sin colores ni tamaños fijos.
+
+## PR-13 — pedir el permiso (base PR-12)
+- [ ] **T25 · `ConPermisoCamara`**: consulta, solicitud y «Abrir ajustes» (5.1). RF-916 a RF-921.
+  Hecho cuando: compila.
+- [ ] **T26 · Volver a consultar en cada `ON_RESUME`.** RF-919, RF-922.
+  Hecho cuando: compila; se prueba en el celular con PR-16.
+
+## PR-14 — vista de cámara (base `main`)
+- [ ] **T27 · `VistaCamara`** con `ProcessCameraProvider.awaitInstance` y los casos de uso recibidos (P-2).
+  RF-901, RF-915. Hecho cuando: compila.
+- [ ] **T28 · Aviso cuando la cámara no abre**, con «Reintentar». RF-921.
+  Hecho cuando: compila.
+
+## PR-15 — lector de texto (base `main`)
+- [ ] **T29 · `LectorTextoEtiqueta`** con ML Kit; cierra cada imagen y el reconocedor (P-3). RF-902, RF-914.
+  Hecho cuando: compila.
+
+## PR-16 — escaneo con la cámara (base PR-09, trae PR-13, PR-14 y PR-15)
+- [ ] **T30 · La Route arma `ConPermisoCamara { VistaCamara(...) }`** con `Preview` e `ImageAnalysis` y solo pasa
+  textos sin un código reconocido. RF-901, RF-906, RF-916.
+  Hecho cuando: compila; la prueba en el celular se hace con PR-17, cuando la pantalla ya está en la navegación.
+
+## PR-17 — escaneo en la navegación (base PR-16)
+- [ ] **T31 · `CLAVE_CODIGO_ESCANEADO`** en `CapturaNavigation.kt` (5.3). RF-913.
+  Hecho cuando: compila.
+- [ ] **T32 · Reemplazar la `PantallaEnConstruccion` de `EscanearEtiqueta`** y devolver el código. RF-909, RF-912.
+  Hecho cuando: el botón de cámara de «Nueva incidencia» abre la pantalla y, en el celular, se cumplen los puntos de
+  PR-16 y PR-17 de la sección 7 del plan.
+
+## PR-18 — el registro recuerda el código escaneado (base `main`)
+- [ ] **T33 · `codigoLeidoConCamara` y `alUsarCodigoEscaneado`** en `RegistroIncidenciaViewModel`. RF-910, RF-911.
+  Hecho cuando: compila.
+- [ ] **T34 · Casos nuevos de `RegistroIncidenciaViewModelTest`.** RF-910, RF-911.
+  Hecho cuando: la prueba pasa.
+
+## PR-19 — indicación bajo el código (base PR-18)
+- [ ] **T35 · `supportingText` según el estado**, sin el comentario «Neutral hasta la HU-09», y vista previa. RF-910.
+  Hecho cuando: la vista previa coincide con el prototipo 4.
+
+## PR-20 — el registro recibe el código (base PR-19, trae PR-17)
+- [ ] **T36 · `IncidenciasNavigation` lee la clave y la Route la aplica y la borra** (5.3). RF-909, RF-910.
+  Hecho cuando: en el celular se cumplen los puntos de PR-20 de la sección 7, incluida una rotación.
+
