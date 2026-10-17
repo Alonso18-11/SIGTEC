@@ -21,6 +21,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 
 /**
  * Dibuja [contenido] (la cámara) solo con el permiso concedido; si no, explica para qué se usa y lo pide al
@@ -43,6 +45,12 @@ fun ConPermisoCamara(
         concedido = otorgado
         yaSePidio = !otorgado
         androidLoExplicaria = explicariaElPermiso(actividad)
+    }
+    // RF-919 y RF-922: el permiso pudo cambiar en los ajustes de Android mientras la app no estaba a la vista
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        concedido = camaraConcedida(contexto)
+        androidLoExplicaria = explicariaElPermiso(actividad)
+        if (concedido) yaSePidio = false
     }
 
     Box(modifier) {
