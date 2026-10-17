@@ -388,8 +388,9 @@ textoAvisoSalida(pendientes, fotos):                         // TextosSalida.kt
     solo cambios: el texto de RF-13, sin cambios
 textoFotosEvidencia(f): "1 foto de evidencia" o "$f fotos de evidencia"
 ```
-`fotos` tiene valor por defecto para que los llamadores de RF-11 (`EvaluarIngresoDeOtraPersona`) no cambien hasta
-que se decida D-13.
+`fotos` tiene valor por defecto para que `EvaluarIngresoDeOtraPersona` siga compilando hasta PR-56b, que le pasa
+`estado.fotosEnCelular` y usa `textoAvisoIngreso(nombre, pendientes, fotos)` con la misma forma que
+`textoAvisoSalida` («{Nombre} tiene … en este celular. Si ingresas, se perderán.») (RF-944, D-13).
 
 ## 5. Cómo se pinta en Compose
 
