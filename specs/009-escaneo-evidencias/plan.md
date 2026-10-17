@@ -241,7 +241,7 @@ push; las pruebas van en commits `test(...)` propios. Todos los PR de código te
 | PR-50 | ✏️🔶 `core/data/SesionRepositoryFirebase.kt` (4.10); ✏️ `specs/001-inicio-sesion/spec.md` (RF-10) | 1. `feat(core): borrar las fotos al cerrar sesión` · 2. `docs(acceso): RF-10 incluye las fotos de evidencia` |
 | PR-51 | ✏️🔶 `core/sync/SincronizacionTiempoReal.kt` (4.10); ✏️ `specs/001-inicio-sesion/spec.md` (RF-11); ✏️ `MEMORY.md` | 1. `feat(core): borrar las fotos al entrar otra persona` · 2. `docs(acceso): RF-11 incluye las fotos de evidencia` · 3. `docs(core): pendiente de las fotos resuelto en MEMORY` |
 
-### Aviso de las fotos al cerrar sesión, D-8 (PR-52 a PR-56)
+### Avisos de las fotos al salir y al entrar otra persona, D-8 y D-13 (PR-52 a PR-56b)
 | PR | Archivos | Commits |
 |---|---|---|
 | PR-52 | ✏️🔶 `core/database/dao/EvidenciaDao.kt` (`contar(): Flow<Int>`); 🆕 (androidTest) `EvidenciaDaoTest.kt` | 1. `feat(core): EvidenciaDao cuenta las fotos del celular` · 2. `test(core): EvidenciaDao cuenta y ordena las fotos` |
@@ -249,6 +249,7 @@ push; las pruebas van en commits `test(...)` propios. Todos los PR de código te
 | PR-54 | ✏️🔶 `core/domain/ReglasSesion.kt` (`evaluarBorrado`, `DecisionBorrado.Confirmar` con fotos, 4.11); ✏️🔶 `core/domain/usecase/EvaluarCierreSesion.kt`; ✏️ (test) `ReglasSesionTest.kt`, `EvaluarCierreSesionTest.kt` | 1. `feat(core): la regla de borrado cuenta las fotos` · 2. `test(core): confirmar con fotos y sin cambios sin enviar` · 3. `feat(core): EvaluarCierreSesion pasa las fotos del celular` · 4. `test(core): EvaluarCierreSesion con fotos` |
 | PR-55 | ✏️🔶 `feature/acceso/presentation/TextosSalida.kt` (`textoFotosEvidencia`, `textoAvisoSalida`, 4.11); ✏️ (test) `TextosSalidaTest.kt` | 1. `feat(acceso): texto de las fotos de evidencia en singular y plural` · 2. `feat(acceso): texto del aviso de salida con cambios y fotos` · 3. `test(acceso): textos del aviso con cambios, con fotos y con ambos` |
 | PR-56 | ✏️🔶 `AjustesSeguridadViewModel.kt` y `AjustesSeguridadScreen.kt`; ✏️ `specs/001-inicio-sesion/spec.md` (RF-13) | 1. `feat(acceso): el aviso de cierre de sesión cuenta las fotos` · 2. `docs(acceso): RF-13 cuenta las fotos de evidencia` |
+| PR-56b | ✏️🔶 `core/domain/usecase/EvaluarIngresoDeOtraPersona.kt`; ✏️🔶 `TextosSalida.kt` (`textoAvisoIngreso`); ✏️🔶 `LoginViewModel.kt` y `LoginScreen.kt`; ✏️ (test) `EvaluarIngresoDeOtraPersonaTest.kt`, `TextosSalidaTest.kt`; ✏️ `specs/001-inicio-sesion/spec.md` (RF-11) | 1. `feat(core): EvaluarIngresoDeOtraPersona pasa las fotos del celular` · 2. `test(core): ingreso de otra persona con fotos` · 3. `feat(acceso): texto del aviso de ingreso con cambios y fotos` · 4. `test(acceso): textos del aviso de ingreso` · 5. `feat(acceso): el aviso al entrar otra persona cuenta las fotos` · 6. `docs(acceso): RF-11 cuenta las fotos de evidencia` |
 
 ### Cierre (PR-57)
 | PR | Archivos | Commits |
