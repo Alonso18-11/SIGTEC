@@ -15,10 +15,12 @@ const val CLAVE_CODIGO_ESCANEADO = "codigoEscaneado"
 
 fun NavGraphBuilder.capturaGraph(navController: NavController) {
     composable<Ruta.EscanearEtiqueta> {
-        PantallaEnConstruccion(
-            titulo = "Escanear etiqueta",
-            historia = "HU-09",
-            acciones = listOf("Usar este código" to { navController.popBackStack() })
+        EscanearEtiquetaRoute(
+            alVolver = { navController.popBackStack() }, // RF-912: sale sin dejar nada
+            alUsarCodigo = { codigo ->
+                navController.previousBackStackEntry?.savedStateHandle?.set(CLAVE_CODIGO_ESCANEADO, codigo)
+                navController.popBackStack()
+            }
         )
     }
     composable<Ruta.CapturarEvidencia> { entrada ->
