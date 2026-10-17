@@ -1,7 +1,7 @@
 # Tareas 009 — Código del equipo por cámara y evidencia fotográfica (HU-09)
 
 > Salen de `spec.md` y `plan.md`. Una tarea es un commit (20 a 30 minutos como máximo) con su push inmediato, después
-> de revisar el estado del PR. Van agrupadas por PR (plan, sección 1) y en el orden de la tabla.
+> de revisar el estado del PR. Van agrupadas por PR (plan, sección 1, con PR-56b por D-13) y en el orden de la tabla.
 > **Al empezar cada PR:** rama desde su «Base» al día (`git pull origin main` o la rama base), `git merge` de las
 > ramas de «Trae» que sigan abiertas, primer commit y push, y PR en borrador con la plantilla llena (HU-09, criterio,
 > archivos compartidos, qué trae de otros PR) y revisión pedida a Alonso18-11.
@@ -306,12 +306,23 @@
 - [ ] **T103 · RF-13 de la spec 001 cuenta las fotos.** RF-943.
   Hecho cuando: en el celular se ve el aviso con fotos y sin cambios, y con los dos.
 
+## PR-56b — el aviso al entrar otra persona cuenta las fotos (base PR-56) — D-13
+- [ ] **T103b · `EvaluarIngresoDeOtraPersona` pasa `estado.fotosEnCelular` 🔶.** RF-944. Hecho cuando: compila.
+- [ ] **T103c · Casos nuevos de `EvaluarIngresoDeOtraPersonaTest`**: otra persona con solo fotos y la misma persona
+  con fotos. RF-944. Hecho cuando: la prueba pasa.
+- [ ] **T103d · `textoAvisoIngreso(nombre, pendientes, fotos)` 🔶** en `TextosSalida.kt`. RF-944. Hecho cuando: compila.
+- [ ] **T103e · Casos nuevos de `TextosSalidaTest`** para el ingreso. RF-944. Hecho cuando: la prueba pasa.
+- [ ] **T103f · `LoginViewModel` y `LoginScreen` usan las fotos y el texto nuevo 🔶.** RF-944.
+  Hecho cuando: las vistas previas del aviso muestran los tres casos en claro y oscuro.
+- [ ] **T103g · RF-11 de la spec 001 cuenta las fotos.** RF-944.
+  Hecho cuando: en el celular, con el dueño bloqueado y solo fotos, entrar con otra cuenta muestra el aviso.
+
 ## PR-57 — cierre (base: la rama del último PR fusionado)
 - [ ] **T104 · Comprobar que nada quedó fuera**: `git log main..<rama>` vacío en cada rama de la HU. RF: —
   Hecho cuando: ninguna rama tiene commits sin fusionar.
 - [ ] **T105 · Pruebas manuales de punta a punta** («Criterios de finalización» de la spec) en un celular real.
-  RF-901 a RF-943. Hecho cuando: cada prueba está anotada con su resultado.
+  RF-901 a RF-944. Hecho cuando: cada prueba está anotada con su resultado.
 - [ ] **T106 · Spec «completa»**, con la fecha y qué se probó. RF: — Hecho cuando: la spec describe el código.
 - [ ] **T107 · Tareas marcadas**, con el motivo de las que no se hicieron. RF: — Hecho cuando: no queda ninguna sin explicar.
-- [ ] **T108 · HU-09 «completa (RF-901 a RF-943)» en `MEMORY.md`**, después de `git pull origin main`. RF: —
+- [ ] **T108 · HU-09 «completa (RF-901 a RF-944)» en `MEMORY.md`**, después de `git pull origin main`. RF: —
   Hecho cuando: la línea está actualizada.
