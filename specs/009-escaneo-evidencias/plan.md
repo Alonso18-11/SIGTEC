@@ -60,7 +60,7 @@
 todavía tienen sentido solos: **un cambio por PR** (una regla pura con sus pruebas, un caso de uso, un repositorio,
 un `ViewModel`, una pantalla, una pieza de cámara o de permiso, un ajuste de navegación), y cada uno compila y pasa
 `assembleDebug testDebugUnitTest lintDebug` por sí mismo. Son 3 PR de documentación (la spec en el #40, este plan y
-las tareas) y 57 de código y cierre (PR-01 a PR-57). Si se aprueba D-13 de la spec, se agrega PR-56b.
+las tareas) y 58 de código y cierre (PR-01 a PR-57, más PR-56b por D-13).
 
 **Bases.**
 - Si no depende de nada abierto, sale de `main`.
@@ -132,11 +132,12 @@ filtro para que todos los PR tengan su check. Conviene fusionarlo primero: las r
 | PR-54 | `feat/hu09-regla-borrado-fotos` | `feat(core): confirmar el cierre de sesión también por las fotos (HU-09)` | PR-53 | — | RF-943 |
 | PR-55 | `feat/hu09-textos-fotos` | `feat(acceso): textos de las fotos que se pierden al salir (HU-09)` | `main` | — | RF-943 |
 | PR-56 | `feat/hu09-aviso-cierre-fotos` | `feat(acceso): el aviso de cierre de sesión cuenta las fotos (HU-09)` | PR-54 | PR-55 | RF-943 |
+| PR-56b | `feat/hu09-aviso-ingreso-fotos` | `feat(acceso): el aviso al entrar otra persona cuenta las fotos (HU-09)` | PR-56 | — | RF-944 |
 | PR-57 | `docs/hu09-cierre` | `docs(captura): cierre de la HU-09 con las pruebas manuales (HU-09)` | el último fusionado | todos | RF-901 a RF-943 |
 
 **Orden de trabajo:** el de la tabla. Los que salen de `main` pueden revisarse y fusionarse en cualquier orden; los
 apilados, después de su base. El flujo completo se ve en el celular en PR-17 y PR-20 (escaneo), PR-37 (fotos),
-PR-42 (detalle), PR-49 (informe), PR-51 (borrado) y PR-56 (aviso).
+PR-42 (detalle), PR-49 (informe), PR-51 (borrado), PR-56 y PR-56b (avisos).
 
 ## 2. Archivos y commits por PR
 
