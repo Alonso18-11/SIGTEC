@@ -60,7 +60,7 @@
 todavía tienen sentido solos: **un cambio por PR** (una regla pura con sus pruebas, un caso de uso, un repositorio,
 un `ViewModel`, una pantalla, una pieza de cámara o de permiso, un ajuste de navegación), y cada uno compila y pasa
 `assembleDebug testDebugUnitTest lintDebug` por sí mismo. Son 3 PR de documentación (la spec en el #40, este plan y
-las tareas) y 57 de código y cierre (PR-01 a PR-57). Si se aprueba D-13 de la spec, se agrega PR-56b.
+las tareas) y 58 de código y cierre (PR-01 a PR-57, más PR-56b por D-13).
 
 **Bases.**
 - Si no depende de nada abierto, sale de `main`.
@@ -132,11 +132,12 @@ filtro para que todos los PR tengan su check. Conviene fusionarlo primero: las r
 | PR-54 | `feat/hu09-regla-borrado-fotos` | `feat(core): confirmar el cierre de sesión también por las fotos (HU-09)` | PR-53 | — | RF-943 |
 | PR-55 | `feat/hu09-textos-fotos` | `feat(acceso): textos de las fotos que se pierden al salir (HU-09)` | `main` | — | RF-943 |
 | PR-56 | `feat/hu09-aviso-cierre-fotos` | `feat(acceso): el aviso de cierre de sesión cuenta las fotos (HU-09)` | PR-54 | PR-55 | RF-943 |
+| PR-56b | `feat/hu09-aviso-ingreso-fotos` | `feat(acceso): el aviso al entrar otra persona cuenta las fotos (HU-09)` | PR-56 | — | RF-944 |
 | PR-57 | `docs/hu09-cierre` | `docs(captura): cierre de la HU-09 con las pruebas manuales (HU-09)` | el último fusionado | todos | RF-901 a RF-943 |
 
 **Orden de trabajo:** el de la tabla. Los que salen de `main` pueden revisarse y fusionarse en cualquier orden; los
 apilados, después de su base. El flujo completo se ve en el celular en PR-17 y PR-20 (escaneo), PR-37 (fotos),
-PR-42 (detalle), PR-49 (informe), PR-51 (borrado) y PR-56 (aviso).
+PR-42 (detalle), PR-49 (informe), PR-51 (borrado), PR-56 y PR-56b (avisos).
 
 ## 2. Archivos y commits por PR
 
@@ -240,7 +241,7 @@ push; las pruebas van en commits `test(...)` propios. Todos los PR de código te
 | PR-50 | ✏️🔶 `core/data/SesionRepositoryFirebase.kt` (4.10); ✏️ `specs/001-inicio-sesion/spec.md` (RF-10) | 1. `feat(core): borrar las fotos al cerrar sesión` · 2. `docs(acceso): RF-10 incluye las fotos de evidencia` |
 | PR-51 | ✏️🔶 `core/sync/SincronizacionTiempoReal.kt` (4.10); ✏️ `specs/001-inicio-sesion/spec.md` (RF-11); ✏️ `MEMORY.md` | 1. `feat(core): borrar las fotos al entrar otra persona` · 2. `docs(acceso): RF-11 incluye las fotos de evidencia` · 3. `docs(core): pendiente de las fotos resuelto en MEMORY` |
 
-### Aviso de las fotos al cerrar sesión, D-8 (PR-52 a PR-56)
+### Avisos de las fotos al salir y al entrar otra persona, D-8 y D-13 (PR-52 a PR-56b)
 | PR | Archivos | Commits |
 |---|---|---|
 | PR-52 | ✏️🔶 `core/database/dao/EvidenciaDao.kt` (`contar(): Flow<Int>`); 🆕 (androidTest) `EvidenciaDaoTest.kt` | 1. `feat(core): EvidenciaDao cuenta las fotos del celular` · 2. `test(core): EvidenciaDao cuenta y ordena las fotos` |
@@ -248,6 +249,7 @@ push; las pruebas van en commits `test(...)` propios. Todos los PR de código te
 | PR-54 | ✏️🔶 `core/domain/ReglasSesion.kt` (`evaluarBorrado`, `DecisionBorrado.Confirmar` con fotos, 4.11); ✏️🔶 `core/domain/usecase/EvaluarCierreSesion.kt`; ✏️ (test) `ReglasSesionTest.kt`, `EvaluarCierreSesionTest.kt` | 1. `feat(core): la regla de borrado cuenta las fotos` · 2. `test(core): confirmar con fotos y sin cambios sin enviar` · 3. `feat(core): EvaluarCierreSesion pasa las fotos del celular` · 4. `test(core): EvaluarCierreSesion con fotos` |
 | PR-55 | ✏️🔶 `feature/acceso/presentation/TextosSalida.kt` (`textoFotosEvidencia`, `textoAvisoSalida`, 4.11); ✏️ (test) `TextosSalidaTest.kt` | 1. `feat(acceso): texto de las fotos de evidencia en singular y plural` · 2. `feat(acceso): texto del aviso de salida con cambios y fotos` · 3. `test(acceso): textos del aviso con cambios, con fotos y con ambos` |
 | PR-56 | ✏️🔶 `AjustesSeguridadViewModel.kt` y `AjustesSeguridadScreen.kt`; ✏️ `specs/001-inicio-sesion/spec.md` (RF-13) | 1. `feat(acceso): el aviso de cierre de sesión cuenta las fotos` · 2. `docs(acceso): RF-13 cuenta las fotos de evidencia` |
+| PR-56b | ✏️🔶 `core/domain/usecase/EvaluarIngresoDeOtraPersona.kt`; ✏️🔶 `TextosSalida.kt` (`textoAvisoIngreso`); ✏️🔶 `LoginViewModel.kt` y `LoginScreen.kt`; ✏️ (test) `EvaluarIngresoDeOtraPersonaTest.kt`, `TextosSalidaTest.kt`; ✏️ `specs/001-inicio-sesion/spec.md` (RF-11) | 1. `feat(core): EvaluarIngresoDeOtraPersona pasa las fotos del celular` · 2. `test(core): ingreso de otra persona con fotos` · 3. `feat(acceso): texto del aviso de ingreso con cambios y fotos` · 4. `test(acceso): textos del aviso de ingreso` · 5. `feat(acceso): el aviso al entrar otra persona cuenta las fotos` · 6. `docs(acceso): RF-11 cuenta las fotos de evidencia` |
 
 ### Cierre (PR-57)
 | PR | Archivos | Commits |
@@ -386,8 +388,9 @@ textoAvisoSalida(pendientes, fotos):                         // TextosSalida.kt
     solo cambios: el texto de RF-13, sin cambios
 textoFotosEvidencia(f): "1 foto de evidencia" o "$f fotos de evidencia"
 ```
-`fotos` tiene valor por defecto para que los llamadores de RF-11 (`EvaluarIngresoDeOtraPersona`) no cambien hasta
-que se decida D-13.
+`fotos` tiene valor por defecto para que `EvaluarIngresoDeOtraPersona` siga compilando hasta PR-56b, que le pasa
+`estado.fotosEnCelular` y usa `textoAvisoIngreso(nombre, pendientes, fotos)` con la misma forma que
+`textoAvisoSalida` («{Nombre} tiene … en este celular. Si ingresas, se perderán.») (RF-944, D-13).
 
 ## 5. Cómo se pinta en Compose
 
@@ -539,6 +542,7 @@ Las decisiones de producto (D-1 a D-12) están en «Dudas abiertas» de `spec.md
 | `EvidenciaDaoTest` (PR-52, instrumentada) | `contar` sube al guardar y baja al eliminar; `observarPorIncidencia` ordena por fecha de captura. | RF-932, RF-943 |
 | `ReglasSesionTest` y `EvaluarCierreSesionTest` (PR-54, se amplían) | Solo fotos → `Confirmar`; cambios y fotos → `Confirmar` con los dos números; nada → `SinRiesgo`. | RF-943 |
 | `TextosSalidaTest` (PR-55, se amplía) | 1 y varias fotos; solo cambios (texto de RF-13 sin cambios); solo fotos; cambios y fotos. | RF-943 |
+| `EvaluarIngresoDeOtraPersonaTest` y `TextosSalidaTest` (PR-56b, se amplían) | Otra persona con solo fotos → `Confirmar`; misma persona con fotos → `SinRiesgo`; textos de ingreso con cambios, con fotos y con ambos. | RF-944 |
 
 **Prueba instrumentada:** solo `EvidenciaDaoTest` (PR-52), porque es el único DAO que cambia; corre en un celular o
 emulador, no en el CI.
@@ -559,6 +563,7 @@ emulador, no en el CI.
 - PR-50 y PR-51: después de cerrar sesión, y después de entrar otra persona, la carpeta `files/evidencias` vacía
   (`adb shell run-as com.softcorp.sigtec ls files/evidencias`).
 - PR-56: cerrar sesión con fotos y sin cambios sin enviar, y con los dos, y ver el texto de RF-943 en claro y oscuro.
+- PR-56b: con el dueño bloqueado y fotos sin cambios, entrar con otra cuenta y ver el aviso de RF-944.
 
 **Cierre de cada PR:** `./gradlew assembleDebug testDebugUnitTest lintDebug` en verde y sin advertencias nuevas de
 lint antes de abrirlo o de marcarlo listo.
@@ -604,11 +609,12 @@ lint antes de abrirlo o de marcarlo listo.
 | RF-941 | `backup_rules.xml`, `data_extraction_rules.xml` | Revisión de PR-22 y PR-23 |
 | RF-942 | `SesionRepositoryFirebase`, `SincronizacionTiempoReal`, `AlmacenFotos.borrarTodo` (D-7) | `AlmacenFotosTest` + manual |
 | RF-943 | `EvidenciaDao.contar`, `EstadoDatos.fotosEnCelular`, `evaluarBorrado`, `textoAvisoSalida`, `AjustesSeguridadScreen` (D-8) | `EvidenciaDaoTest`, `ReglasSesionTest`, `EvaluarCierreSesionTest`, `TextosSalidaTest` + manual |
+| RF-944 | `EvaluarIngresoDeOtraPersona`, `textoAvisoIngreso`, `LoginScreen` (D-13) | `EvaluarIngresoDeOtraPersonaTest`, `TextosSalidaTest` + manual |
 
 ## 9. Respeto a la constitución
 1. **Stack cerrado:** sin dependencias nuevas. CameraX, ML Kit y `kotlinx-coroutines-play-services` ya estaban en
    `libs.versions.toml`; P-3 descarta `camera-mlkit-vision` y P-6 descarta Coil por la misma razón.
-2. **Spec antes que código:** la spec se aprobó antes del primer PR de código. PR-50, PR-51 y PR-56 actualizan
+2. **Spec antes que código:** la spec se aprobó antes del primer PR de código. PR-50, PR-51, PR-56 y PR-56b actualizan
    RF-10, RF-11 y RF-13 de la spec 001 en el mismo PR que cambia ese comportamiento.
 3. **Lógica fuera de la pantalla:** las reglas viven en `feature/captura/domain`, en Kotlin puro (`CodigoEquipo`,
    `RachaLectura`, `ReglasEvidencia` y los casos de uso). `vistaPermiso` es una función pura. Las `Screen` solo
@@ -635,10 +641,10 @@ lint antes de abrirlo o de marcarlo listo.
 | PR-50, PR-51 | — | `core/data/SesionRepositoryFirebase.kt`, `core/sync/SincronizacionTiempoReal.kt`, `specs/001-inicio-sesion/spec.md` (D-7) | — |
 | PR-52 | — | `core/database/dao/EvidenciaDao.kt` | Consulta nueva; entidad igual, `version` no sube |
 | PR-53 | `core/domain/model/EstadoDatos.kt` (D-8) | `core/sync/EstadoDatosRepositoryImpl.kt` | — |
-| PR-54 a PR-56 | — | `core/domain/ReglasSesion.kt`, `EvaluarCierreSesion.kt`, `feature/acceso/presentation/*` y la spec 001 (modelo de sesión, D-8) | — |
+| PR-54 a PR-56b | — | `core/domain/ReglasSesion.kt`, `EvaluarCierreSesion.kt`, `EvaluarIngresoDeOtraPersona.kt`, `feature/acceso/presentation/*` y la spec 001 (modelo de sesión, D-8 y D-13) | — |
 | PR-57 | `MEMORY.md` (solo la línea de la HU-09) | — | — |
 
 Los demás PR no tocan archivos compartidos ni sensibles. Ningún PR toca `libs.versions.toml`,
 `app/build.gradle.kts`, `SigtecDatabase.kt`, las entidades, `Rutas.kt`, `SigtecRaiz.kt`, `core/theme/*`,
-`core/di/*` ni `firebase/firestore.rules`. Los PR de PR-50 a PR-56 tocan el modelo de sesión: Alonso los revisa con
+`core/di/*` ni `firebase/firestore.rules`. Los PR de PR-50 a PR-56b tocan el modelo de sesión: Alonso los revisa con
 ese foco (`CLAUDE.md`).

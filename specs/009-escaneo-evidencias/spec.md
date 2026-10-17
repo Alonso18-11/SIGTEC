@@ -1,6 +1,6 @@
 # Spec 009 — Código del equipo por cámara y evidencia fotográfica (HU-09)
 
-> Estado: aprobada (2026-10-16), con las decisiones D-1 a D-12 respondidas por el usuario (ver «Decisiones»). Queda pendiente D-13.
+> Estado: aprobada (2026-10-16), con las decisiones D-1 a D-12 respondidas por el usuario (ver «Decisiones»). D-13 se aprobó el 2026-10-17.
 
 > Spec escrita antes del código (principio 2 de la constitución). Los requisitos usan el bloque propio de la HU-09 (RF-901…). Corresponde a dos requisitos del documento del producto (`SIGTEC_docx.pdf`, sección 11.1, fuera del repo): el **RF-14 del producto** («capturar el código del equipo con la cámara, sin escribirlo manualmente») y el **RF-15 del producto** («adjuntar fotografías de la falla y de la pieza cambiada a una incidencia»). Se citan como «RF-14/RF-15 del producto» para no confundirlos con el RF-14 y el RF-15 de `specs/001-inicio-sesion`. También sigue las secciones 16.1 (fotos en el almacenamiento interno y permisos pedidos al usarse por primera vez) y 17 (lectura del código con ML Kit en el dispositivo, sin conexión) del mismo documento, y los prototipos 13 «Escaneo del equipo» y 14 «Captura de evidencia».
 
@@ -73,6 +73,7 @@ Esta HU le permite a cualquier persona del área leer el código desde la etique
 - RF-941: EL SISTEMA deja las fotos fuera de la copia de seguridad automática de Android, para que no terminen en la cuenta de Google de quien usa el celular ni se restauren en otro. Ver D-9.
 - RF-942: CUANDO se borran los datos locales al cerrar sesión (RF-10, HU-01) o al entrar otra persona en el celular (RF-11, HU-01), EL SISTEMA borra también todas las fotos de evidencia del almacenamiento interno. Esto amplía RF-10 y RF-11 de `specs/001-inicio-sesion`, como dejó pendiente su decisión D-7 (`MEMORY.md`, «Pendientes conocidos»). Ver D-7 de esta spec.
 - RF-943: SI el usuario pulsa «Cerrar sesión» y en el celular hay fotos de evidencia, ENTONCES EL SISTEMA pide confirmación aunque no haya cambios sin enviar, y el aviso de RF-13 (HU-01) nombra también las fotos: «Tienes N cambios sin enviar y M fotos de evidencia en este celular. Si cierras sesión ahora, se perderán.»; con fotos y sin cambios, «Tienes M fotos de evidencia en este celular. Si cierras sesión ahora, se perderán.» (con 1 foto, en singular: «Tienes 1 foto de evidencia en este celular. Si cierras sesión ahora, se perderá.»). Las opciones «Cancelar» y «Cerrar de todos modos» y su efecto no cambian. Esto amplía RF-13 de `specs/001-inicio-sesion`, que se actualiza en el mismo PR. Ver D-8.
+- RF-944: SI entra otra persona en el celular (RF-11, HU-01) y hay fotos de evidencia de la sesión anterior, ENTONCES EL SISTEMA muestra la confirmación de RF-11 aunque no haya cambios sin enviar, y su texto nombra también las fotos con la misma forma de RF-943 («{Nombre} tiene N cambios sin enviar y M fotos de evidencia en este celular. Si ingresas, se perderán.»; con solo fotos, «{Nombre} tiene M fotos de evidencia en este celular. Si ingresas, se perderán.», en singular con 1 foto). Las opciones «Cancelar» e «Ingresar de todos modos» y su efecto no cambian. Amplía RF-11 de `specs/001-inicio-sesion`, que se actualiza en el mismo PR. Ver D-13.
 
 ## Requisitos no funcionales
 - Idioma: textos de UI y mensajes de error en español; cada error sale de `error.mensaje()`.
@@ -122,11 +123,11 @@ Esta HU le permite a cualquier persona del área leer el código desde la etique
 - Cambiar el informe técnico (sus campos o su cierre con huella): la HU-08 queda igual; solo se le agrega la sección «Evidencias» (D-6).
 
 ## Criterios de finalización
-- RF-901 a RF-943 implementados (RF-937, RF-938 y RF-943 salen de D-5, D-6 y D-8, aprobadas).
+- RF-901 a RF-944 implementados (RF-937, RF-938, RF-943 y RF-944 salen de D-5, D-6, D-8 y D-13, aprobadas).
 - Pruebas unitarias (JVM): la regla que extrae el código del texto (normalización, confusiones según la posición, forma del código, varios candidatos con y sin catálogo, texto sin código); la regla de las 3 lecturas iguales seguidas y su reinicio; la regla que decide qué mostrar según el permiso (sin pedir, concedido, negado, no volver a preguntar, sin cámara); el caso de uso de guardar una foto (sin sesión, otro técnico, incidencia cerrada, máximo alcanzado, guardado correcto con su fecha, fallo de Room que no deja el archivo); el de eliminarla; el manejo de los archivos de fotos sobre una carpeta temporal (crear, borrar una, borrar todas); y los `ViewModel` de «Escanear etiqueta», «Evidencia fotográfica», «Nueva incidencia» (código escaneado e indicación) y del detalle (fotos y «Agregar foto» solo para el técnico asignado mientras siga pendiente).
 - Si cambia alguna consulta de Room, su prueba instrumentada pasa en un celular. La entidad no cambia y `version` no sube.
 - `./gradlew assembleDebug testDebugUnitTest lintDebug` en verde y sin advertencias nuevas de lint.
-- `specs/001-inicio-sesion/spec.md` actualizada en los mismos PR que implementan RF-942 y RF-943 (RF-10 y RF-11 ya no dicen «las fotos se agregarán cuando exista la HU de captura» y RF-13 cuenta las fotos), y la línea de la HU-09 en `MEMORY.md` dice «completa».
+- `specs/001-inicio-sesion/spec.md` actualizada en los mismos PR que implementan RF-942 y RF-943 (RF-10 y RF-11 ya no dicen «las fotos se agregarán cuando exista la HU de captura», y RF-11 y RF-13 cuentan las fotos), y la línea de la HU-09 en `MEMORY.md` dice «completa».
 - Prueba manual en un celular real (no solo en el emulador, porque su cámara es simulada), con capturas en claro y oscuro:
   - Como personal de sistemas, escanear una etiqueta de cada uno de los 4 equipos de prueba, impresa o en otra pantalla, en modo avión, y comprobar que el código llega a «Nueva incidencia» con «Leído desde la etiqueta con la cámara»; escanear un código que no está en el catálogo y ver el aviso; salir sin confirmar y ver que el formulario no cambió.
   - Negar el permiso de cámara, negarlo de nuevo, concederlo desde «Abrir ajustes» y ver que la cámara se abre al volver.
@@ -135,7 +136,7 @@ Esta HU le permite a cualquier persona del área leer el código desde la etique
   - Cerrar sesión con fotos y sin cambios sin enviar, y ver el aviso de RF-943; confirmar y comprobar que la carpeta de fotos de la app quedó vacía; repetir entrando con otra persona sin cerrar sesión.
 
 ## Decisiones
-Respondidas por el usuario el 2026-10-16. Solo D-13 queda abierta.
+Respondidas por el usuario el 2026-10-16 (D-1 a D-12) y el 2026-10-17 (D-13).
 - D-1 · Quién agrega fotos (RF-923, RF-926). **Aprobada:** solo el técnico asignado, mientras la incidencia siga pendiente, igual que «Cerrar con informe».
 - D-2 · Máximo de 10 fotos por incidencia y un error nuevo, `LimiteFotosAlcanzado` (RF-929). **Aprobada.** Toca `core/domain/Resultado.kt` y `core/ui/MensajesError.kt`, que son compartidos.
 - D-3 · Código fuera del catálogo (RF-907). **Aprobada:** se muestra con un aviso y se puede usar; el registro lo valida al guardar (RF-41).
@@ -148,4 +149,4 @@ Respondidas por el usuario el 2026-10-16. Solo D-13 queda abierta.
 - D-10 · Diseño de las pantallas de cámara. **Aprobada:** `BarraSuperior` clara con «Volver», del rediseño del #39, y sin el botón de linterna (HU-10).
 - D-11 · `AndroidManifest.xml` (compartido). **Aprobada:** permiso de cámara, con la cámara declarada como no obligatoria.
 - D-12 · Responsable de la HU-09. **Aprobada:** la HU-09 queda a nombre de Nina.
-- D-13 · [NECESITA ACLARACIÓN] Avisar también al entrar otra persona. RF-942 borra las fotos cuando entra otra persona en el celular (RF-11, HU-01), pero la confirmación de RF-11 solo aparece si el dueño bloqueado tiene cambios sin enviar. Propuesta: que esa confirmación también cuente las fotos y aparezca aunque solo haya fotos, con el mismo texto de RF-943. Si se aprueba, se agrega como RF-944 y amplía RF-11 de la spec 001.
+- D-13 · Avisar también al entrar otra persona. **Aprobada el 2026-10-17:** la confirmación de RF-11 cuenta las fotos y aparece aunque solo haya fotos (RF-944). Amplía RF-11 de la spec 001.
