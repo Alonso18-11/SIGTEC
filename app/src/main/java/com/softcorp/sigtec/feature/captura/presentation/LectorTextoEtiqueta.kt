@@ -1,6 +1,7 @@
 package com.softcorp.sigtec.feature.captura.presentation
 
 import android.util.Log
+import androidx.annotation.OptIn
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
@@ -19,6 +20,7 @@ class LectorTextoEtiqueta(private val alLeerTexto: (String) -> Unit) : ImageAnal
 
     private val reconocedor = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
 
+    // ExperimentalGetImage es una marca de AndroidX: lint solo acepta el OptIn de androidx.annotation
     @OptIn(ExperimentalGetImage::class)
     override fun analyze(imagen: ImageProxy) {
         val medio = imagen.image
