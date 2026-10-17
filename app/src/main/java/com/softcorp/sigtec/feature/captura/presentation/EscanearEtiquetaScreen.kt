@@ -2,11 +2,13 @@ package com.softcorp.sigtec.feature.captura.presentation
 
 import android.content.res.Configuration
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,7 +16,10 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.PhotoCamera
+import androidx.compose.material.icons.outlined.WarningAmber
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -39,6 +44,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.softcorp.sigtec.core.theme.Espaciado
 import com.softcorp.sigtec.core.theme.SigtecTheme
 import com.softcorp.sigtec.core.ui.components.BarraSuperior
+import com.softcorp.sigtec.core.ui.components.BotonPrincipal
+import com.softcorp.sigtec.core.ui.components.BotonSecundario
+import com.softcorp.sigtec.feature.captura.domain.LecturaCodigo
 
 // El marco imita la etiqueta de activo fijo: ancho, con proporción 2:1 (prototipo 13)
 private const val ANCHO_MARCO = 0.85f
@@ -47,6 +55,8 @@ private const val OPACIDAD_FUERA_DEL_MARCO = 0.55f
 private val EsquinaMarco = 28.dp
 private val GrosorMarco = 4.dp
 private val RadioMarco = 8.dp
+private val TamanoIconoCheck = 20.dp
+private val TamanoIconoAviso = 18.dp
 
 /**
  * HU-09 (RF-901): «Escanear etiqueta». La cámara llega en PR-16; mientras tanto la pantalla muestra
@@ -55,12 +65,15 @@ private val RadioMarco = 8.dp
 @Composable
 fun EscanearEtiquetaRoute(
     alVolver: () -> Unit,
+    alUsarCodigo: (String) -> Unit,
     vm: EscaneoViewModel = hiltViewModel()
 ) {
     val estado by vm.estado.collectAsStateWithLifecycle()
     EscanearEtiquetaScreen(
         estado = estado,
         alVolver = alVolver,
+        alVolverAEscanear = vm::alVolverAEscanear,
+        alUsarCodigo = alUsarCodigo,
         vistaCamara = { VistaCamaraDeMuestra() }
     )
 }
@@ -69,6 +82,8 @@ fun EscanearEtiquetaRoute(
 fun EscanearEtiquetaScreen(
     estado: EscaneoUiState,
     alVolver: () -> Unit,
+    alVolverAEscanear: () -> Unit,
+    alUsarCodigo: (String) -> Unit,
     vistaCamara: @Composable () -> Unit
 ) {
     // D-10: la barra clara del rediseño (#39) en vez de la barra oscura con «X» del prototipo
@@ -96,6 +111,10 @@ fun EscanearEtiquetaScreen(
                         .align(Alignment.Center)
                         .offset(y = altoMarco / 2 + Espaciado.l)
                 )
+            }
+            // RF-906: nada se escribe en el formulario hasta que el usuario confirma
+            estado.reconocido?.let { lectura ->
+                PanelCodigoReconocido(lectura, alVolverAEscanear, alUsar = { alUsarCodigo(lectura.codigo) })
             }
         }
     }
@@ -129,6 +148,61 @@ private fun MarcoEtiqueta(modifier: Modifier = Modifier) {
         esquina(Offset(fin.x, origen.y), -1f, 1f)
         esquina(Offset(origen.x, fin.y), 1f, -1f)
         esquina(fin, -1f, -1f)
+    }
+}
+
+/** El código reconocido con sus dos salidas; si no está en el catálogo, lo avisa (RF-907). */
+@Composable
+private fun PanelCodigoReconocido(lectura: LecturaCodigo, alVolverAEscanear: () -> Unit, alUsar: () -> Unit) {
+    val solucionado = SigtecTheme.estados.solucionado
+    Surface(color = MaterialTheme.colorScheme.surface) {
+        Column {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Column(
+                modifier = Modifier.padding(Espaciado.m),
+                verticalArrangement = Arrangement.spacedBy(Espaciado.sm)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espaciado.sm)) {
+                    Surface(color = solucionado.contenedor, contentColor = solucionado.contenido, shape = CircleShape) {
+                        Icon(Icons.Outlined.Check, contentDescription = null, modifier = Modifier.padding(Espaciado.s).size(TamanoIconoCheck))
+                    }
+                    Column {
+                        Text(
+                            "Código reconocido · sin conexión",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(lectura.codigo, style = MaterialTheme.typography.headlineSmall)
+                    }
+                }
+                if (!lectura.enCatalogo) AvisoFueraDeCatalogo()
+                Row(horizontalArrangement = Arrangement.spacedBy(Espaciado.s)) {
+                    BotonSecundario(onClick = alVolverAEscanear, modifier = Modifier.weight(1f)) {
+                        Text("Volver a escanear", maxLines = 1)
+                    }
+                    BotonPrincipal(onClick = alUsar, modifier = Modifier.weight(1f)) {
+                        Text("Usar este código", maxLines = 1)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AvisoFueraDeCatalogo() {
+    val advertencia = SigtecTheme.estados.advertencia
+    Surface(color = advertencia.contenedor, contentColor = advertencia.contenido, shape = MaterialTheme.shapes.small) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Espaciado.sm, vertical = Espaciado.s),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Espaciado.s)
+        ) {
+            Icon(Icons.Outlined.WarningAmber, contentDescription = null, modifier = Modifier.size(TamanoIconoAviso))
+            Text("No está en el catálogo de este celular", style = MaterialTheme.typography.bodyMedium)
+        }
     }
 }
 
@@ -176,11 +250,39 @@ internal fun VistaCamaraDeMuestra(modifier: Modifier = Modifier) {
 @Preview(name = "Buscando · claro", showBackground = true, heightDp = 700)
 @Composable
 private fun BuscandoClaro() = SigtecTheme {
-    Surface { EscanearEtiquetaScreen(EscaneoUiState(), alVolver = {}, vistaCamara = { VistaCamaraDeMuestra() }) }
+    Surface { Previa(EscaneoUiState()) }
 }
 
 @Preview(name = "Buscando · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 700)
 @Composable
 private fun BuscandoOscuro() = SigtecTheme(darkTheme = true) {
-    Surface { EscanearEtiquetaScreen(EscaneoUiState(), alVolver = {}, vistaCamara = { VistaCamaraDeMuestra() }) }
+    Surface { Previa(EscaneoUiState()) }
 }
+
+@Preview(name = "Reconocido · claro", showBackground = true, heightDp = 700)
+@Composable
+private fun ReconocidoClaro() = SigtecTheme { Surface { Previa(reconocido) } }
+
+@Preview(name = "Reconocido · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 700)
+@Composable
+private fun ReconocidoOscuro() = SigtecTheme(darkTheme = true) { Surface { Previa(reconocido) } }
+
+@Preview(name = "Fuera del catálogo · claro", showBackground = true, heightDp = 700)
+@Composable
+private fun FueraDeCatalogoClaro() = SigtecTheme { Surface { Previa(fueraDeCatalogo) } }
+
+@Preview(name = "Fuera del catálogo · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 700)
+@Composable
+private fun FueraDeCatalogoOscuro() = SigtecTheme(darkTheme = true) { Surface { Previa(fueraDeCatalogo) } }
+
+private val reconocido = EscaneoUiState(reconocido = LecturaCodigo("PC-CONT-014", enCatalogo = true))
+private val fueraDeCatalogo = EscaneoUiState(reconocido = LecturaCodigo("LAP-GER-005", enCatalogo = false))
+
+@Composable
+private fun Previa(estado: EscaneoUiState) = EscanearEtiquetaScreen(
+    estado = estado,
+    alVolver = {},
+    alVolverAEscanear = {},
+    alUsarCodigo = {},
+    vistaCamara = { VistaCamaraDeMuestra() }
+)
