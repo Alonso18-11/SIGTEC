@@ -542,6 +542,7 @@ Las decisiones de producto (D-1 a D-12) están en «Dudas abiertas» de `spec.md
 | `EvidenciaDaoTest` (PR-52, instrumentada) | `contar` sube al guardar y baja al eliminar; `observarPorIncidencia` ordena por fecha de captura. | RF-932, RF-943 |
 | `ReglasSesionTest` y `EvaluarCierreSesionTest` (PR-54, se amplían) | Solo fotos → `Confirmar`; cambios y fotos → `Confirmar` con los dos números; nada → `SinRiesgo`. | RF-943 |
 | `TextosSalidaTest` (PR-55, se amplía) | 1 y varias fotos; solo cambios (texto de RF-13 sin cambios); solo fotos; cambios y fotos. | RF-943 |
+| `EvaluarIngresoDeOtraPersonaTest` y `TextosSalidaTest` (PR-56b, se amplían) | Otra persona con solo fotos → `Confirmar`; misma persona con fotos → `SinRiesgo`; textos de ingreso con cambios, con fotos y con ambos. | RF-944 |
 
 **Prueba instrumentada:** solo `EvidenciaDaoTest` (PR-52), porque es el único DAO que cambia; corre en un celular o
 emulador, no en el CI.
@@ -562,6 +563,7 @@ emulador, no en el CI.
 - PR-50 y PR-51: después de cerrar sesión, y después de entrar otra persona, la carpeta `files/evidencias` vacía
   (`adb shell run-as com.softcorp.sigtec ls files/evidencias`).
 - PR-56: cerrar sesión con fotos y sin cambios sin enviar, y con los dos, y ver el texto de RF-943 en claro y oscuro.
+- PR-56b: con el dueño bloqueado y fotos sin cambios, entrar con otra cuenta y ver el aviso de RF-944.
 
 **Cierre de cada PR:** `./gradlew assembleDebug testDebugUnitTest lintDebug` en verde y sin advertencias nuevas de
 lint antes de abrirlo o de marcarlo listo.
@@ -607,11 +609,12 @@ lint antes de abrirlo o de marcarlo listo.
 | RF-941 | `backup_rules.xml`, `data_extraction_rules.xml` | Revisión de PR-22 y PR-23 |
 | RF-942 | `SesionRepositoryFirebase`, `SincronizacionTiempoReal`, `AlmacenFotos.borrarTodo` (D-7) | `AlmacenFotosTest` + manual |
 | RF-943 | `EvidenciaDao.contar`, `EstadoDatos.fotosEnCelular`, `evaluarBorrado`, `textoAvisoSalida`, `AjustesSeguridadScreen` (D-8) | `EvidenciaDaoTest`, `ReglasSesionTest`, `EvaluarCierreSesionTest`, `TextosSalidaTest` + manual |
+| RF-944 | `EvaluarIngresoDeOtraPersona`, `textoAvisoIngreso`, `LoginScreen` (D-13) | `EvaluarIngresoDeOtraPersonaTest`, `TextosSalidaTest` + manual |
 
 ## 9. Respeto a la constitución
 1. **Stack cerrado:** sin dependencias nuevas. CameraX, ML Kit y `kotlinx-coroutines-play-services` ya estaban en
    `libs.versions.toml`; P-3 descarta `camera-mlkit-vision` y P-6 descarta Coil por la misma razón.
-2. **Spec antes que código:** la spec se aprobó antes del primer PR de código. PR-50, PR-51 y PR-56 actualizan
+2. **Spec antes que código:** la spec se aprobó antes del primer PR de código. PR-50, PR-51, PR-56 y PR-56b actualizan
    RF-10, RF-11 y RF-13 de la spec 001 en el mismo PR que cambia ese comportamiento.
 3. **Lógica fuera de la pantalla:** las reglas viven en `feature/captura/domain`, en Kotlin puro (`CodigoEquipo`,
    `RachaLectura`, `ReglasEvidencia` y los casos de uso). `vistaPermiso` es una función pura. Las `Screen` solo
@@ -638,10 +641,10 @@ lint antes de abrirlo o de marcarlo listo.
 | PR-50, PR-51 | — | `core/data/SesionRepositoryFirebase.kt`, `core/sync/SincronizacionTiempoReal.kt`, `specs/001-inicio-sesion/spec.md` (D-7) | — |
 | PR-52 | — | `core/database/dao/EvidenciaDao.kt` | Consulta nueva; entidad igual, `version` no sube |
 | PR-53 | `core/domain/model/EstadoDatos.kt` (D-8) | `core/sync/EstadoDatosRepositoryImpl.kt` | — |
-| PR-54 a PR-56 | — | `core/domain/ReglasSesion.kt`, `EvaluarCierreSesion.kt`, `feature/acceso/presentation/*` y la spec 001 (modelo de sesión, D-8) | — |
+| PR-54 a PR-56b | — | `core/domain/ReglasSesion.kt`, `EvaluarCierreSesion.kt`, `EvaluarIngresoDeOtraPersona.kt`, `feature/acceso/presentation/*` y la spec 001 (modelo de sesión, D-8 y D-13) | — |
 | PR-57 | `MEMORY.md` (solo la línea de la HU-09) | — | — |
 
 Los demás PR no tocan archivos compartidos ni sensibles. Ningún PR toca `libs.versions.toml`,
 `app/build.gradle.kts`, `SigtecDatabase.kt`, las entidades, `Rutas.kt`, `SigtecRaiz.kt`, `core/theme/*`,
-`core/di/*` ni `firebase/firestore.rules`. Los PR de PR-50 a PR-56 tocan el modelo de sesión: Alonso los revisa con
+`core/di/*` ni `firebase/firestore.rules`. Los PR de PR-50 a PR-56b tocan el modelo de sesión: Alonso los revisa con
 ese foco (`CLAUDE.md`).
