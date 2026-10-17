@@ -4,6 +4,13 @@
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- HU-09: leer la etiqueta y fotografiar la evidencia; se pide al usarla por primera vez (RF-916) -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- RF-920: sin cámara la app funciona igual y el código se escribe a mano; Play no debe excluir esos celulares -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
 
     <application
         android:name=".SigtecApp"
