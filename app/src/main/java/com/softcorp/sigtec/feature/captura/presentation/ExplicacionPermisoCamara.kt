@@ -1,5 +1,6 @@
 package com.softcorp.sigtec.feature.captura.presentation
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,14 +12,19 @@ import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import com.softcorp.sigtec.core.theme.Espaciado
+import com.softcorp.sigtec.core.theme.SigtecTheme
 import com.softcorp.sigtec.core.ui.components.BotonPrincipal
 
 /**
@@ -97,3 +103,30 @@ private fun explicacionDe(vista: VistaPermiso): Explicacion? = when (vista) {
 }
 
 private val TamanoIcono = 48.dp
+
+private class VistasSinCamara : PreviewParameterProvider<VistaPermiso> {
+    override val values = sequenceOf(
+        VistaPermiso.EXPLICAR,
+        VistaPermiso.NEGADO,
+        VistaPermiso.IR_A_AJUSTES,
+        VistaPermiso.SIN_CAMARA
+    )
+}
+
+@Preview(name = "Permiso · claro", showBackground = true, heightDp = 600)
+@Composable
+private fun ExplicacionClaro(@PreviewParameter(VistasSinCamara::class) vista: VistaPermiso) =
+    SigtecTheme { Surface { Previa(vista) } }
+
+@Preview(name = "Permiso · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 600)
+@Composable
+private fun ExplicacionOscuro(@PreviewParameter(VistasSinCamara::class) vista: VistaPermiso) =
+    SigtecTheme(darkTheme = true) { Surface { Previa(vista) } }
+
+@Composable
+private fun Previa(vista: VistaPermiso) = ExplicacionPermisoCamara(
+    vista = vista,
+    textoNegado = "También puedes escribir el código a mano en el formulario.",
+    alPermitir = {},
+    alAbrirAjustes = {}
+)
