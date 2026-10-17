@@ -25,12 +25,14 @@ Las reglas permanentes van en `CLAUDE.md`, no aquí.
   - HU-06 `specs/006-asignacion-tecnico` (Nina): completa (RF-601 a RF-625). Reglas publicadas el 2026-10-12 (9:10). El Rules Playground no simula `getAfter()`: los casos que cambian el técnico dan «error desconocido» y se prueban desde la app. «Iniciar atención» de RF-624 se prueba en la HU-08.
   - HU-07 `specs/007-tiempo-real-aviso` (Nina; terminada por Alonso): completa (RF-701 a RF-713). Aviso local en `core/notificaciones`, lo dispara `SincronizacionTiempoReal`; permiso `POST_NOTIFICATIONS` solo al técnico en Android 13+. Con la app ya en la pantalla de desbloqueo, tocar el aviso no relanza la huella (RF-712). Avisar con la app cerrada es de la HU-17.
   - HU-08 `specs/008-bandeja-cierre-informe` (Alonso): completa (RF-801 a RF-829). Reglas publicadas el 2026-10-12. Cerrar resta 1 a la carga del técnico en la misma escritura (RF-823). Con ramas apiladas y squash, comprobar `git log main..<rama>` antes de cerrar la HU: los PR C y D quedaron fuera de #33 y se subieron en #34.
-  - HU-09 y HU-10 (Alonso): pendientes. Bloques RF-901… y RF-1001….
+  - HU-09 `specs/009-escaneo-evidencias` (Nina): spec aprobada (RF-901 a RF-944), D-1 a D-13 respondidas (2026-10-16 y 2026-10-17). Spec #40, plan #41 y tareas #42 (apilados). Código en 58 PR de un solo cambio, por tandas de 5: tanda 1 (PR-01 a PR-05 = #43 a #47) y tanda 2 (PR-06 a PR-10 = #48 a #52) hechas; ninguno fusionado aún. PR-07 trae PR-06 y PR-08 trae PR-05 por merge. Siguiente: tanda 3 (PR-11 a PR-15). Los apilados no tienen CI hasta que se fusione #43 (PR-01).
+  - HU-10 (Alonso): pendiente. Bloque RF-1001….
 - `firestore.rules` con el `allow create` de `contadores/incidencias` (RF-69) probado en el Rules Playground y publicado (2026-10-11). No borrar el contador en el proyecto real: con incidencias ya numeradas, recrearlo desde 1 duplicaría INC-0001.
 - Clases de Firebase como `FirebaseFirestoreException.Code` no se inicializan en las pruebas JVM: las reglas puras trabajan con el nombre del código (`esCodigoPermanente`). No usar `isReturnDefaultValues` para taparlo.
 - Doble `RelojFalso` (`app/src/test/.../core/sync/RelojFalso.kt`) listo pero sin usar: falta una prueba completa de `SincronizadorIncidencias`/`SincronizacionTiempoReal` que lo aproveche.
 - Room subió de `version = 1` a `version = 2` por `necesitaAtencion` en `IncidenciaEntity`/`MovimientoEntity`.
 - Reemplazar `fallbackToDestructiveMigration` por migraciones reales antes de publicar.
+- Copia de seguridad de Android: `allowBackup="true"` con las reglas de ejemplo respalda en la cuenta de Google la base Room y las preferencias de la huella (y podría restaurarlas en otro celular). La HU-09 solo excluye las fotos (D-9 de la spec 009); lo demás va en un PR aparte.
 - Google Play (urgente): las cuentas personales nuevas necesitan una prueba cerrada con ~12 testers durante 14 días antes de publicar. Crear la cuenta y empezar la prueba al menos 3 semanas antes de la entrega; verificar la regla vigente en Play Console.
 - Issues, milestones y etiquetas de GitHub sin crear.
 
