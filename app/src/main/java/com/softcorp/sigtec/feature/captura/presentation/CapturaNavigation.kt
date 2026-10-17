@@ -7,6 +7,12 @@ import androidx.navigation.toRoute
 import com.softcorp.sigtec.core.navigation.Ruta
 import com.softcorp.sigtec.core.ui.components.PantallaEnConstruccion
 
+/**
+ * HU-09 (RF-909, RF-913): «Escanear etiqueta» deja aquí el código confirmado, en el `savedStateHandle` de la
+ * pantalla que la abrió. Es la única clave, así la búsqueda del historial (HU-16) lo recibe igual.
+ */
+const val CLAVE_CODIGO_ESCANEADO = "codigoEscaneado"
+
 fun NavGraphBuilder.capturaGraph(navController: NavController) {
     composable<Ruta.EscanearEtiqueta> {
         PantallaEnConstruccion(
