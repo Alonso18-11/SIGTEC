@@ -1,8 +1,8 @@
 name: CI
 
 on:
+  # Cualquier base: los PR apilados (base = otra rama) también necesitan su check (HU-09, P-13)
   pull_request:
-    branches: [main]
   push:
     branches: [main]
 
