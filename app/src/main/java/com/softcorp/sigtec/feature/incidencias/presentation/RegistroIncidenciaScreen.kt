@@ -40,6 +40,8 @@ private val AnchoEtiquetaDato = 148.dp
 
 @Composable
 fun RegistroIncidenciaRoute(
+    codigoEscaneado: String?,
+    alConsumirCodigo: () -> Unit,
     alVolver: () -> Unit,
     alEscanear: () -> Unit,
     alDictar: () -> Unit,
@@ -47,6 +49,14 @@ fun RegistroIncidenciaRoute(
     vm: RegistroIncidenciaViewModel = hiltViewModel()
 ) {
     val estado by vm.estado.collectAsStateWithLifecycle()
+
+    // RF-910: se aplica una sola vez y se borra, así una rotación no lo vuelve a escribir
+    LaunchedEffect(codigoEscaneado) {
+        codigoEscaneado?.let { codigo ->
+            vm.alUsarCodigoEscaneado(codigo)
+            alConsumirCodigo()
+        }
+    }
 
     LaunchedEffect(estado.registradaId) {
         estado.registradaId?.let { id ->

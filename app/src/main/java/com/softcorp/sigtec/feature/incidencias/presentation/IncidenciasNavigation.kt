@@ -1,11 +1,14 @@
 package com.softcorp.sigtec.feature.incidencias.presentation
 
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.softcorp.sigtec.core.navigation.Ruta
+import com.softcorp.sigtec.feature.captura.presentation.CLAVE_CODIGO_ESCANEADO
 import com.softcorp.sigtec.feature.incidencias.domain.POR_SINCRONIZAR
 
 // Mensaje que el registro (y la asignación, HU-06) deja al detalle al abrirlo o al volver a él
@@ -18,8 +21,15 @@ fun NavGraphBuilder.incidenciasGraph(navController: NavController) {
             alRegistrar = { navController.navigate(Ruta.RegistroIncidencia) }
         )
     }
-    composable<Ruta.RegistroIncidencia> {
+    composable<Ruta.RegistroIncidencia> { entrada ->
+        // HU-09 (RF-909): lo deja «Escanear etiqueta» al confirmar; es un flujo porque el formulario ya está
+        // compuesto cuando se vuelve a él
+        val codigoEscaneado by entrada.savedStateHandle
+            .getStateFlow<String?>(CLAVE_CODIGO_ESCANEADO, null)
+            .collectAsStateWithLifecycle()
         RegistroIncidenciaRoute(
+            codigoEscaneado = codigoEscaneado,
+            alConsumirCodigo = { entrada.savedStateHandle[CLAVE_CODIGO_ESCANEADO] = null },
             alVolver = { navController.popBackStack() },
             alEscanear = { navController.navigate(Ruta.EscanearEtiqueta) },
             alDictar = { navController.navigate(Ruta.DictarTexto) },
