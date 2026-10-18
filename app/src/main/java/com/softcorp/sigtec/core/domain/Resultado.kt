@@ -20,5 +20,6 @@ sealed interface ErrorDominio {
     data object IncidenciaPorSincronizar : ErrorDominio  // RF-610: sin número, aún no está en el servidor
     data class YaAsignada(val tecnicoNombre: String) : ErrorDominio   // RF-611
     data object MarcaCambiada : ErrorDominio             // RF-808: la marca cambió por otra vía antes de guardar
+    data object LimiteFotosAlcanzado : ErrorDominio      // RF-929: ya hay 10 fotos de la incidencia en el celular
     data class Desconocido(val mensaje: String?) : ErrorDominio
 }
