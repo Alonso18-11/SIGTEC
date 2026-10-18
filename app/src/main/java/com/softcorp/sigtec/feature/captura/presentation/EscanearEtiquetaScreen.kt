@@ -1,6 +1,8 @@
 package com.softcorp.sigtec.feature.captura.presentation
 
 import android.content.res.Configuration
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.UseCase
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.background
@@ -26,7 +28,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
@@ -47,6 +52,7 @@ import com.softcorp.sigtec.core.ui.components.BarraSuperior
 import com.softcorp.sigtec.core.ui.components.BotonPrincipal
 import com.softcorp.sigtec.core.ui.components.BotonSecundario
 import com.softcorp.sigtec.feature.captura.domain.LecturaCodigo
+import java.util.concurrent.Executors
 
 // El marco imita la etiqueta de activo fijo: ancho, con proporción 2:1 (prototipo 13)
 private const val ANCHO_MARCO = 0.85f
@@ -59,8 +65,8 @@ private val TamanoIconoCheck = 20.dp
 private val TamanoIconoAviso = 18.dp
 
 /**
- * HU-09 (RF-901): «Escanear etiqueta». La cámara llega en PR-16; mientras tanto la pantalla muestra
- * el recuadro de muestra, igual que sus vistas previas.
+ * HU-09 (RF-901): «Escanear etiqueta». Pide el permiso al entrar (RF-916) y, con él, lee el texto de la
+ * cámara con ML Kit hasta reconocer un código.
  */
 @Composable
 fun EscanearEtiquetaRoute(
@@ -69,12 +75,38 @@ fun EscanearEtiquetaRoute(
     vm: EscaneoViewModel = hiltViewModel()
 ) {
     val estado by vm.estado.collectAsStateWithLifecycle()
+    val lector = remember { LectorTextoEtiqueta(alLeerTexto = vm::alLeerTexto) }
+    val hilo = remember { Executors.newSingleThreadExecutor() }
+    // Solo la imagen más reciente: si ML Kit tarda, las de en medio se descartan
+    val analisis = remember {
+        ImageAnalysis.Builder().setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST).build()
+    }
+    val casos = remember { listOf<UseCase>(analisis) }
+    // RF-906 y RF-908: con un código reconocido se deja de analizar; «Volver a escanear» lo reanuda
+    val hayCodigo = estado.reconocido != null
+    LaunchedEffect(hayCodigo) {
+        if (hayCodigo) analisis.clearAnalyzer() else analisis.setAnalyzer(hilo, lector)
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            analisis.clearAnalyzer()
+            lector.close()
+            hilo.shutdown()
+        }
+    }
     EscanearEtiquetaScreen(
         estado = estado,
         alVolver = alVolver,
         alVolverAEscanear = vm::alVolverAEscanear,
         alUsarCodigo = alUsarCodigo,
-        vistaCamara = { VistaCamaraDeMuestra() }
+        vistaCamara = { VistaCamara(casos, Modifier.fillMaxSize()) },
+        conPermisoCamara = { contenido ->
+            ConPermisoCamara(
+                textoNegado = "También puedes escribir el código a mano en el formulario.", // RF-918
+                modifier = Modifier.fillMaxSize(),
+                contenido = contenido
+            )
+        }
     )
 }
 
@@ -84,7 +116,9 @@ fun EscanearEtiquetaScreen(
     alVolver: () -> Unit,
     alVolverAEscanear: () -> Unit,
     alUsarCodigo: (String) -> Unit,
-    vistaCamara: @Composable () -> Unit
+    vistaCamara: @Composable () -> Unit,
+    // Sin permiso se ve la explicación en lugar de la cámara y el marco (RF-916); las vistas previas no lo piden
+    conPermisoCamara: @Composable (contenido: @Composable () -> Unit) -> Unit = { contenido -> contenido() }
 ) {
     // D-10: la barra clara del rediseño (#39) en vez de la barra oscura con «X» del prototipo
     Scaffold(
@@ -96,21 +130,25 @@ fun EscanearEtiquetaScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            BoxWithConstraints(
+            Box(
                 Modifier
                     .weight(1f)
                     .fillMaxWidth()
             ) {
-                vistaCamara()
-                MarcoEtiqueta(Modifier.fillMaxSize())
-                // La indicación va justo debajo del marco, sobre la imagen
-                val altoMarco = maxWidth * ANCHO_MARCO / PROPORCION_MARCO
-                Indicacion(
-                    "Encuadra la etiqueta del equipo dentro del marco",
-                    Modifier
-                        .align(Alignment.Center)
-                        .offset(y = altoMarco / 2 + Espaciado.l)
-                )
+                conPermisoCamara {
+                    BoxWithConstraints(Modifier.fillMaxSize()) {
+                        vistaCamara()
+                        MarcoEtiqueta(Modifier.fillMaxSize())
+                        // La indicación va justo debajo del marco, sobre la imagen
+                        val altoMarco = maxWidth * ANCHO_MARCO / PROPORCION_MARCO
+                        Indicacion(
+                            "Encuadra la etiqueta del equipo dentro del marco",
+                            Modifier
+                                .align(Alignment.Center)
+                                .offset(y = altoMarco / 2 + Espaciado.l)
+                        )
+                    }
+                }
             }
             // RF-906: nada se escribe en el formulario hasta que el usuario confirma
             estado.reconocido?.let { lectura ->
