@@ -121,4 +121,45 @@ class RegistroIncidenciaViewModelTest {
         assertNull(vm.ui.registradaId)
         assertFalse(vm.ui.guardando)   // se puede reintentar
     }
+
+    // HU-09 (specs/009-escaneo-evidencias)
+
+    @Test
+    fun `el codigo escaneado reemplaza el escrito y muestra que vino de la camara`() = runTest {
+        val vm = nuevoVm()
+        vm.alCambiarCodigo("PC-LOG-9")
+        assertFalse(vm.ui.codigoLeidoConCamara)
+
+        vm.alUsarCodigoEscaneado("PC-CONT-014")
+
+        assertEquals("PC-CONT-014", vm.ui.codigoEquipo)   // RF-910
+        assertTrue(vm.ui.codigoLeidoConCamara)
+    }
+
+    @Test
+    fun `editar a mano el codigo escaneado quita la indicacion de la camara`() = runTest {
+        val vm = nuevoVm()
+        vm.alUsarCodigoEscaneado("PC-CONT-014")
+
+        vm.alCambiarCodigo("PC-CONT-01")
+
+        assertEquals("PC-CONT-01", vm.ui.codigoEquipo)
+        assertFalse(vm.ui.codigoLeidoConCamara)   // RF-911
+    }
+
+    @Test
+    fun `recibir un codigo escaneado limpia el error anterior`() = runTest {
+        val vm = nuevoVm()
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")
+        vm.alCambiarCodigo("PC-CONT-14")
+        vm.alCambiarDescripcion("No enciende tras el corte de luz")
+        vm.alCambiarResponsable("María Quispe")
+        vm.guardar()
+        main.dispatcher.scheduler.runCurrent()
+        assertEquals(ErrorDominio.EquipoNoEncontrado, vm.ui.error)
+
+        vm.alUsarCodigoEscaneado("PC-CONT-014")
+
+        assertNull(vm.ui.error)
+    }
 }

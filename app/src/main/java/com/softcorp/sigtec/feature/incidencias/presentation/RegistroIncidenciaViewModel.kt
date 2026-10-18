@@ -15,6 +15,7 @@ import javax.inject.Inject
 
 data class RegistroIncidenciaUiState(
     val codigoEquipo: String = "",
+    val codigoLeidoConCamara: Boolean = false,   // HU-09 (RF-910): muestra «Leído desde la etiqueta con la cámara»
     val descripcion: String = "",
     val responsable: String = "",
     val fechaHora: Instant = Instant.now(),      // solo se muestra: la fecha real la pone el caso de uso
@@ -50,7 +51,13 @@ class RegistroIncidenciaViewModel @Inject constructor(
         f.copy(fechaHora = ahora, registradoPor = usuario?.nombre)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), RegistroIncidenciaUiState())
 
-    fun alCambiarCodigo(valor: String) = formulario.update { it.copy(codigoEquipo = valor, error = null) }
+    // RF-911: si lo edita a mano, ya no es lo que leyó la cámara
+    fun alCambiarCodigo(valor: String) =
+        formulario.update { it.copy(codigoEquipo = valor, codigoLeidoConCamara = false, error = null) }
+
+    /** HU-09 (RF-910): el código confirmado en «Escanear etiqueta» reemplaza lo que hubiera escrito. */
+    fun alUsarCodigoEscaneado(codigo: String) =
+        formulario.update { it.copy(codigoEquipo = codigo, codigoLeidoConCamara = true, error = null) }
 
     fun alCambiarDescripcion(valor: String) = formulario.update { it.copy(descripcion = valor, error = null) }
 
