@@ -112,8 +112,13 @@ fun RegistroIncidenciaScreen(
                         )
                     }
                 },
-                // Neutral hasta la HU-09: el código también puede escribirse a mano
-                supportingText = { Text("Escríbelo o léelo de la etiqueta con la cámara") },
+                // HU-09 (RF-910, RF-911): dice de dónde salió el código mientras nadie lo edite a mano
+                supportingText = {
+                    Text(
+                        if (estado.codigoLeidoConCamara) "Leído desde la etiqueta con la cámara"
+                        else "Escríbelo o léelo de la etiqueta con la cámara"
+                    )
+                },
                 singleLine = true,
                 enabled = editable,
                 keyboardOptions = KeyboardOptions(
@@ -269,6 +274,26 @@ private fun RegistroVacio() = SigtecTheme(darkTheme = true) {
         )
     }
 }
+
+@Preview(name = "Código escaneado · claro", showBackground = true)
+@Composable
+private fun RegistroEscaneadoClaro() = SigtecTheme { Surface { RegistroEscaneado() } }
+
+@Preview(name = "Código escaneado · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun RegistroEscaneadoOscuro() = SigtecTheme(darkTheme = true) { Surface { RegistroEscaneado() } }
+
+// HU-09: prototipo 4, con el código recién leído de la etiqueta
+@Composable
+private fun RegistroEscaneado() = RegistroIncidenciaScreen(
+    RegistroIncidenciaUiState(
+        codigoEquipo = "PC-CONT-014",
+        codigoLeidoConCamara = true,
+        fechaHora = fechaDePrueba,
+        registradoPor = "Luis Ramírez"
+    ),
+    {}, {}, {}, {}, {}, {}, {}
+)
 
 @Preview(name = "Error al guardar", showBackground = true)
 @Composable
