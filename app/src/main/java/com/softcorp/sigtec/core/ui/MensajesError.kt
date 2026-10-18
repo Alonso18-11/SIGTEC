@@ -16,6 +16,7 @@ fun ErrorDominio.mensaje(): String = when (this) {
         "Esta incidencia aún no se sincroniza. Podrás asignarla cuando tenga su número INC."
     is ErrorDominio.YaAsignada -> "La incidencia ya está asignada a $tecnicoNombre."
     ErrorDominio.MarcaCambiada -> "Esta incidencia ya cambió de estado. Vuelve a abrirla para ver su situación actual."
+    ErrorDominio.LimiteFotosAlcanzado -> "Llegaste al máximo de 10 fotos por incidencia."
     is ErrorDominio.LimiteAtencionAlcanzado -> "$tecnicoNombre alcanzó su límite de atención."
     is ErrorDominio.Desconocido -> "Ocurrió un error inesperado. Inténtalo de nuevo."
 }
