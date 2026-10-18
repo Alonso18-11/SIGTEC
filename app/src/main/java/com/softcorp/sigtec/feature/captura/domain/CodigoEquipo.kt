@@ -37,3 +37,16 @@ fun candidatosCodigo(texto: String): List<String> =
         .filter { FORMA_CODIGO.matches(it) }
         .distinct()
         .toList()
+
+/** El código que se ofrece al usuario y si está en el catálogo de equipos del celular (RF-907). */
+data class LecturaCodigo(val codigo: String, val enCatalogo: Boolean)
+
+/**
+ * RF-904: entre varios candidatos gana el primero que está en el catálogo; si ninguno está,
+ * el primero en orden de lectura, marcado fuera del catálogo para avisarlo (RF-907).
+ */
+fun elegirCodigo(candidatos: List<String>, delCatalogo: Set<String>): LecturaCodigo? {
+    if (candidatos.isEmpty()) return null
+    val conocido = candidatos.firstOrNull { it in delCatalogo }
+    return LecturaCodigo(conocido ?: candidatos.first(), enCatalogo = conocido != null)
+}

@@ -1,9 +1,10 @@
 package com.softcorp.sigtec.feature.captura.domain
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 
-/** HU-09 (RF-903): cómo se limpia el texto leído antes de buscar el código del equipo. */
+/** HU-09 (RF-903, RF-904, RF-907): del texto leído en la etiqueta al código que se ofrece al usuario. */
 class CodigoEquipoTest {
 
     @Test
@@ -64,5 +65,28 @@ class CodigoEquipoTest {
     @Test
     fun `sin codigo no hay candidatos`() {
         assertEquals(emptyList<String>(), candidatosCodigo("Encuadra la etiqueta del equipo dentro del marco"))
+    }
+
+    @Test
+    fun `elegir prefiere el candidato del catalogo aunque no sea el primero`() {
+        val lectura = elegirCodigo(listOf("PC-XYZ-999", "PC-SIS-003"), delCatalogo = setOf("PC-SIS-003"))
+        assertEquals(LecturaCodigo("PC-SIS-003", enCatalogo = true), lectura)
+    }
+
+    @Test
+    fun `elegir toma el primero del catalogo si hay varios`() {
+        val lectura = elegirCodigo(listOf("PC-LOG-009", "PC-SIS-003"), delCatalogo = setOf("PC-SIS-003", "PC-LOG-009"))
+        assertEquals(LecturaCodigo("PC-LOG-009", enCatalogo = true), lectura)
+    }
+
+    @Test
+    fun `elegir sin ninguno en el catalogo toma el primero y lo marca fuera`() {
+        val lectura = elegirCodigo(listOf("PC-XYZ-999", "PC-ABC-123"), delCatalogo = emptySet())
+        assertEquals(LecturaCodigo("PC-XYZ-999", enCatalogo = false), lectura)
+    }
+
+    @Test
+    fun `elegir sin candidatos no da lectura`() {
+        assertNull(elegirCodigo(emptyList(), delCatalogo = setOf("PC-CONT-014")))
     }
 }
