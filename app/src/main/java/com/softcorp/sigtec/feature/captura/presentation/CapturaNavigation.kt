@@ -3,7 +3,6 @@ package com.softcorp.sigtec.feature.captura.presentation
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import androidx.navigation.toRoute
 import com.softcorp.sigtec.core.navigation.Ruta
 import com.softcorp.sigtec.core.ui.components.PantallaEnConstruccion
 
@@ -23,13 +22,9 @@ fun NavGraphBuilder.capturaGraph(navController: NavController) {
             }
         )
     }
-    composable<Ruta.CapturarEvidencia> { entrada ->
-        val ruta = entrada.toRoute<Ruta.CapturarEvidencia>()
-        PantallaEnConstruccion(
-            titulo = "Evidencia fotográfica · ${ruta.incidenciaId}",
-            historia = "HU-09",
-            acciones = listOf("Listo" to { navController.popBackStack() })
-        )
+    // El ViewModel lee incidenciaId de los argumentos de la ruta (CapturaEvidenciaViewModel.ARG_INCIDENCIA_ID)
+    composable<Ruta.CapturarEvidencia> {
+        EvidenciaFotograficaRoute(alVolver = { navController.popBackStack() })   // RF-930: «Listo» o «Volver»
     }
     composable<Ruta.DictarTexto> {
         PantallaEnConstruccion(
