@@ -43,20 +43,17 @@ class SincronizacionTiempoReal @Inject constructor(
     @ApplicationScope private val scope: CoroutineScope
 ) {
 
-    /** Mientras haya sesión: baja los cambios de Firestore y programa la subida de los locales. */
     @OptIn(ExperimentalCoroutinesApi::class)
     fun iniciar() {
-        var duenoDatos: String? = null   // a quién pertenece lo guardado en Room
+        var duenoDatos: String? = null
         sesion.usuarioActual
             .map { it?.id }
             .distinctUntilChanged()
             .flatMapLatest { uid ->
                 if (uid == null) {
-                    emptyFlow()   // al cerrar sesión, se dejan de escuchar las colecciones
+                    emptyFlow()
                 } else {
                     flow {
-                        // RF-11 (D-12): de una persona a otra nunca hay null. Se borra aquí, antes de
-                        // volver a escuchar, para que la descarga completa llegue después del borrado.
                         if (debeBorrarDatosAlEntrar(duenoDatos, uid)) {
                             withContext(io) { baseLocal.clearAllTables() }
                         }
@@ -141,8 +138,6 @@ class SincronizacionTiempoReal @Inject constructor(
         if (quitados.isNotEmpty()) catalogoDao.borrarTecnicos(quitados.map { it.document.id })
     }
 
-    // Programa la subida solo cuando se pasa de "nada pendiente" a "hay pendientes".
-    // Mientras sube, el Worker mismo se encarga de los cambios que lleguen.
     private fun vigilarPendientes(): Flow<Unit> =
         combine(incidenciaDao.observarPendientes(), movimientoDao.observarPendientes()) { i, m ->
             i + m > 0

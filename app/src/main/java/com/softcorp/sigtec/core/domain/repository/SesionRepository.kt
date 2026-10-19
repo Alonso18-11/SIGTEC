@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.StateFlow
 
 interface SesionRepository {
 
-    /** null = no hay sesión. Emite cada vez que alguien entra o sale. */
     val usuarioActual: StateFlow<Usuario?>
 
     suspend fun iniciarSesion(correo: String, contrasena: String): Resultado<Usuario>

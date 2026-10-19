@@ -46,11 +46,6 @@ import com.softcorp.sigtec.core.ui.components.BarraSuperior
 import com.softcorp.sigtec.core.ui.components.BotonPrincipal
 import com.softcorp.sigtec.core.ui.mensaje
 
-/**
- * HU-08 (RF-813 a RF-817): formulario de informe técnico. Solo los cuatro campos del formulario y
- * el botón de confirmar; sin resumen de la incidencia arriba (decisión del usuario: `InformeTecnicoUiState`
- * de T31 no expone ningún dato de la incidencia, solo los del formulario).
- */
 @Composable
 fun InformeTecnicoRoute(
     alVolver: () -> Unit,
@@ -60,7 +55,6 @@ fun InformeTecnicoRoute(
     val estado by vm.estado.collectAsStateWithLifecycle()
     val verificador = rememberVerificadorBiometrico()
 
-    // RF-821: el cierre exitoso navega hacia atrás; evento de un solo uso, lo consume la Route.
     LaunchedEffect(estado.cerrada) {
         if (estado.cerrada) alCerrar()
     }
@@ -73,9 +67,7 @@ fun InformeTecnicoRoute(
         alCambiarPiezas = vm::alCambiarPiezas,
         alCambiarObservaciones = vm::alCambiarObservaciones,
         alConfirmar = {
-            // RF-815: se pide la huella (o PIN/patrón) antes de guardar cualquier cambio.
             verificador.verificar(titulo = "Confirma el cierre") { resultado ->
-                // RF-817: si se cancela o falla, no se llama al ViewModel; el formulario queda igual.
                 if (resultado is ResultadoBiometrico.Exito) vm.alConfirmarCierre(resultado.instante)
             }
         }
@@ -93,10 +85,8 @@ fun InformeTecnicoScreen(
     alConfirmar: () -> Unit
 ) {
     val editable = !estado.guardando
-    // Solo marca los campos obligatorios como inválidos después de un intento de confirmar.
     var intentoConfirmar by remember { mutableStateOf(false) }
 
-    // La raíz ya aplica los márgenes de la barra de estado; BarraSuperior ya los trae en cero.
     Scaffold(
         modifier = Modifier.imePadding(),
         contentWindowInsets = WindowInsets(0),
@@ -188,7 +178,7 @@ private fun BotonConfirmar(estado: InformeTecnicoUiState, onClick: () -> Unit) {
             Text("Confirmar cierre")
         }
     }
-    // RF-815: se avisa antes de tocar que el cierre pide la huella o el PIN/patrón del celular
+
     if (estado.disponibilidadBiometrica != DisponibilidadBiometrica.SIN_SEGURIDAD) {
         Text(
             "Se te pedirá tu huella o el bloqueo de pantalla para confirmar.",
@@ -198,7 +188,7 @@ private fun BotonConfirmar(estado: InformeTecnicoUiState, onClick: () -> Unit) {
             modifier = Modifier.fillMaxWidth()
         )
     }
-    // RF-816: sin bloqueo de pantalla configurado no se puede confirmar ningún cierre.
+
     if (estado.disponibilidadBiometrica == DisponibilidadBiometrica.SIN_SEGURIDAD) {
         Text(
             "Configura un bloqueo de pantalla en tu celular para poder confirmar el cierre.",

@@ -51,10 +51,6 @@ private val TamanoAvatarActividad = 24.dp
 private val GrosorLinea = 2.dp
 private val AnchoEtiquetaDato = 148.dp
 
-/**
- * Lo que el detalle puede abrir; cada acción navega a su pantalla (las de otras HU, provisionales).
- * `alIniciarAtencion` es la excepción (HU-08): no navega, el `ViewModel` reacciona directo (RF-806 a RF-811).
- */
 data class AccionesDetalle(
     val alVolver: () -> Unit = {},
     val alAsignar: () -> Unit = {},
@@ -362,7 +358,7 @@ private fun BarraAcciones(estado: DetalleIncidenciaUiState, acciones: AccionesDe
                 modifier = Modifier.padding(horizontal = Espaciado.m, vertical = Espaciado.sm),
                 verticalArrangement = Arrangement.spacedBy(Espaciado.s)
             ) {
-                // Asignar es del jefe (HU-06); iniciar, repuesto y cierre, de quien atiende (HU-08 y HU-11)
+                // Asignar es del jefe
                 if (estado.puedeAsignar) {
                     BotonPrincipal(onClick = acciones.alAsignar, modifier = Modifier.fillMaxWidth()) {
                         IconoBoton(Icons.Outlined.PersonAdd)
@@ -370,8 +366,7 @@ private fun BarraAcciones(estado: DetalleIncidenciaUiState, acciones: AccionesDe
                         Text(if (estado.detalle?.incidencia?.tecnicoAsignadoId != null) "Reasignar técnico" else "Asignar técnico")
                     }
                 }
-                // RF-806: solo en la marca Asignada; RF-811: deshabilitado mientras se guarda.
-                // Mientras se puede iniciar, esa es la acción principal y las otras dos quedan en gris.
+                // solo en la marca Asignada
                 if (estado.puedeIniciarAtencion) {
                     BotonPrincipal(
                         onClick = acciones.alIniciarAtencion,
@@ -399,7 +394,6 @@ private fun BarraAcciones(estado: DetalleIncidenciaUiState, acciones: AccionesDe
                         }
                     }
                 }
-                // RF-808, RF-810: error de iniciar atención, si lo hay
                 estado.errorAtencion?.let {
                     Text(it.mensaje(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
                 }

@@ -55,8 +55,6 @@ fun MisTareasScreen(
     estado: MisTareasUiState,
     alAbrir: (String) -> Unit
 ) {
-    // Destino del menú principal, igual que «Incidencias»: sin flecha de volver.
-    // La raíz ya aplica los márgenes de la barra de estado; BarraSuperior ya los trae en cero.
     Scaffold(
         contentWindowInsets = WindowInsets(0),
         topBar = { BarraSuperior("Mis tareas") }
@@ -72,7 +70,6 @@ fun MisTareasScreen(
                 contentAlignment = Alignment.Center
             ) { SinPendientes() }
 
-            // RF-802: filas de borde a borde, sin técnico (ya se sabe que son todas del mismo)
             else -> LazyColumn(modifier = Modifier.fillMaxSize().padding(padding)) {
                 item { Resumen(estado.incidencias.size) }
                 items(estado.incidencias, key = { it.id }) { incidencia ->
@@ -92,7 +89,6 @@ fun MisTareasScreen(
     }
 }
 
-// RF-801: cuántas hay y en qué orden se muestran
 @Composable
 private fun Resumen(cantidad: Int) {
     Column {
@@ -106,7 +102,6 @@ private fun Resumen(cantidad: Int) {
     }
 }
 
-// RF-803: en vez de una lista vacía, un mensaje de que no hay pendientes
 @Composable
 private fun SinPendientes() {
     Column(

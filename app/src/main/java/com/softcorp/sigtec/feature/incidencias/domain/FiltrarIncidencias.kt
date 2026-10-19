@@ -4,13 +4,10 @@ import com.softcorp.sigtec.core.domain.model.Incidencia
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
 import java.text.Normalizer
 
-// RF-42/RF-48/RF-51/RF-55: «INC-0124», o esto mientras la sincronización no le asigne número.
 const val POR_SINCRONIZAR = "Por sincronizar"
 
-/** «INC-0124», o «Por sincronizar» mientras la sincronización no le asigne número. */
 fun Incidencia.codigoParaMostrar(): String = codigoVisible ?: POR_SINCRONIZAR
 
-// RF-44: texto del filtro de técnico, y de la tarjeta, cuando no hay nadie asignado.
 const val SIN_TECNICO = "Sin técnico"
 
 data class FiltrosIncidencias(
