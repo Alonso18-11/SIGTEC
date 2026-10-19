@@ -4,16 +4,12 @@
    for details.
 -->
 <data-extraction-rules>
+    <!-- HU-09 (RF-941, D-9): las fotos de evidencia no salen del celular, ni a la copia en la nube ni al
+         pasar los datos a otro celular (Android 12 o superior). Lo demás sigue como antes. -->
     <cloud-backup>
-        <!-- TODO: Use <include> and <exclude> to control what is backed up.
-        <include .../>
-        <exclude .../>
-        -->
+        <exclude domain="file" path="evidencias/" />
     </cloud-backup>
-    <!--
     <device-transfer>
-        <include .../>
-        <exclude .../>
+        <exclude domain="file" path="evidencias/" />
     </device-transfer>
-    -->
 </data-extraction-rules>
