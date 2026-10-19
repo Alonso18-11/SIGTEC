@@ -1,6 +1,7 @@
 package com.softcorp.sigtec.feature.incidencias.domain
 
 import com.softcorp.sigtec.core.domain.Resultado
+import com.softcorp.sigtec.core.domain.model.Evidencia
 import com.softcorp.sigtec.core.domain.model.Incidencia
 import com.softcorp.sigtec.core.domain.model.InformeTecnico
 import com.softcorp.sigtec.core.domain.model.Movimiento
@@ -31,4 +32,7 @@ interface IncidenciaRepository {
 
     /** El informe técnico de la incidencia, si ya existe (RF-827, RF-828). */
     fun observarInforme(incidenciaId: String): Flow<InformeTecnico?>
+
+    /** HU-09 (RF-932, RF-936): sus fotos en este celular, de la más antigua a la más reciente. Solo lectura. */
+    fun observarEvidencias(incidenciaId: String): Flow<List<Evidencia>>
 }
