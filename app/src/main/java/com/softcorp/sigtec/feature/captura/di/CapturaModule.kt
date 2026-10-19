@@ -1,7 +1,9 @@
 package com.softcorp.sigtec.feature.captura.di
 
 import com.softcorp.sigtec.feature.captura.data.CatalogoEquiposRepositoryImpl
+import com.softcorp.sigtec.feature.captura.data.EvidenciaRepositoryImpl
 import com.softcorp.sigtec.feature.captura.domain.CatalogoEquiposRepository
+import com.softcorp.sigtec.feature.captura.domain.EvidenciaRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -15,4 +17,8 @@ abstract class CapturaModule {
     @Binds
     @Singleton
     abstract fun bindCatalogoEquiposRepository(impl: CatalogoEquiposRepositoryImpl): CatalogoEquiposRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindEvidenciaRepository(impl: EvidenciaRepositoryImpl): EvidenciaRepository
 }
