@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.room.withTransaction
 import com.softcorp.sigtec.core.database.SigtecDatabase
 import com.softcorp.sigtec.core.database.dao.CatalogoDao
+import com.softcorp.sigtec.core.database.dao.EvidenciaDao
 import com.softcorp.sigtec.core.database.dao.IncidenciaDao
 import com.softcorp.sigtec.core.database.dao.InformeTecnicoDao
 import com.softcorp.sigtec.core.database.dao.MovimientoDao
@@ -12,6 +13,7 @@ import com.softcorp.sigtec.core.database.entity.toEntity
 import com.softcorp.sigtec.core.di.IoDispatcher
 import com.softcorp.sigtec.core.domain.ErrorDominio
 import com.softcorp.sigtec.core.domain.Resultado
+import com.softcorp.sigtec.core.domain.model.Evidencia
 import com.softcorp.sigtec.core.domain.model.Incidencia
 import com.softcorp.sigtec.core.domain.model.InformeTecnico
 import com.softcorp.sigtec.core.domain.model.Movimiento
@@ -35,6 +37,7 @@ class IncidenciaRepositoryImpl @Inject constructor(
     private val movimientoDao: MovimientoDao,
     private val catalogoDao: CatalogoDao,
     private val informeTecnicoDao: InformeTecnicoDao,
+    private val evidenciaDao: EvidenciaDao,   // HU-09: solo para leer; las fotos las escribe captura
     @IoDispatcher private val io: CoroutineDispatcher
 ) : IncidenciaRepository {
 
@@ -103,6 +106,11 @@ class IncidenciaRepositoryImpl @Inject constructor(
     override fun observarInforme(incidenciaId: String): Flow<InformeTecnico?> =
         informeTecnicoDao.observarPorIncidencia(incidenciaId)
             .map { it?.toDomain() }
+            .flowOn(io)
+
+    override fun observarEvidencias(incidenciaId: String): Flow<List<Evidencia>> =
+        evidenciaDao.observarPorIncidencia(incidenciaId)
+            .map { lista -> lista.map { it.toDomain() } }
             .flowOn(io)
 
     private companion object {
