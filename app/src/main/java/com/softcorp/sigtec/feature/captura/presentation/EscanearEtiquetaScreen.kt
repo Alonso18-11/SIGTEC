@@ -246,7 +246,7 @@ private fun AvisoFueraDeCatalogo() {
 
 /** Texto sobre la imagen de la cámara: en una pastilla para que se lea en claro y en oscuro. */
 @Composable
-private fun Indicacion(texto: String, modifier: Modifier = Modifier) {
+internal fun Indicacion(texto: String, modifier: Modifier = Modifier) {
     Surface(
         color = MaterialTheme.colorScheme.inverseSurface,
         contentColor = MaterialTheme.colorScheme.inverseOnSurface,
