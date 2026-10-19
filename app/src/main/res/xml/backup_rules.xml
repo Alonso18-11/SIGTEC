@@ -6,6 +6,9 @@
    See https://developer.android.com/about/versions/12/backup-restore
 -->
 <full-backup-content>
+    <!-- HU-09 (RF-941, D-9): las fotos de evidencia no salen del celular. Estas reglas aplican hasta
+         Android 11; desde Android 12 manda data_extraction_rules.xml. Lo demás sigue en la copia. -->
+    <exclude domain="file" path="evidencias/" />
     <!--
    <include domain="sharedpref" path="."/>
    <exclude domain="sharedpref" path="device.xml"/>
