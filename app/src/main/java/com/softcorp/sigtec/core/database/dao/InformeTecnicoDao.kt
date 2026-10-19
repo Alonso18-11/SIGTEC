@@ -17,16 +17,12 @@ interface InformeTecnicoDao {
     @Query("SELECT * FROM informes_tecnicos WHERE pendienteSincronizar = 1")
     suspend fun pendientesDeSincronizar(): List<InformeTecnicoEntity>
 
-    // RF-825: igual que MovimientoDao.listosParaSubir(), pero sin la rama de "incidencia sin número":
-    // un informe solo existe sobre una incidencia que ya pasó por Asignada (RF-610 ya exige número ahí).
     @Query("""
         SELECT inf.* FROM informes_tecnicos inf LEFT JOIN incidencias i ON i.id = inf.incidenciaId
         WHERE inf.pendienteSincronizar = 1
           AND (i.id IS NULL OR (i.pendienteSincronizar = 0 AND i.necesitaAtencion = 0))
     """)
     suspend fun listosParaSubir(): List<InformeTecnicoEntity>
-
-    // --- Sincronización (RF-825) ---
 
     @Query("SELECT * FROM informes_tecnicos WHERE id = :id")
     suspend fun porId(id: String): InformeTecnicoEntity?

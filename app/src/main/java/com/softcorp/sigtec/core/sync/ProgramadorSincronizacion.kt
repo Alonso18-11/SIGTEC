@@ -18,13 +18,10 @@ class ProgramadorSincronizacion @Inject constructor(
 ) {
     fun subirCambios() {
         val trabajo = OneTimeWorkRequestBuilder<SubirCambiosWorker>()
-            // Sin red, WorkManager espera; aunque la app esté cerrada, sube al recuperar la señal
             .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
             .build()
 
-        // APPEND_OR_REPLACE: si una subida está en curso, la nueva se encola detrás de ella.
-        // Con KEEP, un cambio que llega justo cuando la subida termina quedaría sin subir.
         WorkManager.getInstance(context)
             .enqueueUniqueWork(NOMBRE, ExistingWorkPolicy.APPEND_OR_REPLACE, trabajo)
     }

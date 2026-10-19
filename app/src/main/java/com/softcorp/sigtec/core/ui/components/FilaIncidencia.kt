@@ -48,8 +48,8 @@ fun FilaIncidencia(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     fecha: String? = null,
-    tecnico: String? = null,       // con avatar; null si no tiene o no hace falta (en «Mis tareas» son todas suyas)
-    sinTecnico: String? = null     // texto atenuado, sin avatar, cuando la incidencia aún no tiene técnico
+    tecnico: String? = null,       // con avatar; null si no tiene o no hace falta
+    sinTecnico: String? = null     // cuando la incidencia aún no tiene técnico
 ) {
     Column(modifier.fillMaxWidth()) {
         Column(

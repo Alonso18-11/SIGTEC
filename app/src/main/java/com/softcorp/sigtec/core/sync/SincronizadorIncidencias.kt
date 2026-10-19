@@ -21,7 +21,6 @@ import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/** Sube a Firestore lo que quedó pendiente en Room (base de la HU-17). */
 @Singleton
 class SincronizadorIncidencias @Inject constructor(
     private val firestore: FirebaseFirestore,
@@ -39,17 +38,16 @@ class SincronizadorIncidencias @Inject constructor(
 
     private enum class ResultadoSubida { SUBIDA, CARGA_RECHAZADA }
 
-    /** Sube todo lo pendiente. Devuelve false si algo debe reintentarse. */
     suspend fun subirPendientes(ahora: Instant): Boolean {
         var todoBien = true
         for (incidencia in incidenciaDao.pendientesDeSincronizar()) {
             todoBien = subir(incidencia) && todoBien
         }
-        // Después de las incidencias: los que esperan a una incidencia que no subió siguen pendientes (RF-68)
+
         for (movimiento in movimientoDao.listosParaSubir()) {
             todoBien = subir(movimiento) && todoBien
         }
-        // Después de los movimientos: el informe espera a su incidencia igual que ellos (RF-825)
+
         for (informe in informeTecnicoDao.listosParaSubir()) {
             todoBien = subir(informe) && todoBien
         }
@@ -70,33 +68,22 @@ class SincronizadorIncidencias @Inject constructor(
             val numero = if (local.numero == null) {
                 crearConNumero(local)
             } else {
-                // RF-621: sin cupo en el servidor es un rechazo permanente; no se reintenta
                 if (actualizarConCarga(local, local.numero) == ResultadoSubida.CARGA_RECHAZADA) {
                     return rechazar(local)
                 }
                 local.numero
             }
-            // El número se anota siempre: la pantalla muestra INC-XXXX apenas existe en el servidor
             incidenciaDao.asignarNumero(local.id, numero)
-            // Si alguien la modificó mientras se subía, sigue pendiente y se sube de nuevo
             incidenciaDao.marcarSincronizada(local.id, local.actualizadoEn)
             return true
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             Log.w(TAG, "No se pudo subir la incidencia ${local.id}", e)
-            // Un rechazo permanente ya no se reintenta; uno pasajero sí
             return if (esErrorPermanente(e)) rechazar(local) else false
         }
     }
 
-    /**
-     * RF-620 (HU-06) y RF-822 (HU-08): sube una incidencia que ya existe y, si su técnico cambió
-     * respecto del servidor o se cerró, mueve la carga de ambos en la misma transacción: o se aplica
-     * todo, o nada. Las reglas de Firestore exigen ese movimiento con `getAfter()` (RF-622, RF-823). Si
-     * la carga nueva de algún técnico saldría de 0..límite (RF-621), no escribe nada y devuelve
-     * CARGA_RECHAZADA (D-7 del plan).
-     */
     private suspend fun actualizarConCarga(local: IncidenciaEntity, numero: Int): ResultadoSubida =
         firestore.runTransaction { tx ->
             val documento = incidencias.document(local.id)

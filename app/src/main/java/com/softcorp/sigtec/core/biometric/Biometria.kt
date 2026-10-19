@@ -31,14 +31,11 @@ enum class DisponibilidadBiometrica {
 }
 
 sealed interface ResultadoBiometrico {
-    /** instante = fecha y hora de la confirmación que exige el RF-23 */
     data class Exito(val instante: Instant) : ResultadoBiometrico
     data object Cancelado : ResultadoBiometrico
     data class Error(val mensaje: String) : ResultadoBiometrico
 }
 
-// Android 11+: huella de seguridad alta + credencial del dispositivo.
-// Android 10 o menos: esa combinación no existe; se usa la categoría estándar (sección 16.2, paso 6).
 private val biometriaPermitida: Int
     get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) BIOMETRIC_STRONG else BIOMETRIC_WEAK
 
@@ -81,14 +78,11 @@ class VerificadorBiometrico(private val actividad: FragmentActivity) {
                         else ResultadoBiometrico.Error(mensaje.toString())
                     )
                 }
-                // onAuthenticationFailed (huella no reconocida) no se maneja:
-                // el diálogo sigue abierto y Android permite reintentar.
             }
         )
         val info = BiometricPrompt.PromptInfo.Builder()
             .setTitle(titulo)
             .apply { if (subtitulo != null) setSubtitle(subtitulo) }
-            // Con DEVICE_CREDENTIAL no se define botón negativo: Android ofrece "Usar PIN"
             .setAllowedAuthenticators(autenticadoresPermitidos)
             .build()
         prompt.authenticate(info)
@@ -105,7 +99,6 @@ class VerificadorBiometrico(private val actividad: FragmentActivity) {
 
 @Composable
 fun rememberVerificadorBiometrico(): VerificadorBiometrico {
-    // MainActivity hereda de AppCompatActivity (una FragmentActivity): por eso se cambió en la parte 0
     val actividad = LocalActivity.current as FragmentActivity
     return remember(actividad) { VerificadorBiometrico(actividad) }
 }

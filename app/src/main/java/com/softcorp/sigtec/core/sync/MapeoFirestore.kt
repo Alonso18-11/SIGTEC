@@ -15,7 +15,6 @@ import java.time.Instant
 
 private fun Instant.aTimestamp() = Timestamp(this)
 
-// ---------- Incidencias ----------
 
 internal fun IncidenciaEntity.aFirestore(numero: Int): Map<String, Any?> = mapOf(
     "numero" to numero,
@@ -34,7 +33,6 @@ internal fun IncidenciaEntity.aFirestore(numero: Int): Map<String, Any?> = mapOf
     "actualizadoEn" to actualizadoEn.aTimestamp()
 )
 
-// Un documento mal formado se ignora en lugar de detener toda la sincronización
 internal fun DocumentSnapshot.aIncidenciaEntity(): IncidenciaEntity? = runCatching {
     IncidenciaEntity(
         id = id,
@@ -80,7 +78,6 @@ internal fun DocumentSnapshot.aMovimientoEntity(): MovimientoEntity? = runCatchi
 
 // ---------- Informes técnicos ----------
 
-// RF-825, RNF trazabilidad: el campo del diagnóstico se llama igual en Firestore que en Room.
 internal fun InformeTecnicoEntity.aFirestore(): Map<String, Any?> = mapOf(
     "diagnostico" to diagnostico,
     "trabajoRealizado" to trabajoRealizado,
@@ -92,7 +89,6 @@ internal fun InformeTecnicoEntity.aFirestore(): Map<String, Any?> = mapOf(
 
 // ---------- Catálogo ----------
 
-// RF-41: /equipos es de solo lectura para la app, el id del documento es el código
 internal fun DocumentSnapshot.aEquipoEntity(): EquipoEntity? = runCatching {
     EquipoEntity(
         codigo = id,

@@ -27,10 +27,6 @@ import kotlinx.coroutines.withContext
 import java.time.Instant
 import javax.inject.Inject
 
-/**
- * Escribe solo en Room. Lo marcado con pendienteSincronizar lo sube a Firestore
- * la sincronización (HU-17): este repositorio nunca habla con Firestore.
- */
 class IncidenciaRepositoryImpl @Inject constructor(
     private val db: SigtecDatabase,
     private val incidenciaDao: IncidenciaDao,
@@ -88,7 +84,6 @@ class IncidenciaRepositoryImpl @Inject constructor(
     ): Resultado<Unit> =
         withContext(io) {
             try {
-                // Juntos o ninguno: el cambio a En atención nunca queda sin su movimiento (RF-809)
                 db.withTransaction {
                     incidenciaDao.guardar(incidencia.toEntity(pendienteSincronizar = true, actualizadoEn = ahora))
                     movimientoDao.guardar(movimiento.toEntity(pendienteSincronizar = true))
@@ -102,7 +97,6 @@ class IncidenciaRepositoryImpl @Inject constructor(
             }
         }
 
-    // RF-827, RF-828: el informe técnico de la incidencia, si ya existe
     override fun observarInforme(incidenciaId: String): Flow<InformeTecnico?> =
         informeTecnicoDao.observarPorIncidencia(incidenciaId)
             .map { it?.toDomain() }

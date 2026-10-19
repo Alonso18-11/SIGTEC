@@ -24,11 +24,6 @@ import kotlinx.coroutines.withContext
 import java.time.Instant
 import javax.inject.Inject
 
-/**
- * Escribe solo en Room (RF-824); subir a Firestore y restar la carga del técnico es trabajo
- * exclusivo de core/sync. Nace aparte de IncidenciaRepositoryImpl (D-1 del plan 008), igual que
- * AsignacionRepositoryImpl en la HU-06, aunque toque las mismas tablas.
- */
 class AtencionRepositoryImpl @Inject constructor(
     private val db: SigtecDatabase,
     private val incidenciaDao: IncidenciaDao,
@@ -37,11 +32,9 @@ class AtencionRepositoryImpl @Inject constructor(
     @IoDispatcher private val io: CoroutineDispatcher
 ) : AtencionRepository {
 
-    // D-6 del plan: lectura fresca, para revalidar la marca justo antes de guardar (RF-812)
     override suspend fun incidencia(id: String): Incidencia? =
         withContext(io) { incidenciaDao.porId(id)?.toDomain() }
 
-    // RF-801: solo las del técnico que no estén cerradas, de la más antigua a la más reciente
     override fun observarBandeja(tecnicoId: String): Flow<List<Incidencia>> =
         incidenciaDao.observarBandeja(tecnicoId)
             .map { lista -> lista.map { it.toDomain() } }
@@ -55,7 +48,6 @@ class AtencionRepositoryImpl @Inject constructor(
     ): Resultado<Unit> =
         withContext(io) {
             try {
-                // Los tres o ninguno: nunca falta el informe, el movimiento o el cambio de marca (RF-819)
                 db.withTransaction {
                     incidenciaDao.guardar(incidencia.toEntity(pendienteSincronizar = true, actualizadoEn = ahora))
                     movimientoDao.guardar(movimiento.toEntity(pendienteSincronizar = true))

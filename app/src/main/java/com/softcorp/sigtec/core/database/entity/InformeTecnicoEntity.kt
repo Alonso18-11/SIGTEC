@@ -17,7 +17,7 @@ data class InformeTecnicoEntity(
     val fechaCierre: Instant,
     val confirmadoEn: Instant,
     val pendienteSincronizar: Boolean,
-    val necesitaAtencion: Boolean = false // RF-825: el padre (incidencia) se rechazó al sincronizar
+    val necesitaAtencion: Boolean = false
 )
 
 fun InformeTecnicoEntity.toDomain() = InformeTecnico(

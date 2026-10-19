@@ -8,10 +8,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
 
-/**
- * HU-08 (RF-801, RF-803, RF-805): la bandeja del técnico con sesión actual, de la más antigua a la
- * más reciente; sin sesión, lista vacía (RF-803 la muestra como "sin pendientes" en la pantalla).
- */
 class ObservarBandeja @Inject constructor(
     private val observarUsuarioActual: ObservarUsuarioActual,
     private val repo: AtencionRepository
