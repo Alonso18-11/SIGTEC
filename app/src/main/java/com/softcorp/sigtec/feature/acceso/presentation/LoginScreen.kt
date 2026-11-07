@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.softcorp.sigtec.core.biometric.rememberVerificadorBiometrico
+import com.softcorp.sigtec.core.domain.DecisionBorrado
 import com.softcorp.sigtec.core.domain.ErrorDominio
 import com.softcorp.sigtec.core.domain.model.Perfil
 import com.softcorp.sigtec.core.domain.model.Usuario
@@ -295,21 +296,21 @@ fun LoginScreen(
         Spacer(Modifier.height(Espaciado.l))
     }
 
-    estado.confirmarIngreso?.let { pendientes ->
+    estado.confirmarIngreso?.let { decision ->
         DialogoConfirmarIngreso(
             nombre = estado.usuarioBloqueado?.nombre?.substringBefore(' ') ?: "El usuario anterior",
-            pendientes = pendientes,
+            decision = decision,
             alConfirmar = alConfirmarIngreso,
             alCancelar = alCancelarIngreso
         )
     }
 }
 
-/** Avisa de los cambios sin enviar del dueño bloqueado antes de dejar entrar a otra cuenta; tocar fuera cancela. */ // RF-11
+/** Avisa de los cambios sin enviar y las fotos del dueño bloqueado antes de dejar entrar a otra cuenta; tocar fuera cancela. */ // RF-11, RF-944
 @Composable
 private fun DialogoConfirmarIngreso(
     nombre: String,
-    pendientes: Int,
+    decision: DecisionBorrado.Confirmar,
     alConfirmar: () -> Unit,
     alCancelar: () -> Unit
 ) {
@@ -318,7 +319,7 @@ private fun DialogoConfirmarIngreso(
         icon = { Icon(Icons.Outlined.CloudOff, contentDescription = null) },
         title = { Text("¿Ingresar con otra cuenta?") },
         text = {
-            Text("$nombre tiene ${textoCambiosSinEnviar(pendientes)} en este celular. Si ingresas, ${textoSePerdera(pendientes)}.")
+            Text(textoAvisoIngreso(nombre, decision.pendientes, decision.fotos))
         },
         confirmButton = {
             BotonTexto(onClick = alConfirmar, color = MaterialTheme.colorScheme.error) { Text("Ingresar de todos modos") }
@@ -374,7 +375,7 @@ private fun LoginBloqueada() = SigtecTheme {
 private fun LoginDialogoIngresoClaro() = SigtecTheme(darkTheme = false) {
     Surface {
         LoginScreen(
-            LoginUiState(usuarioBloqueado = usuarioDePrueba, confirmarIngreso = 1),
+            LoginUiState(usuarioBloqueado = usuarioDePrueba, confirmarIngreso = DecisionBorrado.Confirmar(1)),
             {}, {}, {}, {}, {}, {}, {}
         )
     }
@@ -385,7 +386,29 @@ private fun LoginDialogoIngresoClaro() = SigtecTheme(darkTheme = false) {
 private fun LoginDialogoIngresoOscuro() = SigtecTheme(darkTheme = true) {
     Surface {
         LoginScreen(
-            LoginUiState(usuarioBloqueado = usuarioDePrueba, confirmarIngreso = 3),
+            LoginUiState(usuarioBloqueado = usuarioDePrueba, confirmarIngreso = DecisionBorrado.Confirmar(3, fotos = 2)),
+            {}, {}, {}, {}, {}, {}, {}
+        )
+    }
+}
+
+@Preview(name = "Diálogo de ingreso solo con fotos · claro", showBackground = true)
+@Composable
+private fun LoginDialogoIngresoFotosClaro() = SigtecTheme(darkTheme = false) {
+    Surface {
+        LoginScreen(
+            LoginUiState(usuarioBloqueado = usuarioDePrueba, confirmarIngreso = DecisionBorrado.Confirmar(0, 1)),
+            {}, {}, {}, {}, {}, {}, {}
+        )
+    }
+}
+
+@Preview(name = "Diálogo de ingreso solo con fotos · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun LoginDialogoIngresoFotosOscuro() = SigtecTheme(darkTheme = true) {
+    Surface {
+        LoginScreen(
+            LoginUiState(usuarioBloqueado = usuarioDePrueba, confirmarIngreso = DecisionBorrado.Confirmar(0, 4)),
             {}, {}, {}, {}, {}, {}, {}
         )
     }

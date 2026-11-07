@@ -3,6 +3,7 @@ package com.softcorp.sigtec.core.sync
 import android.util.Log
 import androidx.room.withTransaction
 import com.softcorp.sigtec.core.database.SigtecDatabase
+import com.softcorp.sigtec.core.database.dao.EvidenciaDao
 import com.softcorp.sigtec.core.database.dao.IncidenciaDao
 import com.softcorp.sigtec.core.database.dao.InformeTecnicoDao
 import com.softcorp.sigtec.core.database.dao.MovimientoDao
@@ -24,6 +25,7 @@ import javax.inject.Singleton
 class EstadoDatosRepositoryImpl @Inject constructor(
     monitor: MonitorConexion,
     sincronizacionDao: SincronizacionDao,
+    evidenciaDao: EvidenciaDao,
     private val baseLocal: SigtecDatabase,
     private val incidenciaDao: IncidenciaDao,
     private val movimientoDao: MovimientoDao,
@@ -38,9 +40,10 @@ class EstadoDatosRepositoryImpl @Inject constructor(
         sincronizacionDao.observarUltimaExitosa(TAREA_BAJAR),
         incidenciaDao.observarPendientes(),
         // RF-76 (D-8 de la spec 005): por incidencia afectada, igual que los cambios sin enviar
-        incidenciaDao.observarAfectadasPorRechazo()
-    ) { enLinea, ultima, incidencias, rechazadas ->
-        EstadoDatos(enLinea, ultima?.ejecutadaEn, incidencias, necesitanAtencion = rechazadas)
+        incidenciaDao.observarAfectadasPorRechazo(),
+        evidenciaDao.contar()   // RF-943 (HU-09)
+    ) { enLinea, ultima, incidencias, rechazadas, fotos ->
+        EstadoDatos(enLinea, ultima?.ejecutadaEn, incidencias, necesitanAtencion = rechazadas, fotosEnCelular = fotos)
     }
 
     // RF-80: el servidor ya ganó (RF-75, RF-79); aquí solo se limpia lo que quedó en el celular

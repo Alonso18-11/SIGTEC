@@ -12,6 +12,10 @@ interface EvidenciaDao {
     @Query("SELECT * FROM evidencias WHERE incidenciaId = :incidenciaId ORDER BY fechaCaptura")
     fun observarPorIncidencia(incidenciaId: String): Flow<List<EvidenciaEntity>>
 
+    // RF-943: el aviso de cerrar sesión cuenta las fotos de todo el celular
+    @Query("SELECT COUNT(*) FROM evidencias")
+    fun contar(): Flow<Int>
+
     @Upsert
     suspend fun guardar(evidencia: EvidenciaEntity)
 

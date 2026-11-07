@@ -7,5 +7,6 @@ data class EstadoDatos(
     val enLinea: Boolean,
     val ultimaDescarga: Instant?,
     val pendientesPorEnviar: Int,
-    val necesitanAtencion: Int
+    val necesitanAtencion: Int,
+    val fotosEnCelular: Int = 0   // HU-09 (RF-943): se pierden al borrar los datos locales
 )

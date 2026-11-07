@@ -35,6 +35,11 @@ class EstadoDatosRepositoryFalso @Inject constructor() : EstadoDatosRepository {
         _estado.value = _estado.value.copy(necesitanAtencion = n)
     }
 
+    /** HU-09: fija las fotos de evidencia guardadas en el celular (RF-943, RF-944). */
+    fun fijarFotos(n: Int) {
+        _estado.value = _estado.value.copy(fotosEnCelular = n)
+    }
+
     override suspend fun descartarRechazados(): Resultado<Unit> {
         descartes++
         if (fallar) return Resultado.Error(ErrorDominio.Desconocido("fallo simulado"))

@@ -23,6 +23,16 @@ class ReglasSesionTest {
     }
 
     @Test
+    fun `solo fotos pide confirmar aunque no haya cambios`() {
+        assertEquals(DecisionBorrado.Confirmar(0, 2), evaluarBorrado(0, fotos = 2))   // RF-943
+    }
+
+    @Test
+    fun `cambios y fotos piden confirmar con los dos totales`() {
+        assertEquals(DecisionBorrado.Confirmar(3, 1), evaluarBorrado(3, fotos = 1))
+    }
+
+    @Test
     fun `normalizarCorreo quita espacios de los extremos`() {
         assertEquals("correo@softcorp.pe", normalizarCorreo("  correo@softcorp.pe  "))
     }

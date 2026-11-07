@@ -64,4 +64,19 @@ class EvaluarIngresoDeOtraPersonaTest {
         estadoDatos.fijarNecesitanAtencion(1)
         assertEquals(DecisionBorrado.Confirmar(1), evaluar("atorres@softcorp.pe"))
     }
+
+    @Test
+    fun `otra persona con solo fotos pide confirmar`() = runTest {
+        // RF-944 (HU-09)
+        luisBloqueado()
+        estadoDatos.fijarFotos(3)
+        assertEquals(DecisionBorrado.Confirmar(0, 3), evaluar("atorres@softcorp.pe"))
+    }
+
+    @Test
+    fun `el mismo dueno con fotos no hay riesgo`() = runTest {
+        luisBloqueado()
+        estadoDatos.fijarFotos(3)
+        assertEquals(DecisionBorrado.SinRiesgo, evaluar("lramirez@softcorp.pe"))
+    }
 }

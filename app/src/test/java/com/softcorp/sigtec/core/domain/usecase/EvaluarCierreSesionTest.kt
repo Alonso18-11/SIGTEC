@@ -38,4 +38,19 @@ class EvaluarCierreSesionTest {
         estadoDatos.fijarNecesitanAtencion(1)
         assertEquals(DecisionBorrado.Confirmar(3), evaluar())
     }
+
+    @Test
+    fun `sin cambios pero con fotos pide confirmar`() = runTest {
+        // RF-943 (HU-09)
+        estadoDatos.fijarPendientes(0)
+        estadoDatos.fijarFotos(2)
+        assertEquals(DecisionBorrado.Confirmar(0, 2), evaluar())
+    }
+
+    @Test
+    fun `cuenta los cambios y las fotos por separado`() = runTest {
+        estadoDatos.fijarPendientes(1)
+        estadoDatos.fijarFotos(4)
+        assertEquals(DecisionBorrado.Confirmar(1, 4), evaluar())
+    }
 }
