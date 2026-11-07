@@ -13,9 +13,8 @@
 > **Estado (2026-11-07).** PR-01 a PR-40 se fusionaron uno por uno (#43 a #83; spec, plan y tareas en #40 a #42).
 > Para terminar antes, PR-41 a PR-49 se agruparon en #85 (detalle, foto ampliada, eliminar e informe) y PR-50 a
 > PR-56b en #86 (sesión), con el mismo contenido y las mismas pruebas que pedían sus tareas. PR-57 es el PR de
-> cierre. Quedan sin marcar, a propósito: T92 (prueba instrumentada, necesita celular o emulador), T104 (se
-> comprueba cuando #85 y #86 estén fusionados), T105 (pruebas manuales en un celular real), y T106 y T108 (la spec
-> y `MEMORY.md` dicen «completa» solo después de T105).
+> cierre. `EvidenciaDaoTest` (T92) y las pruebas manuales de punta a punta (T105) pasaron en un celular el
+> 2026-11-07. T104 se comprueba al fusionar #85 y #86.
 
 ## PR-01 — CI en los PR apilados (base `main`)
 - [x] **T01 · Quitar el filtro de rama base del CI 🔶**
@@ -288,7 +287,7 @@
 
 ## PR-52 — contar las fotos (base `main`)
 - [x] **T91 · `EvidenciaDao.contar(): Flow<Int>` 🔶.** RF-943. Hecho cuando: compila.
-- [ ] **T92 · `EvidenciaDaoTest` (instrumentada).** RF-932, RF-943.
+- [x] **T92 · `EvidenciaDaoTest` (instrumentada).** RF-932, RF-943.
   Hecho cuando: `./gradlew connectedDebugAndroidTest` pasa en un celular o emulador.
 
 ## PR-53 — el estado de los datos cuenta las fotos (base PR-52)
@@ -327,9 +326,9 @@
 ## PR-57 — cierre (base: la rama del último PR fusionado)
 - [ ] **T104 · Comprobar que nada quedó fuera**: `git log main..<rama>` vacío en cada rama de la HU. RF: —
   Hecho cuando: ninguna rama tiene commits sin fusionar.
-- [ ] **T105 · Pruebas manuales de punta a punta** («Criterios de finalización» de la spec) en un celular real.
+- [x] **T105 · Pruebas manuales de punta a punta** («Criterios de finalización» de la spec) en un celular real.
   RF-901 a RF-944. Hecho cuando: cada prueba está anotada con su resultado.
-- [ ] **T106 · Spec «completa»**, con la fecha y qué se probó. RF: — Hecho cuando: la spec describe el código.
+- [x] **T106 · Spec «completa»**, con la fecha y qué se probó. RF: — Hecho cuando: la spec describe el código.
 - [x] **T107 · Tareas marcadas**, con el motivo de las que no se hicieron. RF: — Hecho cuando: no queda ninguna sin explicar.
-- [ ] **T108 · HU-09 «completa (RF-901 a RF-944)» en `MEMORY.md`**, después de `git pull origin main`. RF: —
+- [x] **T108 · HU-09 «completa (RF-901 a RF-944)» en `MEMORY.md`**, después de `git pull origin main`. RF: —
   Hecho cuando: la línea está actualizada.
