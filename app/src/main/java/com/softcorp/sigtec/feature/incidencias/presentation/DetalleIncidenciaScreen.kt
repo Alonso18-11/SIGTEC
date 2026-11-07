@@ -11,10 +11,10 @@ import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.PersonAdd
-import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.softcorp.sigtec.core.domain.model.EstadoIncidencia
+import com.softcorp.sigtec.core.domain.model.Evidencia
 import com.softcorp.sigtec.core.domain.model.Incidencia
 import com.softcorp.sigtec.core.domain.model.InformeTecnico
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
@@ -41,6 +42,9 @@ import com.softcorp.sigtec.core.ui.components.BotonSecundario
 import com.softcorp.sigtec.core.ui.components.EtiquetaIncidencia
 import com.softcorp.sigtec.core.ui.components.Seccion
 import com.softcorp.sigtec.core.ui.mensaje
+import com.softcorp.sigtec.feature.captura.presentation.FotoAmpliada
+import com.softcorp.sigtec.feature.captura.presentation.SeccionEvidencias
+import com.softcorp.sigtec.feature.captura.presentation.mensajeEliminarFoto
 import com.softcorp.sigtec.feature.incidencias.domain.DetalleIncidencia
 import com.softcorp.sigtec.feature.incidencias.domain.SIN_TECNICO
 import com.softcorp.sigtec.feature.incidencias.domain.codigoParaMostrar
@@ -58,6 +62,8 @@ data class AccionesDetalle(
     val alSolicitarRepuesto: () -> Unit = {},
     val alCerrar: () -> Unit = {},
     val alAgregarFoto: () -> Unit = {},
+    val alEliminarFoto: (Evidencia) -> Unit = {},
+    val alCerrarFoto: () -> Unit = {},
     val alAbrirAsistente: () -> Unit = {},
     val alVerHistorial: (String) -> Unit = {}
 )
@@ -72,7 +78,15 @@ fun DetalleIncidenciaRoute(
     val avisos = remember { SnackbarHostState() }
     // El aviso que deja el registro (HU-03) se muestra una sola vez
     LaunchedEffect(aviso) { aviso?.let { avisos.showSnackbar(it) } }
-    DetalleIncidenciaScreen(estado, acciones.copy(alIniciarAtencion = vm::alIniciarAtencion), avisos)
+    DetalleIncidenciaScreen(
+        estado,
+        acciones.copy(
+            alIniciarAtencion = vm::alIniciarAtencion,
+            alEliminarFoto = vm::alEliminarFoto,
+            alCerrarFoto = vm::alCerrarFoto
+        ),
+        avisos
+    )
 }
 
 @Composable
@@ -83,6 +97,8 @@ fun DetalleIncidenciaScreen(
 ) {
     val incidencia = estado.detalle?.incidencia
     var menuAbierto by remember { mutableStateOf(false) }
+    // RF-934: guarda el id, no la foto: al eliminarla deja de estar en la lista y la vista ampliada se cierra sola
+    var fotoAbiertaId by rememberSaveable { mutableStateOf<String?>(null) }
 
     // La raíz ya aplica los márgenes de la barra de estado; BarraSuperior ya los trae en cero
     Scaffold(
@@ -126,16 +142,39 @@ fun DetalleIncidenciaScreen(
                         .align(Alignment.Center)
                         .padding(Espaciado.m)
                 )
-                else -> Contenido(estado.detalle, estado.ahora, acciones)
+                else -> Contenido(
+                    estado.detalle,
+                    estado.ahora,
+                    puedeAgregarFoto = estado.puedeAtender,
+                    acciones,
+                    alAbrirFoto = { fotoAbiertaId = it.id }
+                )
             }
         }
+    }
+
+    estado.detalle?.evidencias?.firstOrNull { it.id == fotoAbiertaId }?.let { foto ->
+        FotoAmpliada(
+            foto = foto,
+            alVolver = { fotoAbiertaId = null; acciones.alCerrarFoto() },
+            puedeEliminar = estado.puedeAtender,   // RF-937: la misma condición que «Agregar foto»
+            eliminando = estado.eliminandoFoto,
+            error = estado.errorFoto?.let(::mensajeEliminarFoto),
+            alEliminar = { acciones.alEliminarFoto(foto) }
+        )
     }
 }
 
 // Ordenado como la vista de un issue de Jira: resumen y estado arriba, «Detalles» en un panel
 // de etiqueta → valor, y después el informe, las evidencias y la actividad.
 @Composable
-private fun Contenido(detalle: DetalleIncidencia, ahora: Instant, acciones: AccionesDetalle) {
+private fun Contenido(
+    detalle: DetalleIncidencia,
+    ahora: Instant,
+    puedeAgregarFoto: Boolean,
+    acciones: AccionesDetalle,
+    alAbrirFoto: (Evidencia) -> Unit
+) {
     val incidencia = detalle.incidencia
     Column(
         modifier = Modifier
@@ -152,14 +191,8 @@ private fun Contenido(detalle: DetalleIncidencia, ahora: Instant, acciones: Acci
             SeccionInforme(detalle.informe, incidencia.tecnicoAsignadoNombre ?: SIN_TECNICO)
         }
 
-        // ---------- Evidencias (las fotos son la HU-09) ----------
-        Seccion("Evidencias") {
-            BotonSecundario(onClick = acciones.alAgregarFoto) {
-                Icon(Icons.Outlined.PhotoCamera, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(Espaciado.s))
-                Text("Agregar foto")
-            }
-        }
+        // ---------- Evidencias (HU-09): las ve cualquiera; «Agregar foto» solo el técnico asignado (RF-923, RF-932) ----------
+        SeccionEvidencias(detalle.evidencias, puedeAgregarFoto, acciones.alAgregarFoto, alAbrirFoto)
 
         // ---------- Línea de tiempo: lo más reciente arriba ----------
         Seccion("Actividad") { LineaDeTiempo(detalle.movimientos, ahora) }
