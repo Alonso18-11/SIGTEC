@@ -6,6 +6,7 @@ import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
+import com.softcorp.sigtec.core.data.AlmacenFotos
 import com.softcorp.sigtec.core.database.SigtecDatabase
 import com.softcorp.sigtec.core.database.dao.CatalogoDao
 import com.softcorp.sigtec.core.database.dao.IncidenciaDao
@@ -31,6 +32,7 @@ import javax.inject.Singleton
 class SincronizacionTiempoReal @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val baseLocal: SigtecDatabase,
+    private val almacen: AlmacenFotos,
     private val sesion: SesionRepository,
     private val incidenciaDao: IncidenciaDao,
     private val movimientoDao: MovimientoDao,
@@ -55,7 +57,10 @@ class SincronizacionTiempoReal @Inject constructor(
                 } else {
                     flow {
                         if (debeBorrarDatosAlEntrar(duenoDatos, uid)) {
-                            withContext(io) { baseLocal.clearAllTables() }
+                            withContext(io) {
+                                baseLocal.clearAllTables()
+                                borrarFotos()   // RF-942: después de Room, igual que al cerrar sesión
+                            }
                         }
                         duenoDatos = uid
                         emitAll(
@@ -151,6 +156,14 @@ class SincronizacionTiempoReal @Inject constructor(
             SincronizacionEntity(tipoTarea = TAREA_BAJAR, ejecutadaEn = reloj.ahora(), exitosa = true)
         )
         sincronizacionDao.recortar(TAREA_BAJAR)
+    }
+
+    private fun borrarFotos() {
+        try {
+            almacen.borrarTodo()
+        } catch (e: Exception) {
+            Log.w(TAG, "No se pudieron borrar las fotos de evidencia", e)
+        }
     }
 
     private companion object {

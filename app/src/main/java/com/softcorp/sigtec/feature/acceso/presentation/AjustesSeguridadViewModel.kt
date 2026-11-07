@@ -22,8 +22,8 @@ data class AjustesUiState(
     val usuario: Usuario? = null,
     val preferencias: PreferenciasHuella = PreferenciasHuella(),
     val disponibilidad: DisponibilidadBiometrica = DisponibilidadBiometrica.SIN_SEGURIDAD,
-    // Evento de un solo uso: null = sin diálogo, N = mostrar diálogo con N pendientes. // RF-13
-    val confirmarSalida: Int? = null
+    // Evento de un solo uso: null = sin diálogo; si no, lo que se perdería. // RF-13, RF-943
+    val confirmarSalida: DecisionBorrado.Confirmar? = null
 ) {
     val esPropietario: Boolean
         get() = usuario != null && preferencias.esPropietario(usuario.id)
@@ -48,7 +48,7 @@ class AjustesSeguridadViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val disponibilidad = MutableStateFlow(evaluador.evaluar())
-    private val confirmarSalida = MutableStateFlow<Int?>(null)
+    private val confirmarSalida = MutableStateFlow<DecisionBorrado.Confirmar?>(null)
 
     val estado: StateFlow<AjustesUiState> = combine(
         observarUsuarioActual(), observarPreferenciasHuella(), disponibilidad, confirmarSalida
@@ -72,7 +72,7 @@ class AjustesSeguridadViewModel @Inject constructor(
         viewModelScope.launch {
             when (val decision = evaluarCierreSesion()) {
                 is DecisionBorrado.SinRiesgo -> cerrarSesion()
-                is DecisionBorrado.Confirmar -> confirmarSalida.value = decision.pendientes
+                is DecisionBorrado.Confirmar -> confirmarSalida.value = decision
             }
         }
     }

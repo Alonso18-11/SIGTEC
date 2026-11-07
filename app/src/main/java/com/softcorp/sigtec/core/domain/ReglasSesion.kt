@@ -3,17 +3,17 @@ package com.softcorp.sigtec.core.domain
 import com.softcorp.sigtec.core.domain.model.Perfil
 
 /**
- * Decisión al cerrar sesión o al dejar entrar a otra persona con cambios sin enviar.
+ * Decisión al cerrar sesión o al dejar entrar a otra persona con cambios sin enviar o fotos.
  * `Confirmar` obliga a pedir confirmación antes de borrar los datos locales.
  */
 sealed interface DecisionBorrado {
     data object SinRiesgo : DecisionBorrado
-    data class Confirmar(val pendientes: Int) : DecisionBorrado
+    data class Confirmar(val pendientes: Int, val fotos: Int = 0) : DecisionBorrado
 }
 
-/** Si hay cambios sin enviar, hay que confirmar antes de borrar; si no, no hay riesgo. */ // RF-13, RF-14
-fun evaluarBorrado(pendientes: Int): DecisionBorrado =
-    if (pendientes > 0) DecisionBorrado.Confirmar(pendientes) else DecisionBorrado.SinRiesgo
+/** Si hay cambios sin enviar o fotos de evidencia, hay que confirmar antes de borrar. */ // RF-13, RF-14, RF-943
+fun evaluarBorrado(pendientes: Int, fotos: Int = 0): DecisionBorrado =
+    if (pendientes > 0 || fotos > 0) DecisionBorrado.Confirmar(pendientes, fotos) else DecisionBorrado.SinRiesgo
 
 /** Solo quita espacios de los extremos; los internos quedan intactos. */ // RF-3
 fun normalizarCorreo(correo: String): String = correo.trim().lowercase()
