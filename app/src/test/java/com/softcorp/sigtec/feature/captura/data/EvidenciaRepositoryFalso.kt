@@ -57,4 +57,11 @@ class EvidenciaRepositoryFalso(var fallar: Boolean = false) : EvidenciaRepositor
     override suspend fun descartarArchivo(ruta: String) {
         descartadas += ruta
     }
+
+    override suspend fun eliminar(evidencia: Evidencia): Resultado<Unit> {
+        if (fallar) return Resultado.Error(ErrorDominio.Desconocido("falla simulada"))
+        _evidencias.update { lista -> lista.filterNot { it.id == evidencia.id } }
+        descartadas += evidencia.rutaArchivo
+        return Resultado.Exito(Unit)
+    }
 }

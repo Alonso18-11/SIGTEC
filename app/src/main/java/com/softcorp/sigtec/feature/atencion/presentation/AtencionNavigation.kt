@@ -21,10 +21,13 @@ fun NavGraphBuilder.atencionGraph(navController: NavController) {
             acciones = listOf("Enviar con huella" to { navController.popBackStack() })
         )
     }
-    composable<Ruta.RegistrarInforme> {
+    composable<Ruta.RegistrarInforme> { entrada ->
+        val id = entrada.toRoute<Ruta.RegistrarInforme>().incidenciaId
         InformeTecnicoRoute(
             alVolver = { navController.popBackStack() },
-            alCerrar = { navController.popBackStack() }
+            alCerrar = { navController.popBackStack() },
+            // RF-938: el informe sigue en la pila con su ViewModel, así que al volver conserva lo escrito
+            alAgregarFoto = { navController.navigate(Ruta.CapturarEvidencia(id)) }
         )
     }
     composable<Ruta.EstadoRepuestos> {

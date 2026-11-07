@@ -5,11 +5,17 @@ import com.softcorp.sigtec.MainDispatcherRule
 import com.softcorp.sigtec.core.biometric.DisponibilidadBiometrica
 import com.softcorp.sigtec.core.data.SesionRepositoryDemo
 import com.softcorp.sigtec.core.domain.ErrorDominio
+import com.softcorp.sigtec.core.domain.model.Evidencia
 import com.softcorp.sigtec.core.domain.model.Incidencia
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
+import com.softcorp.sigtec.core.domain.model.TipoEvidencia
+import com.softcorp.sigtec.core.domain.usecase.ObservarUsuarioActual
 import com.softcorp.sigtec.core.domain.usecase.VerificarPermiso
 import com.softcorp.sigtec.feature.atencion.data.AtencionRepositoryFalso
 import com.softcorp.sigtec.feature.atencion.domain.CerrarIncidenciaConInforme
+import com.softcorp.sigtec.feature.captura.data.EvidenciaRepositoryFalso
+import com.softcorp.sigtec.feature.captura.domain.MAX_FOTOS
+import com.softcorp.sigtec.feature.captura.domain.ObservarCapturaEvidencia
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -27,6 +33,7 @@ class InformeTecnicoViewModelTest {
 
     private val sesion = SesionRepositoryDemo()
     private val repo = AtencionRepositoryFalso()
+    private val evidencias = EvidenciaRepositoryFalso()
     private val confirmadoEn = Instant.parse("2026-10-12T15:30:00Z")
 
     // INC-0127: asignada a Luis Ramírez, en atención
@@ -43,11 +50,61 @@ class InformeTecnicoViewModelTest {
     ): InformeTecnicoViewModel {
         sesion.iniciarSesion("lramirez@softcorp.pe", "")
         repo.cargar(listOf(enAtencion))
+        if (evidencias.evidencias.isEmpty()) evidencias.cargar(listOf(enAtencion))
         return InformeTecnicoViewModel(
             SavedStateHandle(mapOf("incidenciaId" to incidenciaId)),
             CerrarIncidenciaConInforme(VerificarPermiso(sesion), repo),
+            ObservarCapturaEvidencia(evidencias, ObservarUsuarioActual(sesion)),
             disponibilidad
         )
+    }
+
+    private fun foto(i: Int) = Evidencia(
+        "f$i", "i127", TipoEvidencia.PIEZA_CAMBIADA, "/evidencias/i127/f$i.jpg", confirmadoEn.minusSeconds(60L * (MAX_FOTOS - i))
+    )
+
+    @Test
+    fun `las fotos de la incidencia llegan al estado con Agregar foto`() = runTest {
+        // RF-938
+        evidencias.cargar(listOf(enAtencion), listOf(foto(1)))
+        val vm = nuevoVm()
+
+        assertEquals(listOf(foto(1)), vm.estado.value.evidencias)
+        assertTrue(vm.estado.value.puedeAgregarFoto)
+    }
+
+    @Test
+    fun `una foto nueva no pisa lo escrito en el informe`() = runTest {
+        // RF-938: al volver de «Evidencia fotográfica», lo escrito se conserva
+        val vm = nuevoVm()
+        vm.alCambiarDiagnostico("Fusor dañado")
+        vm.alCambiarTrabajo("Se cambió el fusor")
+
+        evidencias.cargar(evidencias = listOf(foto(1)))
+
+        assertEquals(listOf(foto(1)), vm.estado.value.evidencias)
+        assertEquals("Fusor dañado", vm.estado.value.diagnostico)
+        assertEquals("Se cambió el fusor", vm.estado.value.trabajoRealizado)
+    }
+
+    @Test
+    fun `con el maximo de fotos Agregar foto sigue y la captura avisa del limite`() = runTest {
+        // RF-929: igual que en el detalle
+        evidencias.cargar(listOf(enAtencion), List(MAX_FOTOS) { foto(it) })
+        val vm = nuevoVm()
+
+        assertTrue(vm.estado.value.puedeAgregarFoto)
+    }
+
+    @Test
+    fun `si la incidencia se cierra por otra via ya no se pueden agregar fotos`() = runTest {
+        // RF-923
+        val vm = nuevoVm()
+        assertTrue(vm.estado.value.puedeAgregarFoto)
+
+        evidencias.cargar(incidencias = listOf(enAtencion.copy(marca = MarcaSeguimiento.CERRADA)))
+
+        assertFalse(vm.estado.value.puedeAgregarFoto)
     }
 
     @Test
