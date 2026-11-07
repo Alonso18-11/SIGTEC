@@ -15,7 +15,6 @@ Las reglas permanentes van en `CLAUDE.md`, no aquí.
 - Flujo multiagente en `.claude/agents/` (coordinador, planificador, implementador, revisor); el coordinador se usa con `claude --agent coordinador`. Las restricciones de escritura y comandos van en hooks de `.claude/hooks/`, porque `tools` no filtra por ruta ni por comando.
 
 ## Pendientes conocidos
-- Fotos: cuando exista la HU de captura, ampliar RF-10/RF-11 de `specs/001-inicio-sesion` para borrar también las fotos internas al cambiar de persona (D-7).
 - Specs SDD (una línea por HU; cada quien edita solo la de sus HU):
   - HU-01 `specs/001-inicio-sesion`: completa (RF-1 a RF-15).
   - HU-02 `specs/002-ingreso-huella`: completa (RF-16 a RF-29).
