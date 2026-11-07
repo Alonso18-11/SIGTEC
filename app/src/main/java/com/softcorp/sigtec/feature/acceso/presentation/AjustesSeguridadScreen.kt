@@ -28,6 +28,7 @@ import com.softcorp.sigtec.core.biometric.DisponibilidadBiometrica
 import com.softcorp.sigtec.core.biometric.ResultadoBiometrico
 import com.softcorp.sigtec.core.biometric.intentRegistrarHuella
 import com.softcorp.sigtec.core.biometric.rememberVerificadorBiometrico
+import com.softcorp.sigtec.core.domain.DecisionBorrado
 import com.softcorp.sigtec.core.domain.model.Perfil
 import com.softcorp.sigtec.core.domain.model.PreferenciasHuella
 import com.softcorp.sigtec.core.domain.model.Usuario
@@ -190,23 +191,27 @@ fun AjustesSeguridadScreen(
         }
     }
 
-    estado.confirmarSalida?.let { pendientes ->
+    estado.confirmarSalida?.let { decision ->
         DialogoConfirmarSalida(
-            pendientes = pendientes,
+            decision = decision,
             alConfirmar = alConfirmarSalida,
             alCancelar = alCancelarSalida
         )
     }
 }
 
-/** Avisa de cambios sin enviar antes de cerrar sesión; tocar fuera cancela. */ // RF-13
+/** Avisa de cambios sin enviar y fotos antes de cerrar sesión; tocar fuera cancela. */ // RF-13, RF-943
 @Composable
-private fun DialogoConfirmarSalida(pendientes: Int, alConfirmar: () -> Unit, alCancelar: () -> Unit) {
+private fun DialogoConfirmarSalida(
+    decision: DecisionBorrado.Confirmar,
+    alConfirmar: () -> Unit,
+    alCancelar: () -> Unit
+) {
     AlertDialog(
         onDismissRequest = alCancelar,
         icon = { Icon(Icons.Outlined.CloudOff, contentDescription = null) },
         title = { Text("¿Cerrar sesión?") },
-        text = { Text("Tienes ${textoCambiosSinEnviar(pendientes)}. Si cierras sesión ahora, ${textoSePerdera(pendientes)}.") },
+        text = { Text(textoAvisoSalida(decision.pendientes, decision.fotos)) },
         confirmButton = {
             BotonTexto(onClick = alConfirmar, color = MaterialTheme.colorScheme.error) { Text("Cerrar de todos modos") }
         },
@@ -335,7 +340,7 @@ private fun AjustesOtraPersona() = SigtecTheme {
 private fun DialogoSalidaClaro() = SigtecTheme(darkTheme = false) {
     Surface {
         AjustesSeguridadScreen(
-            AjustesUiState(luis, huellaDeLuis, DisponibilidadBiometrica.HUELLA, confirmarSalida = 1),
+            AjustesUiState(luis, huellaDeLuis, DisponibilidadBiometrica.HUELLA, confirmarSalida = DecisionBorrado.Confirmar(1)),
             {}, {}, {}, {}, {}, {}, {}
         )
     }
@@ -346,7 +351,29 @@ private fun DialogoSalidaClaro() = SigtecTheme(darkTheme = false) {
 private fun DialogoSalidaOscuro() = SigtecTheme(darkTheme = true) {
     Surface {
         AjustesSeguridadScreen(
-            AjustesUiState(luis, huellaDeLuis, DisponibilidadBiometrica.HUELLA, confirmarSalida = 3),
+            AjustesUiState(luis, huellaDeLuis, DisponibilidadBiometrica.HUELLA, confirmarSalida = DecisionBorrado.Confirmar(3, fotos = 2)),
+            {}, {}, {}, {}, {}, {}, {}
+        )
+    }
+}
+
+@Preview(name = "Diálogo de salida solo con fotos - claro", showBackground = true)
+@Composable
+private fun DialogoSalidaFotosClaro() = SigtecTheme(darkTheme = false) {
+    Surface {
+        AjustesSeguridadScreen(
+            AjustesUiState(luis, huellaDeLuis, DisponibilidadBiometrica.HUELLA, confirmarSalida = DecisionBorrado.Confirmar(0, 1)),
+            {}, {}, {}, {}, {}, {}, {}
+        )
+    }
+}
+
+@Preview(name = "Diálogo de salida solo con fotos - oscuro", showBackground = true)
+@Composable
+private fun DialogoSalidaFotosOscuro() = SigtecTheme(darkTheme = true) {
+    Surface {
+        AjustesSeguridadScreen(
+            AjustesUiState(luis, huellaDeLuis, DisponibilidadBiometrica.HUELLA, confirmarSalida = DecisionBorrado.Confirmar(0, 4)),
             {}, {}, {}, {}, {}, {}, {}
         )
     }

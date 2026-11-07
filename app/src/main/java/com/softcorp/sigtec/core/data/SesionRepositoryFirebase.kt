@@ -35,6 +35,7 @@ class SesionRepositoryFirebase @Inject constructor(
     private val auth: FirebaseAuth,
     private val firestore: FirebaseFirestore,
     private val baseLocal: SigtecDatabase,
+    private val almacen: AlmacenFotos,
     private val preferencias: PreferenciasSeguridadRepository,
     @IoDispatcher private val io: CoroutineDispatcher,
     @ApplicationScope private val scope: CoroutineScope
@@ -95,8 +96,21 @@ class SesionRepositoryFirebase @Inject constructor(
 
     override suspend fun cerrarSesion() {
         // HU-01: "al cerrar sesión se borra del celular la información del usuario"
-        withContext(io) { baseLocal.clearAllTables() }
+        withContext(io) {
+            baseLocal.clearAllTables()
+            borrarFotos()
+        }
         auth.signOut()
+    }
+
+    // RF-942: después de Room, para que ninguna fila apunte a un archivo ya borrado. Si falla no impide
+    // cerrar sesión: sin fila, la foto no se ve y se borra en el siguiente borrado.
+    private fun borrarFotos() {
+        try {
+            almacen.borrarTodo()
+        } catch (e: Exception) {
+            Log.w(TAG, "No se pudieron borrar las fotos de evidencia", e)
+        }
     }
 
     // RF-15: el cierre que dispara la revocación remota debe desvincular la huella

@@ -4,6 +4,7 @@ import com.softcorp.sigtec.core.biometric.ResultadoBiometrico
 import com.softcorp.sigtec.core.data.PreferenciasSeguridadFalsas
 import com.softcorp.sigtec.core.data.SesionRepositoryDemo
 import com.softcorp.sigtec.core.domain.BloqueoApp
+import com.softcorp.sigtec.core.domain.DecisionBorrado
 import com.softcorp.sigtec.core.domain.ErrorDominio
 import com.softcorp.sigtec.core.domain.usecase.DesbloquearApp
 import com.softcorp.sigtec.core.domain.usecase.EvaluarIngresoDeOtraPersona
@@ -203,9 +204,25 @@ class LoginViewModelTest {
 
         vm.ingresar()
 
-        assertEquals(2, vm.ui.confirmarIngreso)
+        assertEquals(DecisionBorrado.Confirmar(2), vm.ui.confirmarIngreso)
         assertEquals("demo-lramirez", sesion.usuarioActual.value?.id)   // no se autenticó a la otra persona
         assertFalse(vm.ui.cargando)
+    }
+
+    @Test
+    fun `ingresar con otra cuenta y solo fotos tambien abre el dialogo`() = runTest {
+        // RF-944 (HU-09)
+        preferencias.asignarPropietario("demo-lramirez", "Luis Ramírez")
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")
+        estadoDatos.fijarFotos(3)
+        val vm = nuevoVm()
+        vm.alCambiarCorreo("atorres@softcorp.pe")
+        vm.alCambiarContrasena("clave")
+
+        vm.ingresar()
+
+        assertEquals(DecisionBorrado.Confirmar(0, 3), vm.ui.confirmarIngreso)
+        assertEquals("demo-lramirez", sesion.usuarioActual.value?.id)
     }
 
     @Test

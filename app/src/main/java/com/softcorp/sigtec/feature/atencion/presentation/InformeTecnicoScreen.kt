@@ -28,6 +28,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -40,16 +41,21 @@ import com.softcorp.sigtec.core.biometric.DisponibilidadBiometrica
 import com.softcorp.sigtec.core.biometric.ResultadoBiometrico
 import com.softcorp.sigtec.core.biometric.rememberVerificadorBiometrico
 import com.softcorp.sigtec.core.domain.ErrorDominio
+import com.softcorp.sigtec.core.domain.model.Evidencia
+import com.softcorp.sigtec.core.domain.model.TipoEvidencia
 import com.softcorp.sigtec.core.theme.Espaciado
 import com.softcorp.sigtec.core.theme.SigtecTheme
 import com.softcorp.sigtec.core.ui.components.BarraSuperior
 import com.softcorp.sigtec.core.ui.components.BotonPrincipal
 import com.softcorp.sigtec.core.ui.mensaje
+import com.softcorp.sigtec.feature.captura.presentation.FotoAmpliada
+import com.softcorp.sigtec.feature.captura.presentation.SeccionEvidencias
 
 @Composable
 fun InformeTecnicoRoute(
     alVolver: () -> Unit,
     alCerrar: () -> Unit,
+    alAgregarFoto: () -> Unit,
     vm: InformeTecnicoViewModel = hiltViewModel()
 ) {
     val estado by vm.estado.collectAsStateWithLifecycle()
@@ -70,7 +76,8 @@ fun InformeTecnicoRoute(
             verificador.verificar(titulo = "Confirma el cierre") { resultado ->
                 if (resultado is ResultadoBiometrico.Exito) vm.alConfirmarCierre(resultado.instante)
             }
-        }
+        },
+        alAgregarFoto = alAgregarFoto
     )
 }
 
@@ -82,10 +89,13 @@ fun InformeTecnicoScreen(
     alCambiarTrabajo: (String) -> Unit,
     alCambiarPiezas: (String) -> Unit,
     alCambiarObservaciones: (String) -> Unit,
-    alConfirmar: () -> Unit
+    alConfirmar: () -> Unit,
+    alAgregarFoto: () -> Unit = {}
 ) {
     val editable = !estado.guardando
     var intentoConfirmar by remember { mutableStateOf(false) }
+    // RF-934: aquí la foto solo se ve; eliminarla se hace desde el detalle (RF-937)
+    var fotoAbiertaId by rememberSaveable { mutableStateOf<String?>(null) }
 
     Scaffold(
         modifier = Modifier.imePadding(),
@@ -148,6 +158,14 @@ fun InformeTecnicoScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
+            // HU-09 (RF-938, D-6): fotografiar la pieza cambiada sin salir del cierre
+            SeccionEvidencias(
+                evidencias = estado.evidencias,
+                puedeAgregar = estado.puedeAgregarFoto && editable,
+                alAgregarFoto = alAgregarFoto,
+                alAbrirFoto = { fotoAbiertaId = it.id }
+            )
+
             BotonConfirmar(
                 estado = estado,
                 onClick = {
@@ -156,6 +174,10 @@ fun InformeTecnicoScreen(
                 }
             )
         }
+    }
+
+    estado.evidencias.firstOrNull { it.id == fotoAbiertaId }?.let { foto ->
+        FotoAmpliada(foto = foto, alVolver = { fotoAbiertaId = null })
     }
 }
 
@@ -281,5 +303,29 @@ private fun InformeConError() = SigtecTheme {
             formularioCompleto.copy(error = ErrorDominio.MarcaCambiada),
             {}, {}, {}, {}, {}, {}
         )
+    }
+}
+
+private val formularioConFotos = formularioCompleto.copy(
+    puedeAgregarFoto = true,
+    evidencias = listOf(
+        Evidencia("a", "i127", TipoEvidencia.FALLA, "/no-existe/a.jpg", java.time.Instant.parse("2026-10-18T15:00:00Z")),
+        Evidencia("b", "i127", TipoEvidencia.PIEZA_CAMBIADA, "/no-existe/b.jpg", java.time.Instant.parse("2026-10-18T15:05:00Z"))
+    )
+)
+
+@Preview(name = "Con fotos · claro", showBackground = true, heightDp = 1100)
+@Composable
+private fun InformeConFotosClaro() = SigtecTheme {
+    Surface {
+        InformeTecnicoScreen(formularioConFotos, {}, {}, {}, {}, {}, {})
+    }
+}
+
+@Preview(name = "Con fotos · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 1100)
+@Composable
+private fun InformeConFotosOscuro() = SigtecTheme(darkTheme = true) {
+    Surface {
+        InformeTecnicoScreen(formularioConFotos, {}, {}, {}, {}, {}, {})
     }
 }

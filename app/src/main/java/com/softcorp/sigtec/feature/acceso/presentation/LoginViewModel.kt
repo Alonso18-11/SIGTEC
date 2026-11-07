@@ -27,8 +27,8 @@ data class LoginUiState(
     val usuarioBloqueado: Usuario? = null,      // el dueño, esperando su huella
     val propietarioHuella: String? = null,      // sin sesión, pero el celular tiene dueño de huella
     val avisoHuella: String? = null,
-    // Evento de un solo uso: null = sin diálogo, N = mostrar diálogo con N pendientes del dueño bloqueado. // RF-11
-    val confirmarIngreso: Int? = null,
+    // Evento de un solo uso: null = sin diálogo; si no, lo que perdería el dueño bloqueado. // RF-11, RF-944
+    val confirmarIngreso: DecisionBorrado.Confirmar? = null,
     // Evento de un solo uso: null = nada que ofrecer, el id = lanzar la huella una vez. // RF-29
     val ofrecerHuellaParaId: String? = null
 ) {
@@ -86,7 +86,7 @@ class LoginViewModel @Inject constructor(
             when (val decision = evaluarIngresoDeOtraPersona(actual.correo)) {
                 is DecisionBorrado.Confirmar ->
                     // Todavía no se autentica, solo se espera confirmación: no deja el formulario colgado.
-                    formulario.update { it.copy(cargando = false, confirmarIngreso = decision.pendientes) }
+                    formulario.update { it.copy(cargando = false, confirmarIngreso = decision) }
                 DecisionBorrado.SinRiesgo -> autenticar()
             }
         }

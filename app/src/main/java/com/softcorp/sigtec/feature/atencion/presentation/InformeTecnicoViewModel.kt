@@ -7,7 +7,9 @@ import com.softcorp.sigtec.core.biometric.DisponibilidadBiometrica
 import com.softcorp.sigtec.core.biometric.EvaluadorBiometrico
 import com.softcorp.sigtec.core.domain.ErrorDominio
 import com.softcorp.sigtec.core.domain.Resultado
+import com.softcorp.sigtec.core.domain.model.Evidencia
 import com.softcorp.sigtec.feature.atencion.domain.CerrarIncidenciaConInforme
+import com.softcorp.sigtec.feature.captura.domain.ObservarCapturaEvidencia
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,7 +27,9 @@ data class InformeTecnicoUiState(
     val guardando: Boolean = false,
     val error: ErrorDominio? = null,
     val disponibilidadBiometrica: DisponibilidadBiometrica = DisponibilidadBiometrica.SIN_SEGURIDAD,
-    val cerrada: Boolean = false
+    val cerrada: Boolean = false,
+    val evidencias: List<Evidencia> = emptyList(),   // HU-09 (RF-938): las fotos de la incidencia en este celular
+    val puedeAgregarFoto: Boolean = false            // HU-09 (RF-923): el técnico asignado, mientras siga pendiente
 ) {
     val puedeConfirmar: Boolean
         get() = diagnostico.isNotBlank() && trabajoRealizado.isNotBlank() && !guardando &&
@@ -44,18 +48,33 @@ class InformeTecnicoViewModel : ViewModel {
     constructor(
         savedStateHandle: SavedStateHandle,
         cerrarIncidenciaConInforme: CerrarIncidenciaConInforme,
+        observarCaptura: ObservarCapturaEvidencia,
         evaluador: EvaluadorBiometrico
-    ) : this(savedStateHandle, cerrarIncidenciaConInforme, evaluador.evaluar())
+    ) : this(savedStateHandle, cerrarIncidenciaConInforme, observarCaptura, evaluador.evaluar())
 
     constructor(
         savedStateHandle: SavedStateHandle,
         cerrarIncidenciaConInforme: CerrarIncidenciaConInforme,
+        observarCaptura: ObservarCapturaEvidencia,
         disponibilidadBiometrica: DisponibilidadBiometrica
     ) : super() {
         incidenciaId = checkNotNull(savedStateHandle[ARG_INCIDENCIA_ID])
         this.cerrarIncidenciaConInforme = cerrarIncidenciaConInforme
         _estado = MutableStateFlow(InformeTecnicoUiState(disponibilidadBiometrica = disponibilidadBiometrica))
         estado = _estado.asStateFlow()
+        // RF-938: las fotos entran al mismo estado del formulario, así que nunca pisan lo escrito. Con el máximo de
+        // fotos el botón sigue, igual que en el detalle: «Evidencia fotográfica» avisa del límite (RF-929).
+        viewModelScope.launch {
+            observarCaptura(incidenciaId).collect { captura ->
+                _estado.update {
+                    it.copy(
+                        evidencias = captura?.fotos.orEmpty(),
+                        puedeAgregarFoto = captura != null &&
+                                (captura.bloqueo == null || captura.bloqueo == ErrorDominio.LimiteFotosAlcanzado)
+                    )
+                }
+            }
+        }
     }
 
     fun alCambiarDiagnostico(valor: String) = _estado.update { it.copy(diagnostico = valor, error = null) }
