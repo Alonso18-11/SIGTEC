@@ -33,4 +33,7 @@ interface EvidenciaRepository {
 
     /** Borra el archivo de una foto que no se enlazó; si ya no existe, no pasa nada (RF-928). */
     suspend fun descartarArchivo(ruta: String)
+
+    /** RF-937: borra la fila y después el archivo, para que ninguna fila quede apuntando a un archivo borrado. */
+    suspend fun eliminar(evidencia: Evidencia): Resultado<Unit>
 }
