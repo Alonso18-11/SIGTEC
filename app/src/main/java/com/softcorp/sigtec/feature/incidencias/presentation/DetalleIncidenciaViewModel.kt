@@ -6,9 +6,11 @@ import androidx.lifecycle.viewModelScope
 import com.softcorp.sigtec.core.domain.ErrorDominio
 import com.softcorp.sigtec.core.domain.Resultado
 import com.softcorp.sigtec.core.domain.model.EstadoIncidencia
+import com.softcorp.sigtec.core.domain.model.Evidencia
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
 import com.softcorp.sigtec.core.domain.model.Permiso
 import com.softcorp.sigtec.core.domain.usecase.ObservarUsuarioActual
+import com.softcorp.sigtec.feature.captura.domain.EliminarEvidencia
 import com.softcorp.sigtec.feature.incidencias.domain.DetalleIncidencia
 import com.softcorp.sigtec.feature.incidencias.domain.IniciarAtencion
 import com.softcorp.sigtec.feature.incidencias.domain.ObservarDetalleIncidencia
@@ -33,6 +35,8 @@ data class DetalleIncidenciaUiState(
     val puedeIniciarAtencion: Boolean = false, // HU-08: técnico asignado, solo en marca Asignada (RF-806)
     val iniciandoAtencion: Boolean = false,    // HU-08: RF-811, evita el doble toque
     val errorAtencion: ErrorDominio? = null,   // HU-08: RF-808, RF-810
+    val eliminandoFoto: Boolean = false,       // HU-09: RF-937, evita el doble toque
+    val errorFoto: ErrorDominio? = null,       // HU-09: RF-937
     val ahora: Instant = Instant.now()
 ) {
     val noEncontrada: Boolean get() = !cargando && detalle == null
@@ -40,12 +44,15 @@ data class DetalleIncidenciaUiState(
 
 private data class AccionIniciarAtencion(val iniciando: Boolean = false, val error: ErrorDominio? = null)
 
+private data class AccionFoto(val eliminando: Boolean = false, val error: ErrorDominio? = null)
+
 @HiltViewModel
 class DetalleIncidenciaViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     observarDetalle: ObservarDetalleIncidencia,
     observarUsuarioActual: ObservarUsuarioActual,
-    private val iniciarAtencion: IniciarAtencion
+    private val iniciarAtencion: IniciarAtencion,
+    private val eliminarEvidencia: EliminarEvidencia
 ) : ViewModel() {
 
     private val incidenciaId: String = checkNotNull(savedStateHandle[ARG_INCIDENCIA_ID])
@@ -58,14 +65,16 @@ class DetalleIncidenciaViewModel @Inject constructor(
     }
 
     private val accionIniciarAtencion = MutableStateFlow(AccionIniciarAtencion())
+    private val accionFoto = MutableStateFlow(AccionFoto())
 
     val estado: StateFlow<DetalleIncidenciaUiState> =
         combine(
             observarDetalle(incidenciaId),
             observarUsuarioActual(),
             reloj,
-            accionIniciarAtencion
-        ) { detalle, usuario, ahora, accion ->
+            accionIniciarAtencion,
+            accionFoto
+        ) { detalle, usuario, ahora, accion, foto ->
             val incidencia = detalle?.incidencia
             val pendiente = incidencia?.estado == EstadoIncidencia.PENDIENTE
             DetalleIncidenciaUiState(
@@ -86,6 +95,8 @@ class DetalleIncidenciaViewModel @Inject constructor(
                         incidencia.tecnicoAsignadoId == usuario.id,
                 iniciandoAtencion = accion.iniciando,
                 errorAtencion = accion.error,
+                eliminandoFoto = foto.eliminando,
+                errorFoto = foto.error,
                 ahora = ahora
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DetalleIncidenciaUiState())
@@ -99,6 +110,20 @@ class DetalleIncidenciaViewModel @Inject constructor(
                 is Resultado.Error -> accionIniciarAtencion.update { it.copy(iniciando = false, error = r.causa) }
             }
         }
+    }
+
+    /** RF-937: al eliminarla, la foto desaparece de Room y su vista ampliada se cierra sola. */
+    fun alEliminarFoto(evidencia: Evidencia) {
+        if (accionFoto.value.eliminando) return
+        accionFoto.value = AccionFoto(eliminando = true)
+        viewModelScope.launch {
+            accionFoto.value = AccionFoto(error = (eliminarEvidencia(evidencia) as? Resultado.Error)?.causa)
+        }
+    }
+
+    /** Al cerrar la foto ampliada, el error de ese intento ya no aplica. */
+    fun alCerrarFoto() {
+        accionFoto.update { it.copy(error = null) }
     }
 
     companion object {

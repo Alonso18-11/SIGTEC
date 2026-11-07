@@ -77,6 +77,20 @@ class EvidenciaRepositoryImpl @Inject constructor(
         }
     }
 
+    // RF-937: si el archivo no se puede borrar, queda suelto pero sin fila no se ve
+    override suspend fun eliminar(evidencia: Evidencia): Resultado<Unit> = withContext(io) {
+        try {
+            evidenciaDao.eliminar(evidencia.toEntity())
+            almacen.borrar(evidencia.rutaArchivo)
+            Resultado.Exito(Unit)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.w(TAG, "No se pudo eliminar la foto ${evidencia.id}", e)
+            Resultado.Error(ErrorDominio.Desconocido(e.message))
+        }
+    }
+
     private companion object {
         const val TAG = "EvidenciaRepository"
     }

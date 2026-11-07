@@ -3,12 +3,16 @@ package com.softcorp.sigtec
 import androidx.lifecycle.SavedStateHandle
 import com.softcorp.sigtec.core.data.SesionRepositoryDemo
 import com.softcorp.sigtec.core.domain.ErrorDominio
+import com.softcorp.sigtec.core.domain.model.Evidencia
 import com.softcorp.sigtec.core.domain.model.Incidencia
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
 import com.softcorp.sigtec.core.domain.model.Movimiento
+import com.softcorp.sigtec.core.domain.model.TipoEvidencia
 import com.softcorp.sigtec.core.domain.model.TipoMovimiento
 import com.softcorp.sigtec.core.domain.usecase.ObservarUsuarioActual
 import com.softcorp.sigtec.core.domain.usecase.VerificarPermiso
+import com.softcorp.sigtec.feature.captura.data.EvidenciaRepositoryFalso
+import com.softcorp.sigtec.feature.captura.domain.EliminarEvidencia
 import com.softcorp.sigtec.feature.incidencias.data.IncidenciaRepositoryFalso
 import com.softcorp.sigtec.feature.incidencias.domain.IniciarAtencion
 import com.softcorp.sigtec.feature.incidencias.domain.ObservarDetalleIncidencia
@@ -67,7 +71,8 @@ class DetalleIncidenciaViewModelTest {
             SavedStateHandle(mapOf(DetalleIncidenciaViewModel.ARG_INCIDENCIA_ID to id)),
             ObservarDetalleIncidencia(repo),
             ObservarUsuarioActual(sesion),
-            IniciarAtencion(VerificarPermiso(sesion), repo)
+            IniciarAtencion(VerificarPermiso(sesion), repo),
+            EliminarEvidencia(VerificarPermiso(sesion), EvidenciaRepositoryFalso())
         )
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.estado.collect {} }
         return vm
@@ -81,10 +86,83 @@ class DetalleIncidenciaViewModelTest {
             SavedStateHandle(mapOf(DetalleIncidenciaViewModel.ARG_INCIDENCIA_ID to inc.id)),
             ObservarDetalleIncidencia(repo),
             ObservarUsuarioActual(sesion),
-            IniciarAtencion(VerificarPermiso(sesion), repo)
+            IniciarAtencion(VerificarPermiso(sesion), repo),
+            EliminarEvidencia(VerificarPermiso(sesion), EvidenciaRepositoryFalso())
         )
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.estado.collect {} }
         return vm to repo
+    }
+
+    // HU-09: con dos fotos cargadas desordenadas, y el repositorio de evidencias para eliminarlas
+    private val fotoReciente = Evidencia("f2", "c", TipoEvidencia.PIEZA_CAMBIADA, "/evidencias/c/f2.jpg", t0.plusSeconds(600))
+    private val fotoAntigua = Evidencia("f1", "c", TipoEvidencia.FALLA, "/evidencias/c/f1.jpg", t0.plusSeconds(300))
+
+    private fun TestScope.nuevoVmConFotos(
+        inc: Incidencia = incidencia
+    ): Pair<DetalleIncidenciaViewModel, EvidenciaRepositoryFalso> {
+        val fotos = listOf(fotoReciente, fotoAntigua)
+        val repo = IncidenciaRepositoryFalso().also { it.cargar(listOf(inc), evidencias = fotos) }
+        val evidencias = EvidenciaRepositoryFalso().also { it.cargar(listOf(inc), fotos) }
+        val vm = DetalleIncidenciaViewModel(
+            SavedStateHandle(mapOf(DetalleIncidenciaViewModel.ARG_INCIDENCIA_ID to inc.id)),
+            ObservarDetalleIncidencia(repo),
+            ObservarUsuarioActual(sesion),
+            IniciarAtencion(VerificarPermiso(sesion), repo),
+            EliminarEvidencia(VerificarPermiso(sesion), evidencias)
+        )
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.estado.collect {} }
+        return vm to evidencias
+    }
+
+    @Test
+    fun `las fotos llegan al estado de la mas antigua a la mas reciente`() = runTest {
+        // RF-932: las ve cualquiera que abra el detalle, aunque no pueda agregarlas
+        sesion.iniciarSesion("cmendoza@softcorp.pe", "")
+        val (vm, _) = nuevoVmConFotos()
+
+        assertEquals(listOf(fotoAntigua, fotoReciente), vm.estado.value.detalle!!.evidencias)
+        assertFalse(vm.estado.value.puedeAtender)
+    }
+
+    @Test
+    fun `solo el tecnico asignado puede agregar fotos y deja de poder al cerrarse`() = runTest {
+        // RF-923: «Agregar foto» se muestra con puedeAtender
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")
+        assertTrue(nuevoVmConFotos().first.estado.value.puedeAtender)
+        assertFalse(nuevoVmConFotos(incidencia.copy(marca = MarcaSeguimiento.CERRADA)).first.estado.value.puedeAtender)
+
+        sesion.iniciarSesion("atorres@softcorp.pe", "")
+        assertFalse(nuevoVmConFotos().first.estado.value.puedeAtender)
+    }
+
+    @Test
+    fun `eliminar una foto la borra sin error`() = runTest {
+        // RF-937
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")
+        val (vm, evidencias) = nuevoVmConFotos()
+
+        vm.alEliminarFoto(fotoAntigua)
+
+        assertEquals(listOf(fotoReciente), evidencias.evidencias)
+        assertEquals(listOf(fotoAntigua.rutaArchivo), evidencias.descartadas)
+        assertEquals(null, vm.estado.value.errorFoto)
+        assertFalse(vm.estado.value.eliminandoFoto)
+    }
+
+    @Test
+    fun `otro tecnico no elimina y el error llega al estado hasta cerrar la foto`() = runTest {
+        // RF-937
+        sesion.iniciarSesion("atorres@softcorp.pe", "")
+        val (vm, evidencias) = nuevoVmConFotos()
+
+        vm.alEliminarFoto(fotoAntigua)
+
+        assertEquals(2, evidencias.evidencias.size)
+        assertEquals(ErrorDominio.SinPermiso, vm.estado.value.errorFoto)
+        assertFalse(vm.estado.value.eliminandoFoto)
+
+        vm.alCerrarFoto()
+        assertEquals(null, vm.estado.value.errorFoto)
     }
 
     @Test

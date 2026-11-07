@@ -24,4 +24,16 @@ class MensajesFotosTest {
         val error = ErrorDominio.Desconocido("disco lleno")
         assertEquals(error.mensaje(), mensajeFotos(error))
     }
+
+    @Test
+    fun `eliminar con la incidencia cerrada o reasignada muestra su propio aviso`() {
+        assertEquals("Ya no puedes eliminar fotos de esta incidencia.", mensajeEliminarFoto(ErrorDominio.IncidenciaCerrada))
+        assertEquals("Ya no puedes eliminar fotos de esta incidencia.", mensajeEliminarFoto(ErrorDominio.SinPermiso))
+    }
+
+    @Test
+    fun `eliminar con otro error usa su texto de siempre`() {
+        val error = ErrorDominio.Desconocido("disco lleno")
+        assertEquals(error.mensaje(), mensajeEliminarFoto(error))
+    }
 }

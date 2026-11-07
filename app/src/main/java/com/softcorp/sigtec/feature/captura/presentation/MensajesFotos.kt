@@ -12,3 +12,9 @@ fun mensajeFotos(error: ErrorDominio): String = when (error) {
     ErrorDominio.IncidenciaCerrada, ErrorDominio.SinPermiso -> "Ya no puedes agregar fotos a esta incidencia."
     else -> error.mensaje()
 }
+
+/** HU-09 (RF-937): el texto de un error al eliminar una foto, porque la incidencia se cerró o se reasignó con ella abierta. */
+fun mensajeEliminarFoto(error: ErrorDominio): String = when (error) {
+    ErrorDominio.IncidenciaCerrada, ErrorDominio.SinPermiso -> "Ya no puedes eliminar fotos de esta incidencia."
+    else -> error.mensaje()
+}
