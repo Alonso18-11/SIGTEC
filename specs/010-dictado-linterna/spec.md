@@ -1,6 +1,6 @@
 # Spec 010 — Dictado por voz y linterna (HU-10)
 
-> Estado: borrador (2026-11-07), para revisión. D-1 a D-4 las respondió el usuario el 2026-11-07; D-5 a D-9 son propuestas que esperan su visto bueno (ver «Decisiones»).
+> Estado: aprobada (2026-11-07), con las decisiones D-1 a D-9 respondidas por el usuario (ver «Decisiones»).
 
 > Spec escrita antes del código (principio 2 de la constitución). Los requisitos usan el bloque propio de la HU-10 (RF-1001…). Corresponde al **RF-16 del producto** («dictar por voz la descripción del problema y transcribirla a texto»), del documento del producto (`SIGTEC_docx.pdf`, sección 11.1, fuera del repo). Se cita como «RF-16 del producto» para no confundirlo con el RF-16 de `specs/002-ingreso-huella`. También sigue la sección 16 del mismo documento (micrófono y linterna como recursos del celular), la 16.1 (el permiso de micrófono se pide al usarlo por primera vez, explicando para qué), la 17 (la voz se transcribe con el reconocimiento del propio Android, sin costo) y los prototipos 5 «Detalle de incidencia» (la linterna en la barra superior), 13 y 14 (la linterna en las pantallas de cámara) y 15 «Dictar descripción».
 
@@ -124,11 +124,11 @@ Esta HU agrega un micrófono junto a los campos de texto largos: el técnico dic
 - D-2 · Campos con micrófono (RF-1001). **Aprobada el 2026-11-07:** «Descripción del problema» y, en el informe, «Diagnóstico», «Solución aplicada» y «Observaciones». «Piezas cambiadas» no, porque es una lista corta.
 - D-3 · Qué hace el texto dictado con lo que ya había (RF-1011). **Aprobada el 2026-11-07:** se agrega al final, para poder dictar por partes sin perder nada.
 - D-4 · Dónde va la linterna (RF-1024 a RF-1032). **Aprobada el 2026-11-07:** en el detalle, solo para el técnico asignado mientras la incidencia siga pendiente, y en «Escanear etiqueta» y «Evidencia fotográfica», donde la cámara ya está abierta.
-- D-5 · Idioma del reconocimiento (RF-1006). **Propuesta:** español de Perú (`es-PE`); si el celular no lo tiene, Android usa el español que tenga. Alternativa: el idioma del celular, que podría estar en inglés.
-- D-6 · Sin conexión (RF-1006, RF-1016). **Propuesta:** pedirle a Android que prefiera el reconocimiento sin conexión y, si no lo tiene, mostrar RF-1016. No se intenta descargar el paquete de voz desde la app: eso se hace en los ajustes de Android.
-- D-7 · La regla del permiso (RF-1023). **Propuesta:** generalizar `vistaPermiso` de la HU-09 para que sirva a la cámara y al micrófono, moviéndola a un lugar común dentro de `feature/captura` (la cámara y el micrófono son de ese módulo). Cambia archivos de la HU-09 sin cambiar su comportamiento; sus pruebas deben seguir pasando igual.
-- D-8 · Cómo se enciende la linterna en el detalle (RF-1024 a RF-1029). **Propuesta:** con el flash de la cámara trasera, sin abrir la cámara ni pedir el permiso de cámara, detrás de una interfaz en `feature/captura` para poder probarla con un doble. En las pantallas de cámara (RF-1030), con el control de la cámara que ya está abierta, porque Android no deja usar el flash por las dos vías a la vez.
-- D-9 · Ruta de «Dictar» (RF-1003, RF-1010). **Propuesta:** `DictarTexto` pasa de objeto a clase con el campo y el subtítulo como argumentos, y devuelve el texto a la pantalla anterior con el `savedStateHandle` de la entrada anterior y una clave por campo, como el escaneo de la HU-09. Toca `Rutas.kt` (archivo compartido).
+- D-5 · Idioma del reconocimiento (RF-1006). **Aprobada el 2026-11-07:** español de Perú (`es-PE`); si el celular no lo tiene, Android usa el español que tenga. Alternativa: el idioma del celular, que podría estar en inglés.
+- D-6 · Sin conexión (RF-1006, RF-1016). **Aprobada el 2026-11-07:** pedirle a Android que prefiera el reconocimiento sin conexión y, si no lo tiene, mostrar RF-1016. No se intenta descargar el paquete de voz desde la app: eso se hace en los ajustes de Android.
+- D-7 · La regla del permiso (RF-1023). **Aprobada el 2026-11-07:** generalizar `vistaPermiso` de la HU-09 para que sirva a la cámara y al micrófono, moviéndola a un lugar común dentro de `feature/captura` (la cámara y el micrófono son de ese módulo). Cambia archivos de la HU-09 sin cambiar su comportamiento; sus pruebas deben seguir pasando igual.
+- D-8 · Cómo se enciende la linterna en el detalle (RF-1024 a RF-1029). **Aprobada el 2026-11-07:** con el flash de la cámara trasera, sin abrir la cámara ni pedir el permiso de cámara, detrás de una interfaz en `feature/captura` para poder probarla con un doble. En las pantallas de cámara (RF-1030), con el control de la cámara que ya está abierta, porque Android no deja usar el flash por las dos vías a la vez.
+- D-9 · Ruta de «Dictar» (RF-1003, RF-1010). **Aprobada el 2026-11-07:** `DictarTexto` pasa de objeto a clase con el campo y el subtítulo como argumentos, y devuelve el texto a la pantalla anterior con el `savedStateHandle` de la entrada anterior y una clave por campo, como el escaneo de la HU-09. Toca `Rutas.kt` (archivo compartido).
 
 ## Dudas abiertas
-- Ninguna más allá de D-5 a D-9.
+- Ninguna.
