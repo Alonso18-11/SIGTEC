@@ -1,6 +1,6 @@
 # Spec 009 — Código del equipo por cámara y evidencia fotográfica (HU-09)
 
-> Estado: aprobada (2026-10-16), con las decisiones D-1 a D-12 respondidas por el usuario (ver «Decisiones»). D-13 se aprobó el 2026-10-17.
+> Estado: implementada (2026-11-07), RF-901 a RF-944, en #43 a #83, #85 y #86. Falta la prueba manual de punta a punta en un celular real («Criterios de finalización», T105 de `tasks.md`); después pasa a «completa». Aprobada el 2026-10-16, con las decisiones D-1 a D-12 respondidas por el usuario (ver «Decisiones»). D-13 se aprobó el 2026-10-17.
 
 > Spec escrita antes del código (principio 2 de la constitución). Los requisitos usan el bloque propio de la HU-09 (RF-901…). Corresponde a dos requisitos del documento del producto (`SIGTEC_docx.pdf`, sección 11.1, fuera del repo): el **RF-14 del producto** («capturar el código del equipo con la cámara, sin escribirlo manualmente») y el **RF-15 del producto** («adjuntar fotografías de la falla y de la pieza cambiada a una incidencia»). Se citan como «RF-14/RF-15 del producto» para no confundirlos con el RF-14 y el RF-15 de `specs/001-inicio-sesion`. También sigue las secciones 16.1 (fotos en el almacenamiento interno y permisos pedidos al usarse por primera vez) y 17 (lectura del código con ML Kit en el dispositivo, sin conexión) del mismo documento, y los prototipos 13 «Escaneo del equipo» y 14 «Captura de evidencia».
 
