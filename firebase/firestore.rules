@@ -97,8 +97,17 @@ service cloud.firestore {
     // ---------- Repuestos ----------
     match /solicitudesRepuesto/{id} {
       allow read: if autenticado();
-      allow create: if esTecnico() && request.resource.data.confirmadoEn is timestamp;
-      allow update: if esTecnico() && soloCambia(['estadoEntrega']);
+      // RF-1118 (HU-11, D-8): solo el técnico asignado a la incidencia, a su nombre y con la confirmación biométrica
+      allow create: if esTecnico()
+        && request.resource.data.solicitadoPorId == request.auth.uid
+        && get(/databases/$(database)/documents/incidencias/$(request.resource.data.incidenciaId))
+             .data.tecnicoAsignadoId == request.auth.uid
+        && request.resource.data.confirmadoEn is timestamp;
+      // Solo cambia lo que informa Logística: número, estado de entrega, sus fechas y el rechazo
+      allow update: if esTecnico() && soloCambia([
+        'numeroLogistica', 'estadoEntrega', 'despachadaEn', 'entregadaEn', 'llegadaEstimada',
+        'rechazadaPorLogistica', 'actualizadoEn'
+      ]);
       allow delete: if false;
     }
 

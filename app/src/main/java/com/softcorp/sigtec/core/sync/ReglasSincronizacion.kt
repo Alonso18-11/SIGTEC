@@ -3,12 +3,22 @@ package com.softcorp.sigtec.core.sync
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.softcorp.sigtec.core.database.entity.IncidenciaEntity
 import com.softcorp.sigtec.core.database.entity.MovimientoEntity
+import com.softcorp.sigtec.core.database.entity.SolicitudRepuestoEntity
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
 
 internal const val TAREA_SUBIR = "SUBIR_CAMBIOS"
 internal const val TAREA_BAJAR = "BAJAR_INCIDENCIAS"
 
 internal fun debeReemplazarLocal(local: IncidenciaEntity?, remota: IncidenciaEntity): Boolean =
+    local == null ||
+        !local.pendienteSincronizar ||
+        remota.actualizadoEn.isAfter(local.actualizadoEn)
+
+/**
+ * HU-11 (RF-1118): la misma regla que las incidencias. Un cambio local sin subir (por ejemplo, el número de Logística
+ * o un estado nuevo) no se pisa con una versión remota más antigua.
+ */
+internal fun debeReemplazarSolicitud(local: SolicitudRepuestoEntity?, remota: SolicitudRepuestoEntity): Boolean =
     local == null ||
         !local.pendienteSincronizar ||
         remota.actualizadoEn.isAfter(local.actualizadoEn)
