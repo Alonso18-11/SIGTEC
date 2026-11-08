@@ -6,6 +6,7 @@ import com.softcorp.sigtec.core.database.SigtecDatabase
 import com.softcorp.sigtec.core.database.dao.IncidenciaDao
 import com.softcorp.sigtec.core.database.dao.InformeTecnicoDao
 import com.softcorp.sigtec.core.database.dao.MovimientoDao
+import com.softcorp.sigtec.core.database.dao.SolicitudRepuestoDao
 import com.softcorp.sigtec.core.database.entity.toDomain
 import com.softcorp.sigtec.core.database.entity.toEntity
 import com.softcorp.sigtec.core.di.IoDispatcher
@@ -14,6 +15,7 @@ import com.softcorp.sigtec.core.domain.Resultado
 import com.softcorp.sigtec.core.domain.model.Incidencia
 import com.softcorp.sigtec.core.domain.model.InformeTecnico
 import com.softcorp.sigtec.core.domain.model.Movimiento
+import com.softcorp.sigtec.core.domain.model.SolicitudRepuesto
 import com.softcorp.sigtec.feature.atencion.domain.AtencionRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -29,6 +31,8 @@ class AtencionRepositoryImpl @Inject constructor(
     private val incidenciaDao: IncidenciaDao,
     private val movimientoDao: MovimientoDao,
     private val informeTecnicoDao: InformeTecnicoDao,
+    private val solicitudRepuestoDao: SolicitudRepuestoDao,
+    private val programadorLogistica: ProgramadorLogistica,
     @IoDispatcher private val io: CoroutineDispatcher
 ) : AtencionRepository {
 
@@ -61,6 +65,55 @@ class AtencionRepositoryImpl @Inject constructor(
                 Resultado.Error(ErrorDominio.Desconocido(e.message))
             }
         }
+
+    // HU-11 (RF-1115): o se guardan las tres cosas, o ninguna
+    override suspend fun solicitarRepuesto(
+        incidencia: Incidencia,
+        movimiento: Movimiento,
+        solicitud: SolicitudRepuesto,
+        ahora: Instant
+    ): Resultado<Unit> =
+        withContext(io) {
+            try {
+                db.withTransaction {
+                    incidenciaDao.guardar(incidencia.toEntity(pendienteSincronizar = true, actualizadoEn = ahora))
+                    movimientoDao.guardar(movimiento.toEntity(pendienteSincronizar = true))
+                    solicitudRepuestoDao.guardar(solicitud.toEntity(pendienteSincronizar = true, actualizadoEn = ahora))
+                }
+                programadorLogistica.registrarPendientes()   // RF-1117: en cuanto haya conexión
+                Resultado.Exito(Unit)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.w(TAG, "Error al guardar la solicitud de repuesto de ${incidencia.id}", e)
+                Resultado.Error(ErrorDominio.Desconocido(e.message))
+            }
+        }
+
+    override suspend fun solicitudesPorRegistrar(): List<SolicitudRepuesto> =
+        withContext(io) { solicitudRepuestoDao.sinNumeroDeLogistica().map { it.toDomain() } }
+
+    override suspend fun marcarRegistrada(solicitudId: String, numero: String, ahora: Instant): Resultado<Unit> =
+        escribir("marcar registrada la solicitud $solicitudId") {
+            solicitudRepuestoDao.marcarRegistrada(solicitudId, numero, ahora)
+        }
+
+    override suspend fun marcarRechazada(solicitudId: String, ahora: Instant): Resultado<Unit> =
+        escribir("marcar rechazada la solicitud $solicitudId") {
+            solicitudRepuestoDao.marcarRechazada(solicitudId, ahora)
+        }
+
+    private suspend fun escribir(que: String, bloque: suspend () -> Unit): Resultado<Unit> = withContext(io) {
+        try {
+            bloque()
+            Resultado.Exito(Unit)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.w(TAG, "Error al $que", e)
+            Resultado.Error(ErrorDominio.Desconocido(e.message))
+        }
+    }
 
     private companion object {
         const val TAG = "AtencionRepository"
