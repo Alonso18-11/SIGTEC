@@ -1,6 +1,6 @@
 # Spec 012 — Directorio de colaboradores al registrar (HU-12)
 
-> Estado: borrador (2026-11-08), RF-1201 a RF-1218. Las decisiones D-1 a D-4 las respondió Alonso el 2026-11-08; D-5 y D-6 son propuestas del asistente y esperan su visto bueno (ver «Decisiones»).
+> Estado: aprobada (2026-11-08), RF-1201 a RF-1218, con las decisiones D-1 a D-6 respondidas por Alonso (ver «Decisiones»).
 
 > Spec escrita antes del código (principio 2 de la constitución). Los requisitos usan el bloque propio de la HU-12 (RF-1201…). Sale de la sección 14 del documento del producto (`SIGTEC.docx.pdf`, fuera del repo): la «API del directorio de colaboradores», consumida con Retrofit y corrutinas, devuelve «nombre, área y anexo del trabajador responsable de un equipo» y «autocompleta los datos del usuario al registrar la incidencia, evitando errores de tipeo». Mientras la empresa no habilite el servicio real, se trabaja contra un servidor de prueba con la misma estructura. Sigue el prototipo 3 «Nueva incidencia» («Usuario responsable · completado desde el directorio», con «Contabilidad · Anexo 2314» debajo) y el detalle del prototipo 4 («María Quispe Huamán · Contabilidad»). Cubre el requisito 6 del curso, «Corrutinas y Retrofit para APIs externas», junto con la HU-11.
 
@@ -95,8 +95,8 @@ Con esta HU, al escribir o escanear el código del equipo, la app consulta el di
 - D-2 · Qué se guarda (RF-1214 a RF-1216). **Aprobada el 2026-11-08:** el nombre (como hoy) y el área en la incidencia; el anexo solo se ve en el formulario. Cambia `IncidenciaEntity` y el mapeo a Firestore; no cambia `firestore.rules`. Alternativas descartadas: guardar también el anexo, o solo el nombre.
 - D-3 · Sin directorio (RF-1211 a RF-1213). **Aprobada el 2026-11-08:** aviso y campo libre para escribir a mano; se puede guardar igual. Alternativa descartada: usar antes el `responsableNombre` del catálogo `equipos` de Room.
 - D-4 · Editar lo completado (RF-1208). **Aprobada el 2026-11-08:** el campo sigue editable, por si otra persona usa el equipo; al editarlo deja de decir «Completado desde el directorio» y se quita el área. Alternativa descartada: bloquear el campo.
-- D-5 · Cuándo consultar (RF-1201). **Propuesta:** solo cuando el código existe en el catálogo de equipos del celular y tras 0,6 segundos sin escribir (la misma espera de la HU-11), para no consultar con códigos a medio escribir. Alternativa: un botón «Buscar responsable» junto al campo.
-- D-6 · Lo escrito a mano antes de la respuesta (RF-1207). **Propuesta:** no se pisa; se ofrece «Usar». Alternativa: reemplazarlo siempre con lo del directorio.
+- D-5 · Cuándo consultar (RF-1201). **Aprobada el 2026-11-08:** solo cuando el código existe en el catálogo de equipos del celular y tras 0,6 segundos sin escribir (la misma espera de la HU-11), para no consultar con códigos a medio escribir. Alternativa: un botón «Buscar responsable» junto al campo.
+- D-6 · Lo escrito a mano antes de la respuesta (RF-1207). **Aprobada el 2026-11-08:** no se pisa; se ofrece «Usar». Alternativa: reemplazarlo siempre con lo del directorio.
 
 ## Dudas abiertas
 - Plan gratuito de MockAPI.io: las fuentes públicas no coinciden (2 o 4 recursos por proyecto) y el proyecto ya usa 2 (`piezas` y `solicitudes`). Confirmar al crear `colaboradores`. Si no cabe, la alternativa es otro proyecto en otra cuenta gratuita, que crea Alonso, y solo cambia la dirección en `DirectorioModule`.

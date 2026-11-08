@@ -1,6 +1,6 @@
 # Plan 012 — Directorio de colaboradores al registrar (HU-12)
 
-> Basado en `spec.md` (borrador del 2026-11-08, con D-1 a D-4 respondidas y D-5 y D-6 propuestas) y en `docs/constitution.md`.
+> Basado en `spec.md` (aprobada el 2026-11-08, con D-1 a D-6 respondidas) y en `docs/constitution.md`.
 > El código vive en `feature/incidencias` (registro y detalle). Toca estos archivos compartidos:
 > - el modelo `Incidencia` y su entidad (sube `version` a 5);
 > - `core/sync/MapeoFirestore.kt`;
