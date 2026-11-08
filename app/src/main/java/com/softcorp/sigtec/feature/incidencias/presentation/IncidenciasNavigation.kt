@@ -40,8 +40,8 @@ fun NavGraphBuilder.incidenciasGraph(navController: NavController) {
             alConsumirDictado = { entrada.savedStateHandle[claveDictado(CampoDictado.DESCRIPCION)] = null },
             alVolver = { navController.popBackStack() },
             alEscanear = { navController.navigate(Ruta.EscanearEtiqueta) },
-            alDictar = { subtitulo ->
-                navController.navigate(Ruta.DictarTexto(CampoDictado.DESCRIPCION.name, subtitulo))
+            alDictar = {
+                navController.navigate(Ruta.DictarTexto(CampoDictado.DESCRIPCION.name, "Nueva incidencia"))
             },
             alRegistrarse = { id ->
                 // Al volver desde el detalle se llega a la lista, no al formulario ya guardado
