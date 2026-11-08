@@ -46,6 +46,12 @@ import com.softcorp.sigtec.core.ui.components.Seccion
 import com.softcorp.sigtec.core.ui.mensaje
 import com.softcorp.sigtec.feature.captura.presentation.BotonLinterna
 import com.softcorp.sigtec.feature.captura.presentation.FotoAmpliada
+import com.softcorp.sigtec.core.domain.model.EstadoEntrega
+import com.softcorp.sigtec.core.domain.model.SolicitudRepuesto
+import com.softcorp.sigtec.feature.atencion.domain.estadoVisible
+import com.softcorp.sigtec.feature.atencion.presentation.colorEstadoSolicitud
+import com.softcorp.sigtec.feature.atencion.presentation.textoEstadoSolicitud
+import com.softcorp.sigtec.core.ui.components.EtiquetaEstado
 import com.softcorp.sigtec.feature.captura.presentation.SeccionEvidencias
 import com.softcorp.sigtec.feature.captura.presentation.mensajeEliminarFoto
 import com.softcorp.sigtec.feature.incidencias.domain.DetalleIncidencia
@@ -208,6 +214,9 @@ private fun Contenido(
             SeccionInforme(detalle.informe, incidencia.tecnicoAsignadoNombre ?: SIN_TECNICO)
         }
 
+        // ---------- Repuestos (HU-11): los ve cualquier perfil (RF-1120) ----------
+        if (detalle.solicitudes.isNotEmpty()) SeccionRepuestos(detalle.solicitudes, ahora)
+
         // ---------- Evidencias (HU-09): las ve cualquiera; «Agregar foto» solo el técnico asignado (RF-923, RF-932) ----------
         SeccionEvidencias(detalle.evidencias, puedeAgregarFoto, acciones.alAgregarFoto, alAbrirFoto)
 
@@ -312,6 +321,43 @@ private fun Persona(nombre: String) {
         Avatar(nombre, tamano = TamanoAvatarActividad)
         Spacer(Modifier.width(Espaciado.s))
         ValorDato(nombre)
+    }
+}
+
+/** HU-11 (RF-1120): cada pieza pedida, su estado con texto y color, cuándo se pidió y quién la confirmó con huella. */
+@Composable
+private fun SeccionRepuestos(solicitudes: List<SolicitudRepuesto>, ahora: Instant) {
+    Seccion("Repuestos") {
+        OutlinedCard(
+            shape = MaterialTheme.shapes.medium,
+            colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            solicitudes.forEachIndexed { i, solicitud ->
+                if (i > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                val estado = estadoVisible(solicitud)
+                Column(
+                    Modifier.padding(Espaciado.m),
+                    verticalArrangement = Arrangement.spacedBy(Espaciado.xs)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            solicitud.pieza,
+                            style = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Spacer(Modifier.width(Espaciado.s))
+                        EtiquetaEstado(textoEstadoSolicitud(estado), colorEstadoSolicitud(estado))
+                    }
+                    Text(
+                        "Pedida ${fechaCorta(solicitud.fechaSolicitud, ahora)} · confirmada con huella por " +
+                            solicitud.solicitadoPorNombre,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -592,6 +638,46 @@ private fun DetalleCerradaConInforme() = SigtecTheme(darkTheme = true) {
                 ),
                 ahora = ahoraDePrueba
             ),
+            AccionesDetalle()
+        )
+    }
+}
+
+// HU-11 (RF-1120): una pieza ya en camino y otra que todavía no sale del celular
+private val conRepuestos = detalleDePrueba.copy(
+    incidencia = detalleDePrueba.incidencia.copy(marca = MarcaSeguimiento.ESPERANDO_REPUESTO),
+    solicitudes = listOf(
+        SolicitudRepuesto(
+            id = "s2", incidenciaId = "c", pieza = "Cable HDMI 1,8 m", motivo = "El cable está pelado",
+            fechaSolicitud = ahoraDePrueba.minus(Duration.ofMinutes(10)), confirmadoEn = ahoraDePrueba.minus(Duration.ofMinutes(10)),
+            estadoEntrega = EstadoEntrega.POR_DESPACHAR, solicitadoPorId = "t1", solicitadoPorNombre = "Luis Ramírez"
+        ),
+        SolicitudRepuesto(
+            id = "s1", incidenciaId = "c", pieza = "Fuente de poder ATX 500 W", motivo = "No entrega energía",
+            fechaSolicitud = ahoraDePrueba.minus(Duration.ofMinutes(60)), confirmadoEn = ahoraDePrueba.minus(Duration.ofMinutes(60)),
+            estadoEntrega = EstadoEntrega.EN_CAMINO, solicitadoPorId = "t1", solicitadoPorNombre = "Luis Ramírez",
+            numeroLogistica = "17"
+        )
+    )
+)
+
+@Preview(name = "Con repuestos · claro", showBackground = true, heightDp = 1100)
+@Composable
+private fun DetalleConRepuestosClaro() = SigtecTheme {
+    Surface {
+        DetalleIncidenciaScreen(
+            DetalleIncidenciaUiState(cargando = false, detalle = conRepuestos, puedeAtender = true, ahora = ahoraDePrueba),
+            AccionesDetalle()
+        )
+    }
+}
+
+@Preview(name = "Con repuestos · oscuro", showBackground = true, heightDp = 1100, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun DetalleConRepuestosOscuro() = SigtecTheme(darkTheme = true) {
+    Surface {
+        DetalleIncidenciaScreen(
+            DetalleIncidenciaUiState(cargando = false, detalle = conRepuestos, puedeAtender = true, ahora = ahoraDePrueba),
             AccionesDetalle()
         )
     }
