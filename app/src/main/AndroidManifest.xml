@@ -12,6 +12,21 @@
         android:name="android.hardware.camera"
         android:required="false" />
 
+    <!-- HU-10: dictar texto; se pide al usarlo por primera vez (RF-1019) -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- RF-1017: sin micrófono la app funciona igual y el texto se escribe a mano -->
+    <uses-feature
+        android:name="android.hardware.microphone"
+        android:required="false" />
+
+    <!-- RF-1017: desde Android 11, sin esta consulta la app no ve el servicio de reconocimiento de voz -->
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+    </queries>
+
     <application
         android:name=".SigtecApp"
         android:allowBackup="true"
