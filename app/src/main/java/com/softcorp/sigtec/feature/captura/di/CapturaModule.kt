@@ -2,8 +2,10 @@ package com.softcorp.sigtec.feature.captura.di
 
 import com.softcorp.sigtec.feature.captura.data.CatalogoEquiposRepositoryImpl
 import com.softcorp.sigtec.feature.captura.data.EvidenciaRepositoryImpl
+import com.softcorp.sigtec.feature.captura.data.ReconocedorVozAndroid
 import com.softcorp.sigtec.feature.captura.domain.CatalogoEquiposRepository
 import com.softcorp.sigtec.feature.captura.domain.EvidenciaRepository
+import com.softcorp.sigtec.feature.captura.domain.ReconocedorVoz
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -21,4 +23,8 @@ abstract class CapturaModule {
     @Binds
     @Singleton
     abstract fun bindEvidenciaRepository(impl: EvidenciaRepositoryImpl): EvidenciaRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindReconocedorVoz(impl: ReconocedorVozAndroid): ReconocedorVoz
 }
