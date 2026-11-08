@@ -23,6 +23,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.softcorp.sigtec.core.domain.model.EstadoIncidencia
 import com.softcorp.sigtec.core.domain.model.Evidencia
@@ -42,6 +44,7 @@ import com.softcorp.sigtec.core.ui.components.BotonSecundario
 import com.softcorp.sigtec.core.ui.components.EtiquetaIncidencia
 import com.softcorp.sigtec.core.ui.components.Seccion
 import com.softcorp.sigtec.core.ui.mensaje
+import com.softcorp.sigtec.feature.captura.presentation.BotonLinterna
 import com.softcorp.sigtec.feature.captura.presentation.FotoAmpliada
 import com.softcorp.sigtec.feature.captura.presentation.SeccionEvidencias
 import com.softcorp.sigtec.feature.captura.presentation.mensajeEliminarFoto
@@ -65,7 +68,8 @@ data class AccionesDetalle(
     val alEliminarFoto: (Evidencia) -> Unit = {},
     val alCerrarFoto: () -> Unit = {},
     val alAbrirAsistente: () -> Unit = {},
-    val alVerHistorial: (String) -> Unit = {}
+    val alVerHistorial: (String) -> Unit = {},
+    val alAlternarLinterna: () -> Unit = {}
 )
 
 @Composable
@@ -78,12 +82,21 @@ fun DetalleIncidenciaRoute(
     val avisos = remember { SnackbarHostState() }
     // El aviso que deja el registro (HU-03) se muestra una sola vez
     LaunchedEffect(aviso) { aviso?.let { avisos.showSnackbar(it) } }
+    // HU-10 (RF-1026): la linterna se apaga al salir, al pasar a segundo plano o al bloquear el celular
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) { vm.alDejarDeVer() }
+    LaunchedEffect(estado.errorLinterna) {
+        if (estado.errorLinterna) {
+            vm.alAvisoLinternaMostrado()
+            avisos.showSnackbar("No se pudo encender la linterna.")   // RF-1028
+        }
+    }
     DetalleIncidenciaScreen(
         estado,
         acciones.copy(
             alIniciarAtencion = vm::alIniciarAtencion,
             alEliminarFoto = vm::alEliminarFoto,
-            alCerrarFoto = vm::alCerrarFoto
+            alCerrarFoto = vm::alCerrarFoto,
+            alAlternarLinterna = vm::alAlternarLinterna
         ),
         avisos
     )
@@ -109,6 +122,10 @@ fun DetalleIncidenciaScreen(
                 titulo = incidencia?.codigoParaMostrar() ?: "Incidencia",
                 alVolver = acciones.alVolver,
                 acciones = {
+                    // HU-10 (RF-1024, prototipo 5): antes del menú, solo para el técnico asignado
+                    if (estado.linternaVisible) {
+                        BotonLinterna(encendida = estado.linternaEncendida, alAlternar = acciones.alAlternarLinterna)
+                    }
                     if (incidencia != null) {
                         Box {
                             IconButton(onClick = { menuAbierto = true }) {
@@ -467,7 +484,10 @@ private val detalleDePrueba = DetalleIncidencia(
 private fun DetalleTecnico() = SigtecTheme {
     Surface {
         DetalleIncidenciaScreen(
-            DetalleIncidenciaUiState(cargando = false, detalle = detalleDePrueba, puedeAtender = true, ahora = ahoraDePrueba),
+            DetalleIncidenciaUiState(
+                cargando = false, detalle = detalleDePrueba, puedeAtender = true, ahora = ahoraDePrueba,
+                linternaVisible = true
+            ),
             AccionesDetalle()
         )
     }

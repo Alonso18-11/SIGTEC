@@ -12,6 +12,7 @@ import com.softcorp.sigtec.core.domain.model.TipoMovimiento
 import com.softcorp.sigtec.core.domain.usecase.ObservarUsuarioActual
 import com.softcorp.sigtec.core.domain.usecase.VerificarPermiso
 import com.softcorp.sigtec.feature.captura.data.EvidenciaRepositoryFalso
+import com.softcorp.sigtec.feature.captura.data.LinternaFalsa
 import com.softcorp.sigtec.feature.captura.domain.EliminarEvidencia
 import com.softcorp.sigtec.feature.incidencias.data.IncidenciaRepositoryFalso
 import com.softcorp.sigtec.feature.incidencias.domain.IniciarAtencion
@@ -36,6 +37,7 @@ class DetalleIncidenciaViewModelTest {
     val main = MainDispatcherRule()
 
     private val sesion = SesionRepositoryDemo()
+    private var linterna = LinternaFalsa()
     private val t0 = Instant.parse("2026-09-27T14:15:00Z")
 
     // Asignada a Luis y en atención, como INC-0124 del prototipo
@@ -72,7 +74,8 @@ class DetalleIncidenciaViewModelTest {
             ObservarDetalleIncidencia(repo),
             ObservarUsuarioActual(sesion),
             IniciarAtencion(VerificarPermiso(sesion), repo),
-            EliminarEvidencia(VerificarPermiso(sesion), EvidenciaRepositoryFalso())
+            EliminarEvidencia(VerificarPermiso(sesion), EvidenciaRepositoryFalso()),
+            linterna
         )
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.estado.collect {} }
         return vm
@@ -87,7 +90,8 @@ class DetalleIncidenciaViewModelTest {
             ObservarDetalleIncidencia(repo),
             ObservarUsuarioActual(sesion),
             IniciarAtencion(VerificarPermiso(sesion), repo),
-            EliminarEvidencia(VerificarPermiso(sesion), EvidenciaRepositoryFalso())
+            EliminarEvidencia(VerificarPermiso(sesion), EvidenciaRepositoryFalso()),
+            linterna
         )
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.estado.collect {} }
         return vm to repo
@@ -108,7 +112,8 @@ class DetalleIncidenciaViewModelTest {
             ObservarDetalleIncidencia(repo),
             ObservarUsuarioActual(sesion),
             IniciarAtencion(VerificarPermiso(sesion), repo),
-            EliminarEvidencia(VerificarPermiso(sesion), evidencias)
+            EliminarEvidencia(VerificarPermiso(sesion), evidencias),
+            linterna
         )
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.estado.collect {} }
         return vm to evidencias
@@ -300,5 +305,100 @@ class DetalleIncidenciaViewModelTest {
         assertEquals(ErrorDominio.MarcaCambiada, vm.estado.value.errorAtencion)
         assertFalse(vm.estado.value.iniciandoAtencion)
         assertTrue(repo.movimientos.isEmpty())
+    }
+
+    // HU-10 (specs/010-dictado-linterna)
+
+    @Test
+    fun `la linterna se muestra solo al tecnico asignado mientras siga pendiente`() = runTest {
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")
+        assertTrue(nuevoVm().estado.value.linternaVisible)   // RF-1024
+
+        sesion.iniciarSesion("atorres@softcorp.pe", "")
+        assertFalse(nuevoVm().estado.value.linternaVisible)
+
+        sesion.iniciarSesion("cmendoza@softcorp.pe", "")
+        assertFalse(nuevoVm().estado.value.linternaVisible)
+
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")
+        assertFalse(nuevoVm(inc = incidencia.copy(marca = MarcaSeguimiento.CERRADA)).estado.value.linternaVisible)
+    }
+
+    @Test
+    fun `sin flash no se muestra la linterna`() = runTest {
+        linterna = LinternaFalsa(tieneFlash = false)
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")
+        assertFalse(nuevoVm().estado.value.linternaVisible)
+    }
+
+    @Test
+    fun `tocar la linterna la enciende y volver a tocarla la apaga`() = runTest {
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")
+        val vm = nuevoVm()
+
+        vm.alAlternarLinterna()
+        assertTrue(vm.estado.value.linternaEncendida)   // RF-1025
+
+        vm.alAlternarLinterna()
+        assertFalse(vm.estado.value.linternaEncendida)
+    }
+
+    @Test
+    fun `si no enciende avisa una vez y queda apagada`() = runTest {
+        linterna.fallar = true
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")
+        val vm = nuevoVm()
+
+        vm.alAlternarLinterna()
+
+        assertFalse(vm.estado.value.linternaEncendida)   // RF-1028
+        assertTrue(vm.estado.value.errorLinterna)
+        vm.alAvisoLinternaMostrado()
+        assertFalse(vm.estado.value.errorLinterna)
+    }
+
+    @Test
+    fun `al dejar de ver el detalle se apaga la linterna`() = runTest {
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")
+        val vm = nuevoVm()
+        vm.alAlternarLinterna()
+
+        vm.alDejarDeVer()
+
+        assertFalse(vm.estado.value.linternaEncendida)   // RF-1026
+    }
+
+    @Test
+    fun `al dejar de ver no apaga una linterna que no encendio el detalle`() = runTest {
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")
+        val vm = nuevoVm()
+
+        vm.alDejarDeVer()
+
+        assertEquals(0, linterna.apagados)
+    }
+
+    @Test
+    fun `si la incidencia se cierra con la linterna encendida se apaga`() = runTest {
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")
+        val (vm, repo) = nuevoVmConRepo(incidencia)
+        vm.alAlternarLinterna()
+        assertTrue(vm.estado.value.linternaEncendida)
+
+        repo.cargar(listOf(incidencia.copy(marca = MarcaSeguimiento.CERRADA)))
+
+        assertFalse(vm.estado.value.linternaVisible)   // RF-1027
+        assertFalse(vm.estado.value.linternaEncendida)
+    }
+
+    @Test
+    fun `si la apagan desde fuera el boton se ve apagado`() = runTest {
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")
+        val vm = nuevoVm()
+        vm.alAlternarLinterna()
+
+        linterna.apagarDesdeFuera()
+
+        assertFalse(vm.estado.value.linternaEncendida)   // RF-1029
     }
 }
