@@ -1,6 +1,6 @@
 # Spec 010 — Dictado por voz y linterna (HU-10)
 
-> Estado: aprobada (2026-11-07), con las decisiones D-1 a D-9 respondidas por el usuario (ver «Decisiones»).
+> Estado: completa (2026-11-07), RF-1001 a RF-1032, en #90 a #102. Probada en un celular real (Xiaomi con Android 14) el 2026-11-07: dictado en la descripción y en los tres campos del informe, con pausas, «Detener» y el tope de silencio; permiso de micrófono; linterna en el detalle y en las pantallas de cámara. Ese celular reconoce la voz con `es-US` sin conexión, porque su servicio de voz rechaza `es-PE` (D-5). Aprobada el 2026-11-07, con las decisiones D-1 a D-10 respondidas por el usuario (ver «Decisiones»).
 
 > Spec escrita antes del código (principio 2 de la constitución). Los requisitos usan el bloque propio de la HU-10 (RF-1001…). Corresponde al **RF-16 del producto** («dictar por voz la descripción del problema y transcribirla a texto»), del documento del producto (`SIGTEC_docx.pdf`, sección 11.1, fuera del repo). Se cita como «RF-16 del producto» para no confundirlo con el RF-16 de `specs/002-ingreso-huella`. También sigue la sección 16 del mismo documento (micrófono y linterna como recursos del celular), la 16.1 (el permiso de micrófono se pide al usarlo por primera vez, explicando para qué), la 17 (la voz se transcribe con el reconocimiento del propio Android, sin costo) y los prototipos 5 «Detalle de incidencia» (la linterna en la barra superior), 13 y 14 (la linterna en las pantallas de cámara) y 15 «Dictar descripción».
 
