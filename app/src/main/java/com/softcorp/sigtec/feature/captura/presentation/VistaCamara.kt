@@ -2,9 +2,11 @@ package com.softcorp.sigtec.feature.captura.presentation
 
 import android.content.res.Configuration
 import android.util.Log
+import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.CameraState
 import androidx.camera.core.Preview
+import androidx.camera.core.TorchState
 import androidx.camera.core.UseCase
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.lifecycle.awaitInstance
@@ -19,6 +21,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -41,12 +45,50 @@ import androidx.compose.ui.tooling.preview.Preview as VistaPrevia
 private const val TAG = "VistaCamara"
 
 /**
+ * HU-10 (RF-1030 a RF-1032, P-6): el flash de la cámara que tiene abierta `VistaCamara`. Con la cámara abierta,
+ * Android no deja usar el flash por otra vía, así que el botón de linterna de estas pantallas pasa por aquí.
+ * Sin cámara abierta (explicación del permiso, error o pantalla fuera de la vista) no hay flash que ofrecer.
+ */
+@Stable
+class LinternaCamara {
+    private var camara: Camera? by mutableStateOf(null)
+    internal var conFallo: Boolean by mutableStateOf(false)
+
+    var encendida: Boolean by mutableStateOf(false)
+        private set
+
+    val tieneFlash: Boolean
+        get() = !conFallo && camara?.cameraInfo?.hasFlashUnit() == true
+
+    fun alternar() {
+        camara?.cameraControl?.enableTorch(!encendida)   // el estado real llega por torchState
+    }
+
+    internal fun conectar(nueva: Camera) {
+        camara = nueva
+    }
+
+    internal fun alCambiar(encendidaAhora: Boolean) {
+        encendida = encendidaAhora
+    }
+
+    // RF-1031: al soltar la cámara, CameraX apaga el flash; al volver, sigue apagado
+    internal fun desconectar() {
+        camara = null
+        encendida = false
+    }
+}
+
+@Composable
+fun rememberLinternaCamara(): LinternaCamara = remember { LinternaCamara() }
+
+/**
  * La imagen de la cámara con los [casos] que pida cada pantalla (`ImageAnalysis` al escanear, `ImageCapture`
  * al tomar fotos). La cámara queda atada al ciclo de vida de la pantalla: se suelta cuando deja de estar a la
  * vista y al salir de ella (RF-915). [casos] debe recordarse (`remember`), porque cambiarlo vuelve a abrir la cámara.
  */
 @Composable
-fun VistaCamara(casos: List<UseCase>, modifier: Modifier = Modifier) {
+fun VistaCamara(casos: List<UseCase>, modifier: Modifier = Modifier, linterna: LinternaCamara? = null) {
     val contexto = LocalContext.current
     val cicloDeVida = LocalLifecycleOwner.current
     val vista = remember { PreviewView(contexto).apply { scaleType = PreviewView.ScaleType.FILL_CENTER } }
@@ -68,7 +110,15 @@ fun VistaCamara(casos: List<UseCase>, modifier: Modifier = Modifier) {
             val estado = camara.cameraInfo.cameraState
             val observador = Observer<CameraState> { fallo = it.error != null && it.type != CameraState.Type.OPENING }
             estado.observe(cicloDeVida, observador)
-            dejarDeObservar = { estado.removeObserver(observador) }
+            // HU-10: el botón de linterna sigue al flash real de esta cámara
+            linterna?.conectar(camara)
+            val flash = camara.cameraInfo.torchState
+            val observadorFlash = Observer<Int> { linterna?.alCambiar(it == TorchState.ON) }
+            flash.observe(cicloDeVida, observadorFlash)
+            dejarDeObservar = {
+                estado.removeObserver(observador)
+                flash.removeObserver(observadorFlash)
+            }
             awaitCancellation()
         } catch (e: CancellationException) {
             throw e
@@ -77,9 +127,12 @@ fun VistaCamara(casos: List<UseCase>, modifier: Modifier = Modifier) {
             fallo = true
         } finally {
             dejarDeObservar()
+            linterna?.desconectar()
             proveedor?.unbind(*todos)
         }
     }
+    // RF-1032: con la cámara en error no se ofrece la linterna
+    SideEffect { linterna?.conFallo = fallo }
     Box(modifier) {
         AndroidView(factory = { vista }, modifier = Modifier.fillMaxSize())
         if (fallo) AvisoCamaraNoAbre(alReintentar = { intento++ })
