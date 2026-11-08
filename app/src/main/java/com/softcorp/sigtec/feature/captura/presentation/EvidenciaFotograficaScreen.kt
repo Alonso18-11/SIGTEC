@@ -65,6 +65,7 @@ fun EvidenciaFotograficaRoute(
     val estado by vm.estado.collectAsStateWithLifecycle()
     val captura = remember { crearCapturaDeFoto() }
     val casos = remember { listOf<UseCase>(captura) }
+    val linterna = rememberLinternaCamara()   // HU-10 (RF-1030)
     var camaraLista by remember { mutableStateOf(false) }
     // La foto se toma fuera del LaunchedEffect: al consumir el evento cambia su clave y lo cancelaría a medias
     val alcance = rememberCoroutineScope()
@@ -82,7 +83,7 @@ fun EvidenciaFotograficaRoute(
         alCambiarTipo = vm::alCambiarTipo,
         alDisparar = vm::alDisparar,
         vistaCamara = {
-            VistaCamara(casos, Modifier.fillMaxSize())
+            VistaCamara(casos, Modifier.fillMaxSize(), linterna)
             // Sin permiso no se dibuja la cámara y el disparador queda deshabilitado
             DisposableEffect(Unit) {
                 camaraLista = true
@@ -90,6 +91,9 @@ fun EvidenciaFotograficaRoute(
             }
         },
         camaraLista = camaraLista,
+        linternaVisible = linterna.tieneFlash,
+        linternaEncendida = linterna.encendida,
+        alAlternarLinterna = linterna::alternar,
         conPermisoCamara = { contenido ->
             ConPermisoCamara(textoNegado = null, modifier = Modifier.fillMaxSize(), contenido = contenido)
         }
@@ -104,13 +108,21 @@ fun EvidenciaFotograficaScreen(
     alDisparar: () -> Unit,
     vistaCamara: @Composable () -> Unit,
     camaraLista: Boolean = true,
+    linternaVisible: Boolean = false,
+    linternaEncendida: Boolean = false,
+    alAlternarLinterna: () -> Unit = {},
     // Sin permiso se ve la explicación en lugar de la cámara (RF-916); las vistas previas no lo piden
     conPermisoCamara: @Composable (contenido: @Composable () -> Unit) -> Unit = { contenido -> contenido() }
 ) {
     // D-10: la barra clara del rediseño (#39) en vez de la barra oscura con «X» del prototipo
     Scaffold(
         contentWindowInsets = WindowInsets(0),
-        topBar = { BarraSuperior("Evidencia fotográfica", alVolver = alVolver) }
+        topBar = {
+            BarraSuperior("Evidencia fotográfica", alVolver = alVolver) {
+                // HU-10 (RF-1030, RF-1032): solo con la cámara abierta y con flash
+                if (linternaVisible) BotonLinterna(encendida = linternaEncendida, alAlternar = alAlternarLinterna)
+            }
+        }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -297,5 +309,6 @@ private fun Previa(estado: CapturaEvidenciaUiState) = EvidenciaFotograficaScreen
     alVolver = {},
     alCambiarTipo = {},
     alDisparar = {},
-    vistaCamara = { VistaCamaraDeMuestra() }
+    vistaCamara = { VistaCamaraDeMuestra() },
+    linternaVisible = true   // HU-10: con la cámara abierta se ofrece la linterna
 )
