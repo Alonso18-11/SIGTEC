@@ -17,9 +17,8 @@
 > ⚠️ = compartido de `CLAUDE.md`; 🔶 = sensible fuera de esa lista.
 
 ## Antes de PR-02: servidor de prueba
-- [ ] **T00 · Recurso `colaboradores` en MockAPI.io**, con los 4 registros del plan (sección 5). Lo hace Alonso, o el asistente con su visto bueno. RF: —
+- [ ] **T00 · Otra cuenta de MockAPI.io con el recurso `colaboradores`** y los 4 registros del plan (sección 5). La cuenta y el proyecto los crea Alonso; el recurso y los datos, él o el asistente con su visto bueno. RF: —
   - Hecho cuando: `GET <base>/colaboradores?equipo=PC-CONT-014` responde en el navegador y `?equipo=NO-EXISTE` da 404.
-  - Si el plan gratuito no lo admite, ver P-1.
 
 ## PR-01: modelo (base `main`)
 - [ ] **T01 · `areaResponsable` en `Incidencia` ⚠️ e `IncidenciaEntity` ⚠️**, y `version = 5` en `SigtecDatabase` ⚠️. RF-1214, RF-1218.

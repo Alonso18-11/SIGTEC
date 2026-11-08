@@ -44,7 +44,7 @@
 3. PR-04, sobre PR-03, con un merge de PR-02.
 4. PR-05, cuando todo esté en `main`.
 
-**Antes de PR-02:** crear en MockAPI.io el recurso `colaboradores` (sección 5) en el proyecto de la HU-11 y confirmar que el plan gratuito lo admite (duda abierta de la spec). Lo hace Alonso, o lo hace el asistente con su visto bueno.
+**Antes de PR-02:** Alonso crea otra cuenta gratuita de MockAPI.io con un proyecto (D-1); después se crea el recurso `colaboradores` (sección 5), lo hace él o el asistente con su visto bueno, y se pasa la dirección base.
 
 ## 2. Archivos por PR
 
@@ -167,7 +167,7 @@ Flujo:
 
 ## 5. Servidor de prueba (D-1)
 
-Recurso `colaboradores` en el proyecto de MockAPI de la HU-11 (`URL_LOGISTICA`), con los campos `nombre` (string), `area` (string), `anexo` (string) y `equipo` (string).
+Recurso `colaboradores` en un proyecto de MockAPI de otra cuenta gratuita (el de la HU-11 ya llegó al límite de 2 recursos), con los campos `nombre` (string), `area` (string), `anexo` (string) y `equipo` (string).
 
 Lleva un registro por equipo de los 4 que hay en Firestore. Los nombres son ficticios:
 
@@ -203,7 +203,7 @@ Para comprobarlo, `GET <base>/colaboradores?equipo=PC-CONT-014` responde en el n
 - Manual: los criterios de finalización de la spec.
 
 ## 7. Riesgos y alternativas
-- **P-1 · Plan gratuito de MockAPI.** Si no admite un tercer recurso, se usa otro proyecto en otra cuenta gratuita que crea Alonso, y solo cambia `URL_DIRECTORIO`.
+- **P-1 · Plan gratuito de MockAPI.** Confirmado: 1 proyecto con 2 recursos por cuenta. Por eso el directorio va en otra cuenta (D-1), con su propia `URL_DIRECTORIO`.
 - **P-2 · `version` 5 borra lo no sincronizado** en los celulares de prueba al instalar. Hay que sincronizar antes de instalar PR-01 y decirlo en el PR.
 - **P-3 · Retrofit duplicado.** `DirectorioModule` arma su propio Retrofit en lugar de compartir el de `LogisticaModule`. Así no se toca `core/di` (compartido) ni se cruzan módulos de `feature/`, y cada API puede apuntar a su servidor real. Son unas 20 líneas repetidas; compartirlo queda para otro PR si el equipo lo quiere.
 - **P-4 · Incidencias de otro celular con una app anterior.** Si un celular sin la HU-12 sube una incidencia, el campo `areaResponsable` no existe y se lee `null` (RF-1215). No rompe nada.

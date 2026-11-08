@@ -12,7 +12,7 @@ Con esta HU, al escribir o escanear el código del equipo, la app consulta el di
 ## Usuarios / actores
 - Registrador: quien tiene `REGISTRAR_INCIDENCIA` (jefe, técnicos y personal de sistemas, según `Perfil.kt`). Es quien usa «Nueva incidencia».
 - Todos los perfiles: ven el área del responsable en el detalle de la incidencia.
-- Directorio de colaboradores (actor externo): responde nombre, área y anexo del responsable de un equipo. Mientras la empresa no habilite su API real, lo reemplaza el recurso `colaboradores` del servidor de prueba de MockAPI.io que ya usa Logística (D-1).
+- Directorio de colaboradores (actor externo): responde nombre, área y anexo del responsable de un equipo. Mientras la empresa no habilite su API real, lo reemplaza el recurso `colaboradores` de un proyecto de MockAPI.io aparte del de Logística (D-1).
 
 ## Historias de usuario
 - HU-12: Como registrador, quiero que los datos del usuario responsable se completen solos, para evitar errores de tipeo.
@@ -91,7 +91,7 @@ Con esta HU, al escribir o escanear el código del equipo, la app consulta el di
 - La línea de la HU-12 en `MEMORY.md` dice «completa».
 
 ## Decisiones
-- D-1 · Servidor de prueba del directorio (RF-1201, RF-1212). **Aprobada el 2026-11-08:** el mismo proyecto de MockAPI.io de la HU-11, con un recurso nuevo `colaboradores` (nombre, área, anexo y el código del equipo que usa). El recurso y sus datos los crea Alonso, o el asistente con su visto bueno, como las piezas de la HU-11. Alternativa descartada: otro proyecto de MockAPI.
+- D-1 · Servidor de prueba del directorio (RF-1201, RF-1212). **Aprobada el 2026-11-08 y corregida ese mismo día:** un proyecto de MockAPI.io en otra cuenta gratuita, con el recurso `colaboradores` (nombre, área, anexo y el código del equipo que usa). La primera opción era el proyecto de la HU-11, pero al crear el recurso MockAPI avisó que el plan gratuito permite 1 proyecto con 2 recursos, y ese proyecto ya usa `piezas` y `solicitudes`. La cuenta y el proyecto los crea Alonso; el recurso y sus datos, él o el asistente con su visto bueno. Alternativas descartadas: pagar MockAPI (5 USD al mes, contra el costo cero) y un JSON por equipo en GitHub Pages.
 - D-2 · Qué se guarda (RF-1214 a RF-1216). **Aprobada el 2026-11-08:** el nombre (como hoy) y el área en la incidencia; el anexo solo se ve en el formulario. Cambia `IncidenciaEntity` y el mapeo a Firestore; no cambia `firestore.rules`. Alternativas descartadas: guardar también el anexo, o solo el nombre.
 - D-3 · Sin directorio (RF-1211 a RF-1213). **Aprobada el 2026-11-08:** aviso y campo libre para escribir a mano; se puede guardar igual. Alternativa descartada: usar antes el `responsableNombre` del catálogo `equipos` de Room.
 - D-4 · Editar lo completado (RF-1208). **Aprobada el 2026-11-08:** el campo sigue editable, por si otra persona usa el equipo; al editarlo deja de decir «Completado desde el directorio» y se quita el área. Alternativa descartada: bloquear el campo.
@@ -99,4 +99,4 @@ Con esta HU, al escribir o escanear el código del equipo, la app consulta el di
 - D-6 · Lo escrito a mano antes de la respuesta (RF-1207). **Aprobada el 2026-11-08:** no se pisa; se ofrece «Usar». Alternativa: reemplazarlo siempre con lo del directorio.
 
 ## Dudas abiertas
-- Plan gratuito de MockAPI.io: las fuentes públicas no coinciden (2 o 4 recursos por proyecto) y el proyecto ya usa 2 (`piezas` y `solicitudes`). Confirmar al crear `colaboradores`. Si no cabe, la alternativa es otro proyecto en otra cuenta gratuita, que crea Alonso, y solo cambia la dirección en `DirectorioModule`.
+- Ninguna. (El límite del plan gratuito de MockAPI se resolvió con D-1.)
