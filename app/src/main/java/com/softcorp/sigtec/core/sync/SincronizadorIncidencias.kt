@@ -8,10 +8,12 @@ import com.google.firebase.firestore.Source
 import com.softcorp.sigtec.core.database.SigtecDatabase
 import com.softcorp.sigtec.core.database.dao.IncidenciaDao
 import com.softcorp.sigtec.core.database.dao.InformeTecnicoDao
+import com.softcorp.sigtec.core.database.dao.SolicitudRepuestoDao
 import com.softcorp.sigtec.core.database.dao.MovimientoDao
 import com.softcorp.sigtec.core.database.dao.SincronizacionDao
 import com.softcorp.sigtec.core.database.entity.IncidenciaEntity
 import com.softcorp.sigtec.core.database.entity.InformeTecnicoEntity
+import com.softcorp.sigtec.core.database.entity.SolicitudRepuestoEntity
 import com.softcorp.sigtec.core.database.entity.MovimientoEntity
 import com.softcorp.sigtec.core.database.entity.SincronizacionEntity
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
@@ -28,11 +30,13 @@ class SincronizadorIncidencias @Inject constructor(
     private val incidenciaDao: IncidenciaDao,
     private val movimientoDao: MovimientoDao,
     private val informeTecnicoDao: InformeTecnicoDao,
+    private val solicitudRepuestoDao: SolicitudRepuestoDao,
     private val sincronizacionDao: SincronizacionDao
 ) {
     private val incidencias get() = firestore.collection("incidencias")
     private val movimientos get() = firestore.collection("movimientos")
     private val informes get() = firestore.collection("informes")
+    private val solicitudes get() = firestore.collection("solicitudesRepuesto")
     private val contador get() = firestore.collection("contadores").document("incidencias")
     private val usuarios get() = firestore.collection("usuarios")
 
@@ -51,6 +55,10 @@ class SincronizadorIncidencias @Inject constructor(
         for (informe in informeTecnicoDao.listosParaSubir()) {
             todoBien = subir(informe) && todoBien
         }
+
+        for (solicitud in solicitudRepuestoDao.listosParaSubir()) {
+            todoBien = subir(solicitud) && todoBien
+        }
         sincronizacionDao.registrar(
             SincronizacionEntity(tipoTarea = TAREA_SUBIR, ejecutadaEn = ahora, exitosa = todoBien)
         )
@@ -61,7 +69,8 @@ class SincronizadorIncidencias @Inject constructor(
     suspend fun hayPendientes(): Boolean =
         incidenciaDao.pendientesDeSincronizar().isNotEmpty() ||
             movimientoDao.pendientesDeSincronizar().isNotEmpty() ||
-            informeTecnicoDao.pendientesDeSincronizar().isNotEmpty()
+            informeTecnicoDao.pendientesDeSincronizar().isNotEmpty() ||
+            solicitudRepuestoDao.listosParaSubir().isNotEmpty()
 
     private suspend fun subir(local: IncidenciaEntity): Boolean {
         try {
@@ -204,6 +213,27 @@ class SincronizadorIncidencias @Inject constructor(
         Log.w(TAG, "No se pudo subir el informe técnico ${informe.id}", e)
         if (esErrorPermanente(e)) {
             informeTecnicoDao.marcarNecesitaAtencion(informe.id)
+            true
+        } else {
+            false
+        }
+    }
+
+    /**
+     * HU-11 (RF-1118): el documento se llama como la solicitud. Con `merge`, la primera vez es una creación y las
+     * siguientes solo cambian lo que informa Logística (número, estado, fechas), que es lo único que las reglas dejan
+     * actualizar.
+     */
+    private suspend fun subir(solicitud: SolicitudRepuestoEntity): Boolean = try {
+        solicitudes.document(solicitud.id).set(solicitud.aFirestore(), SetOptions.merge()).await()
+        solicitudRepuestoDao.marcarSincronizada(solicitud.id, solicitud.actualizadoEn)
+        true
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Log.w(TAG, "No se pudo subir la solicitud de repuesto ${solicitud.id}", e)
+        if (esErrorPermanente(e)) {
+            solicitudRepuestoDao.marcarNecesitaAtencion(solicitud.id)
             true
         } else {
             false
