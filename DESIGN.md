@@ -7,7 +7,7 @@ Guía visual y de UX de la interfaz. Complementa a `CLAUDE.md`: allá están la 
 - Prototipo navegable: «SIGTEC · Prototipos v2» (lienzo de Claude Design).
 - Este archivo manda en valores (colores, medidas, textos de ejemplo). Si una imagen y este archivo difieren, pregunta.
 
-**Estado:** la v2 reemplaza el estilo «Jira/Atlassian» actual. Mientras el PR de retema (sección 2) no esté fusionado, `core/theme/` sigue siendo la referencia del código existente.
+**Estado:** el retema v2 (sección 2) está en el código desde el 2026-11-08: tema en #127, componentes existentes en #128 y componentes nuevos en el PR C (`specs/retema-v2/plan.md`). Las pantallas adoptan los componentes nuevos en el PR de su rediseño.
 
 ---
 
