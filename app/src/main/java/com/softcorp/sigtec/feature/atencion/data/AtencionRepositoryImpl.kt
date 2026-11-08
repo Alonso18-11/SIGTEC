@@ -32,6 +32,7 @@ class AtencionRepositoryImpl @Inject constructor(
     private val movimientoDao: MovimientoDao,
     private val informeTecnicoDao: InformeTecnicoDao,
     private val solicitudRepuestoDao: SolicitudRepuestoDao,
+    private val programadorLogistica: ProgramadorLogistica,
     @IoDispatcher private val io: CoroutineDispatcher
 ) : AtencionRepository {
 
@@ -79,6 +80,7 @@ class AtencionRepositoryImpl @Inject constructor(
                     movimientoDao.guardar(movimiento.toEntity(pendienteSincronizar = true))
                     solicitudRepuestoDao.guardar(solicitud.toEntity(pendienteSincronizar = true, actualizadoEn = ahora))
                 }
+                programadorLogistica.registrarPendientes()   // RF-1117: en cuanto haya conexión
                 Resultado.Exito(Unit)
             } catch (e: CancellationException) {
                 throw e
@@ -87,6 +89,31 @@ class AtencionRepositoryImpl @Inject constructor(
                 Resultado.Error(ErrorDominio.Desconocido(e.message))
             }
         }
+
+    override suspend fun solicitudesPorRegistrar(): List<SolicitudRepuesto> =
+        withContext(io) { solicitudRepuestoDao.sinNumeroDeLogistica().map { it.toDomain() } }
+
+    override suspend fun marcarRegistrada(solicitudId: String, numero: String, ahora: Instant): Resultado<Unit> =
+        escribir("marcar registrada la solicitud $solicitudId") {
+            solicitudRepuestoDao.marcarRegistrada(solicitudId, numero, ahora)
+        }
+
+    override suspend fun marcarRechazada(solicitudId: String, ahora: Instant): Resultado<Unit> =
+        escribir("marcar rechazada la solicitud $solicitudId") {
+            solicitudRepuestoDao.marcarRechazada(solicitudId, ahora)
+        }
+
+    private suspend fun escribir(que: String, bloque: suspend () -> Unit): Resultado<Unit> = withContext(io) {
+        try {
+            bloque()
+            Resultado.Exito(Unit)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.w(TAG, "Error al $que", e)
+            Resultado.Error(ErrorDominio.Desconocido(e.message))
+        }
+    }
 
     private companion object {
         const val TAG = "AtencionRepository"
