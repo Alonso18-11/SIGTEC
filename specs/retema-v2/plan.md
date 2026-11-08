@@ -1,6 +1,6 @@
 # Plan: retema visual v2 (`feat(core): retema v2`)
 
-> **Estado:** borrador del 2026-11-08. Espera la aprobación de Alonso y de Nina antes de escribir código.
+> **Estado:** preguntas respondidas por Alonso el 2026-11-08 (ver «Decisiones»). Falta la aprobación de Nina antes de escribir código.
 >
 > **Fuentes:** `DESIGN.md` (secciones 2, 3 y 4), `docs/prototipos/` (01, 02, 03, 05 y 06), `CLAUDE.md` y `docs/constitution.md`, y el código de `core/theme/` y `core/ui/components/` en `main` (commit `85119d8`).
 >
@@ -9,6 +9,28 @@
 > No es una HU, así que no lleva `spec.md` con requisitos EARS (ver la pregunta P-1).
 >
 > **Archivos sin commitear:** `DESIGN.md`, `docs/prototipos/` y el cambio de `CLAUDE.md` todavía están solo en la carpeta de Alonso (ver P-2).
+
+## Decisiones (respondidas por Alonso el 2026-11-08)
+
+| Pregunta | Decisión |
+|---|---|
+| P-1 · Flujo SDD | Solo este `plan.md` en `specs/retema-v2/`, sin `spec.md`, aprobado por PR. |
+| P-2 · Archivos sin commitear | `DESIGN.md` y `docs/prototipos/` entran en este PR (#126). El cambio de `CLAUDE.md` va en el commit de documentación del PR C. |
+| P-3 · Peso 800 | Se usa Bold (700). No se agrega `inter_extrabold.ttf`. `DESIGN.md` lo anota. |
+| P-4 · `hero`, `acento`, `sobreAcento` | En `SigtecTheme.marca` (`ColoresMarca.kt`), aparte de los estados. `DESIGN.md` corregido. |
+| P-5 · Nombres | `FilaCargaTecnico`, `TarjetaSugerenciaIA` y `PestanasSegmentadas`. `DESIGN.md` corregido. |
+| P-6 · Línea de la barra superior | Se quita. El texto de `CLAUDE.md` se corrige en el PR C. |
+| P-7 · Alto de los botones | Principal, secundario y peligro a 56 dp; `BotonTexto` a 48 dp. `DESIGN.md` corregido. |
+| P-8 · `EncabezadoSeccion` | Pasa a `titleMedium`, sin mayúsculas. |
+| P-9 · Barra de navegación | Se crea `BarraNavegacion` (indicador `primaryContainer`) y se usa en `SigtecRaiz.kt` con los destinos de hoy. Las pestañas por perfil de `DESIGN.md` 5 quedan para la HU del Asistente o del jefe. |
+| P-10 · Texto del aviso de conexión | Se cambia en este trabajo, junto con `AvisoConexionTest` y el texto de RF-76 de la spec 005. |
+| P-11 · Campos blancos | Se crea `CampoTexto` compartido (fondo `surface`, forma de 16 dp, borde `outline`). Las pantallas lo adoptan en sus PR de rediseño. |
+| P-12 · Borde de los campos | `outline` (4,5:1). `outlineVariant` queda para divisores y chips sin seleccionar. `DESIGN.md` corregido. |
+| P-13 · Datos de las vistas previas | Los de siempre (Luis Ramírez, INC-0124…). La regla de `DESIGN.md` 7 vale para el código de producción, no para `@Preview`. `DESIGN.md` corregido. |
+| P-14 · PR | Tres PR apilados (sección 3). |
+| P-15 · «·» en `feature/` | Un PR aparte, `chore(core): textos sin punto medio`, después del retema. |
+| Modo oscuro | Se corrigen los tres puntos que no llegan a 3:1 (sección 7): punto de estado en tono claro, tarjetas con borde y `hero` algo más claro que el fondo. La tabla final de contrastes se muestra antes de seguir con el PR B. |
+| Textos de la sección 5 | Aprobados todos. Los de `core/` van en estos PR; los de las imágenes, en los PR de cada pantalla. |
 
 ## 1. Inventario
 
@@ -59,6 +81,7 @@ Antes de crear cada uno revisé si ya existía. Hay versiones privadas dentro de
 | 🆕 `BarraAccionInferior` | `BarraAccionInferior` | `BarraGuardar` privada en RegistroIncidencia |
 | 🆕 `BarraNavegacion` | `BarraNavegacion` | `NavigationBar` dentro de `core/navigation/SigtecRaiz.kt` (ver P-9) |
 | 🆕 `LineaTiempo` | `LineaTiempo` | `DetalleIncidenciaScreen.LineaDeTiempo` (privada) |
+| 🆕 `CampoTexto` (P-11, no está en `DESIGN.md` 4) | `CampoTexto` | `OutlinedTextField` directo en cada pantalla |
 
 Cada componente nuevo tendrá vista previa en claro y oscuro, con datos de prueba genéricos. `DESIGN.md` 7 pide no copiar «Luis Ramírez» ni «INC-0124» al código, pero las pantallas actuales ya los usan en sus vistas previas (ver P-13).
 
@@ -103,14 +126,20 @@ Cada componente nuevo tendrá vista previa en claro y oscuro, con datos de prueb
 
 ## 3. Orden de trabajo
 
-Un PR (`feat(core): retema v2`), una rama `feat/retema-v2` desde `main`, y un commit por paso con su push. En cada commit corre `./gradlew assembleDebug testDebugUnitTest lintDebug`.
+Tres PR apilados (P-14), con un commit por paso y su push. En cada commit corre `./gradlew assembleDebug testDebugUnitTest lintDebug`.
+
+| PR | Rama | Título | Base | Commits |
+|---|---|---|---|---|
+| A | `feat/retema-v2-tema` | `feat(core): retema v2, paleta, formas y tipografía` | `main` | 1 a 4 |
+| B | `feat/retema-v2-componentes` | `feat(core): retema v2, componentes existentes` | A | 5 a 10 |
+| C | `feat/retema-v2-nuevos` | `feat(core): retema v2, componentes nuevos` | B | 11 a 17 |
 
 | # | Commit | Archivos |
 |---|---|---|
 | 1 | `feat(core): paleta v2 en modo claro, marca y estados con punto` | `Color.kt`, `ColoresEstado.kt`, `ColoresMarca.kt`, `Theme.kt` |
 | 2 | `feat(core): modo oscuro v2 con contrastes revisados` | `Color.kt`, `ColoresEstado.kt`, `ColoresMarca.kt` |
 | 3 | `feat(core): formas, alturas y elevación v2` | `Shapes.kt`, `Dimens.kt` |
-| 4 | `feat(core): tipografía v2 con Inter` | `Type.kt` (más `res/font/inter_extrabold.ttf` si se aprueba P-3) |
+| 4 | `feat(core): tipografía v2 con Inter` | `Type.kt` (Bold 700 donde `DESIGN.md` decía 800, P-3) |
 | 5 | `feat(core): botones v2` | `Botones.kt` |
 | 6 | `feat(core): barra superior y encabezado de sección v2` | `BarraSuperior.kt`, `EncabezadoSeccion.kt` |
 | 7 | `feat(core): etiquetas de estado con punto e ícono` | `EtiquetaEstado.kt`, `EtiquetaIncidencia.kt` |
@@ -119,13 +148,13 @@ Un PR (`feat(core): retema v2`), una rama `feat/retema-v2` desde `main`, y un co
 | 10 | `feat(core): aviso de conexión v2` | `AvisoConexion.kt`, `AvisoConexionTest.kt`, `specs/005-sincronizacion/spec.md` (texto de RF-76) |
 | 11 | `feat(core): CabeceraHero y TarjetaMetrica` | dos archivos nuevos |
 | 12 | `feat(core): AvanceIncidencia, SeguimientoRepuesto y LineaTiempo` | tres archivos nuevos |
-| 13 | `feat(core): FiltrosChips y PestanasSegmentadas` | dos archivos nuevos |
-| 14 | `feat(core): FabExtendido, BarraAccionInferior y BarraNavegacion` | tres archivos nuevos |
+| 13 | `feat(core): FiltrosChips, PestanasSegmentadas y CampoTexto` | tres archivos nuevos |
+| 14 | `feat(core): FabExtendido, BarraAccionInferior y BarraNavegacion` | tres archivos nuevos, y `SigtecRaiz.kt` ⚠️ usa `BarraNavegacion` (P-9) |
 | 15 | `feat(core): TarjetaSugerenciaIA y FilaCargaTecnico` | dos archivos nuevos |
 | 16 | `fix(core): ajustes mínimos de pantallas por el cambio de tema` | solo lo que se rompa (sección 1.4), uno por uno en el PR |
 | 17 | `docs(core): muestrario v2, CLAUDE.md y MEMORY.md` | `TemaPreview.kt`, `CLAUDE.md` (texto de «Diseño» y «Barra superior»), `MEMORY.md` |
 
-Los commits 1 a 4 cambian toda la app de golpe. Si Nina prefiere revisar por partes, se pueden separar en tres PR apilados: tema (1 a 4), componentes existentes (5 a 10) y componentes nuevos (11 a 17). Ver P-14.
+El PR A cambia toda la app de golpe (fondo, formas, tipografía); cada PR se prueba en el celular antes de pasar al siguiente.
 
 ## 4. Verificación
 

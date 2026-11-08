@@ -60,10 +60,10 @@ Los hexadecimales viven solo en `core/theme/`. Fuera de ahí se usan roles.
 | `surfaceVariant` | `#E3ECEF` | Pistas de barras, pestañas segmentadas |
 | `onSurface` | `#0F1E22` | Texto principal |
 | `onSurfaceVariant` | `#4A5B60` | Texto secundario |
-| `outline` | `#70787C` | Bordes con énfasis |
-| `outlineVariant` | `#B9C9CD` | Bordes de campos y chips de filtro |
+| `outline` | `#70787C` | Bordes de campos de texto y bordes con énfasis |
+| `outlineVariant` | `#B9C9CD` | Divisores y chips de filtro sin seleccionar (sobre blanco da 1,71:1: no sirve como borde de un control) |
 
-Colores propios (se exponen como `SigtecTheme.estados`, con el mismo patrón):
+Colores de marca (se exponen como `SigtecTheme.marca`, con el mismo patrón que `SigtecTheme.estados`):
 
 | Token | Hex | Uso |
 |---|---|---|
@@ -104,6 +104,8 @@ Los estados se oscurecen: fondo al 25 % de su punto, texto claro del mismo tono.
 
 ### Tipografía (Inter)
 
+Donde la tabla dice 800, la app usa Bold (700): `res/font` trae Inter de 400 a 700.
+
 | Estilo | Tamaño | Peso | Uso |
 |---|---|---|---|
 | `headlineLarge` | 28 sp | 800 | Título de pantalla de lista |
@@ -129,7 +131,7 @@ Antes de crear uno, busca si ya existe en `core/ui/components/`. Los existentes 
 
 | Componente | Estado | Cambio / especificación |
 |---|---|---|
-| `BotonPrincipal`, `BotonSecundario`, `BotonTexto`, `BotonPeligro` | Existe | Alto 56 dp, forma completa. El principal es `primary`; el secundario, borde `primary`; el peligro, borde `error` |
+| `BotonPrincipal`, `BotonSecundario`, `BotonTexto`, `BotonPeligro` | Existe | Alto 56 dp (`BotonTexto`, 48 dp, porque va en línea), forma completa. El principal es `primary`; el secundario, borde `primary`; el peligro, borde `error` |
 | `BarraSuperior(titulo, alVolver)` | Existe | Se mantiene para formularios y listas secundarias. Sin línea inferior en v2 |
 | `EtiquetaEstado` / `EtiquetaIncidencia` | Existe | Forma completa, alto 28 dp, punto de 8 dp + texto en `labelMedium`. «Crítico» con ícono de alerta y los días |
 | `FilaIncidencia` | Existe | Pasa a tarjeta: código y hora arriba, título, y abajo etiqueta + avatar con nombre |
@@ -138,15 +140,16 @@ Antes de crear uno, busca si ya existe en `core/ui/components/`. Los existentes 
 | `CabeceraHero` | Nuevo | Fondo `hero`, esquinas inferiores 32 dp, círculos decorativos con `Canvas` (solo decoración, `clearAndSetSemantics {}`) |
 | `TarjetaMetrica` | Nuevo | Número grande + etiqueta. Variantes: neutra, acento (En atención), crítica |
 | `AvanceIncidencia` | Nuevo | 4 pasos: Asignada, En atención, Repuesto, Cierre. Hecho = `primary` con check; actual = `acento`; pendiente = punteado |
-| `TecnicoCargaRow` | Nuevo | Un segmento por cada unidad del límite de atención. Si `activas >= limite`: fila bloqueada, en rojo, con candado y el texto «Alcanzó su límite de atención» (RF-06). Etiqueta «Recomendado» en el de menor carga |
-| `SugerenciaIA` | Nuevo | Contenedor `tertiaryContainer`, ícono de destello, etiqueta «IA». Acciones: «Usar» y «Descartar» o «Pedir cambios» |
+| `FilaCargaTecnico` | Nuevo | Un segmento por cada unidad del límite de atención. Si `activas >= limite`: fila bloqueada, en rojo, con candado y el texto «Alcanzó su límite de atención» (RF-06). Etiqueta «Recomendado» en el de menor carga |
+| `TarjetaSugerenciaIA` | Nuevo | Contenedor `tertiaryContainer`, ícono de destello, etiqueta «IA». Acciones: «Usar» y «Descartar» o «Pedir cambios» |
 | `SeguimientoRepuesto` | Nuevo | Tres puntos con línea: Solicitado, Despachado, Entregado. Violeta mientras llega; verde al entregar |
 | `FiltrosChips` | Nuevo | Chips de 40 dp; el activo, relleno `primary` |
-| `PestañasSegmentadas` | Nuevo | Pista `surfaceVariant`, opción activa blanca con sombra |
+| `PestanasSegmentadas` | Nuevo | Pista `surfaceVariant`, opción activa blanca con sombra |
 | `FabExtendido` | Nuevo | Fondo `acento`, ícono + texto («Nueva», «Registrar falla») |
 | `BarraAccionInferior` | Nuevo | Hoja blanca con esquinas superiores de 32 dp, con la acción principal. Pegada abajo |
 | `BarraNavegacion` | Nuevo | `NavigationBar` de Material 3, indicador `primaryContainer`. Pestañas por perfil (sección 5) |
 | `LineaTiempo` | Nuevo | Punto + línea vertical. Punto verde = solucionado; ámbar con halo = en curso |
+| `CampoTexto` | Nuevo | Campo con etiqueta visible, fondo `surface`, esquinas de 16 dp y borde `outline` |
 
 ## 5. Pantallas
 
@@ -194,7 +197,7 @@ Pregunta antes de inventarlo: no hay diseño para estos casos.
 - El estado nunca depende solo del color.
 - Todo ícono que es botón lleva `contentDescription`. Los decorativos, no.
 - Campos con etiqueta visible, no solo `placeholder`.
-- Textos de ejemplo de los prototipos (Luis Ramírez, INC-0124…) son datos de prueba, no se escriben en el código.
+- Textos de ejemplo de los prototipos (Luis Ramírez, INC-0124…) son datos de prueba: no se escriben en el código de producción. Las `@Preview` sí los usan, como el resto de la app.
 
 ## 8. Qué no hacer
 
