@@ -26,8 +26,10 @@ import com.softcorp.sigtec.core.theme.Espaciado
 import com.softcorp.sigtec.core.theme.SigtecTheme
 import com.softcorp.sigtec.core.ui.components.BarraSuperior
 import com.softcorp.sigtec.core.ui.components.BotonPrincipal
+import com.softcorp.sigtec.core.ui.components.BotonTexto
 import com.softcorp.sigtec.core.ui.components.EncabezadoSeccion
 import com.softcorp.sigtec.core.ui.mensaje
+import com.softcorp.sigtec.feature.incidencias.domain.Colaborador
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -87,7 +89,9 @@ fun RegistroIncidenciaRoute(
         alCambiarResponsable = vm::alCambiarResponsable,
         alEscanear = alEscanear,
         alDictar = { alDictar(subtituloDictado(estado.codigoEquipo)) },
-        alGuardar = vm::guardar
+        alGuardar = vm::guardar,
+        alUsarDelDirectorio = vm::alUsarDelDirectorio,
+        alReintentarDirectorio = vm::alReintentarDirectorio
     )
 }
 
@@ -100,7 +104,9 @@ fun RegistroIncidenciaScreen(
     alCambiarResponsable: (String) -> Unit,
     alEscanear: () -> Unit,
     alDictar: () -> Unit,
-    alGuardar: () -> Unit
+    alGuardar: () -> Unit,
+    alUsarDelDirectorio: () -> Unit = {},
+    alReintentarDirectorio: () -> Unit = {}
 ) {
     val editable = !estado.guardando
 
@@ -152,20 +158,26 @@ fun RegistroIncidenciaScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // ---------- Responsable (el directorio es la HU-12) ----------
-            OutlinedTextField(
-                value = estado.responsable,
-                onValueChange = alCambiarResponsable,
-                label = { Text("Usuario responsable *") },
-                supportingText = { Text("Quien usa el equipo") },
-                singleLine = true,
-                enabled = editable,
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Words,
-                    imeAction = ImeAction.Next
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
+            // ---------- Responsable: lo completa el directorio (HU-12) y se puede corregir ----------
+            Column(verticalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
+                OutlinedTextField(
+                    value = estado.responsable,
+                    onValueChange = alCambiarResponsable,
+                    label = { Text("Usuario responsable *") },
+                    // RF-1206 y RF-1208: dice de dónde salió el nombre mientras nadie lo edite
+                    supportingText = {
+                        Text(if (estado.responsableDelDirectorio) "Completado desde el directorio" else "Quien usa el equipo")
+                    },
+                    singleLine = true,
+                    enabled = editable,
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Words,
+                        imeAction = ImeAction.Next
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                AvisoDirectorio(estado, editable, alUsarDelDirectorio, alReintentarDirectorio)
+            }
 
             // ---------- Descripción (el dictado es la HU-10) ----------
             OutlinedTextField(
@@ -220,6 +232,64 @@ private fun DatoAutomatico(etiqueta: String, valor: String) {
             modifier = Modifier.width(AnchoEtiquetaDato)
         )
         Text(valor, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+    }
+}
+
+/** HU-12: lo que respondió el directorio, bajo el campo «Usuario responsable». */
+@Composable
+private fun AvisoDirectorio(
+    estado: RegistroIncidenciaUiState,
+    editable: Boolean,
+    alUsar: () -> Unit,
+    alReintentar: () -> Unit
+) {
+    val tenue = MaterialTheme.colorScheme.onSurfaceVariant
+    val sugerencia = estado.sugerenciaDirectorio
+    val areaYAnexo = estado.areaYAnexo
+    val margen = Modifier.padding(horizontal = Espaciado.m)
+    when {
+        // RF-1206: prototipo 3, «Contabilidad · Anexo 2314»
+        areaYAnexo != null -> Text(areaYAnexo, style = MaterialTheme.typography.bodyMedium, color = tenue, modifier = margen)
+
+        // RF-1203
+        estado.directorio == EstadoDirectorio.Buscando -> Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Espaciado.s),
+            modifier = margen
+        ) {
+            CircularProgressIndicator(modifier = Modifier.size(Espaciado.m), strokeWidth = 2.dp)
+            Text("Buscando en el directorio…", style = MaterialTheme.typography.bodyMedium, color = tenue)
+        }
+
+        // RF-1207: no se pisa lo escrito a mano
+        sugerencia != null -> Row(verticalAlignment = Alignment.CenterVertically, modifier = margen) {
+            Text(
+                "El directorio indica: ${sugerencia.nombre}" + sugerencia.area.takeIf { it.isNotBlank() }?.let { " · $it" }.orEmpty(),
+                style = MaterialTheme.typography.bodyMedium,
+                color = tenue,
+                modifier = Modifier.weight(1f)
+            )
+            BotonTexto(onClick = alUsar, enabled = editable) { Text("Usar") }
+        }
+
+        // RF-1211
+        estado.directorio == EstadoDirectorio.NoEncontrado -> Text(
+            "El directorio no tiene un responsable para este equipo. Escríbelo a mano.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = tenue,
+            modifier = margen
+        )
+
+        // RF-1212
+        estado.directorio == EstadoDirectorio.SinRespuesta -> Row(verticalAlignment = Alignment.CenterVertically, modifier = margen) {
+            Text(
+                "No se pudo consultar el directorio. Escribe el responsable a mano.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.weight(1f)
+            )
+            BotonTexto(onClick = alReintentar, enabled = editable) { Text("Reintentar") }
+        }
     }
 }
 
@@ -335,4 +405,72 @@ private fun RegistroConError() = SigtecTheme {
             {}, {}, {}, {}, {}, {}, {}
         )
     }
+}
+// ---------- HU-12: el directorio de colaboradores bajo «Usuario responsable» ----------
+
+private val mariaDelDirectorio = Colaborador("María Quispe Huamán", "Contabilidad", "2314")
+
+private fun conDirectorio(
+    directorio: EstadoDirectorio,
+    responsable: String = "",
+    delDirectorio: Boolean = false
+) = RegistroIncidenciaUiState(
+    codigoEquipo = "PC-CONT-014",
+    codigoLeidoConCamara = true,
+    responsable = responsable,
+    directorio = directorio,
+    responsableDelDirectorio = delDirectorio,
+    fechaHora = fechaDePrueba,
+    registradoPor = "Luis Ramírez"
+)
+
+@Preview(name = "Completado desde el directorio · claro", showBackground = true)
+@Composable
+private fun RegistroDirectorioClaro() = SigtecTheme {
+    Surface {
+        RegistroIncidenciaScreen(
+            conDirectorio(EstadoDirectorio.Encontrado(mariaDelDirectorio), "María Quispe Huamán", delDirectorio = true),
+            {}, {}, {}, {}, {}, {}, {}
+        )
+    }
+}
+
+@Preview(name = "Completado desde el directorio · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun RegistroDirectorioOscuro() = SigtecTheme(darkTheme = true) {
+    Surface {
+        RegistroIncidenciaScreen(
+            conDirectorio(EstadoDirectorio.Encontrado(mariaDelDirectorio), "María Quispe Huamán", delDirectorio = true),
+            {}, {}, {}, {}, {}, {}, {}
+        )
+    }
+}
+
+@Preview(name = "Buscando en el directorio · claro", showBackground = true)
+@Composable
+private fun RegistroBuscando() = SigtecTheme {
+    Surface { RegistroIncidenciaScreen(conDirectorio(EstadoDirectorio.Buscando), {}, {}, {}, {}, {}, {}, {}) }
+}
+
+@Preview(name = "Sugerencia con «Usar» · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun RegistroSugerencia() = SigtecTheme(darkTheme = true) {
+    Surface {
+        RegistroIncidenciaScreen(
+            conDirectorio(EstadoDirectorio.Encontrado(mariaDelDirectorio), "Juan Pérez"),
+            {}, {}, {}, {}, {}, {}, {}
+        )
+    }
+}
+
+@Preview(name = "Sin responsable en el directorio · claro", showBackground = true)
+@Composable
+private fun RegistroNoEncontrado() = SigtecTheme {
+    Surface { RegistroIncidenciaScreen(conDirectorio(EstadoDirectorio.NoEncontrado), {}, {}, {}, {}, {}, {}, {}) }
+}
+
+@Preview(name = "Directorio sin respuesta · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun RegistroSinRespuesta() = SigtecTheme(darkTheme = true) {
+    Surface { RegistroIncidenciaScreen(conDirectorio(EstadoDirectorio.SinRespuesta), {}, {}, {}, {}, {}, {}, {}) }
 }

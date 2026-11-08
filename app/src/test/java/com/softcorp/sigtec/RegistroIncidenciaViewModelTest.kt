@@ -4,10 +4,15 @@ import com.softcorp.sigtec.core.data.SesionRepositoryDemo
 import com.softcorp.sigtec.core.domain.ErrorDominio
 import com.softcorp.sigtec.core.domain.usecase.ObservarUsuarioActual
 import com.softcorp.sigtec.core.domain.usecase.VerificarPermiso
+import com.softcorp.sigtec.feature.incidencias.data.DirectorioRepositoryFalso
 import com.softcorp.sigtec.feature.incidencias.data.IncidenciaRepositoryFalso
+import com.softcorp.sigtec.feature.incidencias.domain.Colaborador
+import com.softcorp.sigtec.feature.incidencias.domain.ErrorDirectorio
+import com.softcorp.sigtec.feature.incidencias.presentation.EstadoDirectorio
 import com.softcorp.sigtec.feature.incidencias.domain.RegistrarIncidencia
 import com.softcorp.sigtec.feature.incidencias.presentation.RegistroIncidenciaUiState
 import com.softcorp.sigtec.feature.incidencias.presentation.RegistroIncidenciaViewModel
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -30,11 +35,15 @@ class RegistroIncidenciaViewModelTest {
 
     private val sesion = SesionRepositoryDemo()
     private val repo = IncidenciaRepositoryFalso()
+    private val directorio = DirectorioRepositoryFalso()
+    private val maria = Colaborador("María Quispe Huamán", "Contabilidad", "2314")
 
     private fun TestScope.nuevoVm(): RegistroIncidenciaViewModel {
         val vm = RegistroIncidenciaViewModel(
             RegistrarIncidencia(VerificarPermiso(sesion), repo),
-            ObservarUsuarioActual(sesion)
+            ObservarUsuarioActual(sesion),
+            repo,
+            directorio
         )
         // WhileSubscribed necesita a alguien mirando; Unconfined lo pone a mirar de inmediato
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.estado.collect {} }
@@ -198,5 +207,177 @@ class RegistroIncidenciaViewModelTest {
         vm.alRecibirDictado("Huele a quemado")
 
         assertEquals("No enciende", vm.ui.descripcion)   // RF-1002
+    }
+
+    // HU-12 (specs/012-directorio-colaboradores)
+
+    /** La espera de 0,6 s corre en viewModelScope, con el scheduler de MainDispatcherRule. */
+    private fun avanzar(ms: Long) {
+        main.dispatcher.scheduler.advanceTimeBy(ms)
+        main.dispatcher.scheduler.runCurrent()
+    }
+
+    @Test
+    fun `al dejar de escribir 0,6 s completa nombre, area y anexo`() = runTest {
+        val vm = nuevoVm()
+        vm.alCambiarCodigo("PC-CONT-014")
+
+        avanzar(500)
+        assertTrue(directorio.consultas.isEmpty())   // RF-1201: todavía escribiendo
+
+        avanzar(100)
+        assertEquals(listOf("PC-CONT-014"), directorio.consultas)
+        assertEquals("María Quispe Huamán", vm.ui.responsable)   // RF-1206
+        assertTrue(vm.ui.responsableDelDirectorio)
+        assertEquals("Contabilidad · Anexo 2314", vm.ui.areaYAnexo)
+    }
+
+    @Test
+    fun `un codigo incompleto o fuera del catalogo no consulta`() = runTest {
+        val vm = nuevoVm()
+        vm.alCambiarCodigo("PC-CONT-01")
+        avanzar(600)
+
+        assertTrue(directorio.consultas.isEmpty())   // RF-1201, D-5
+        assertEquals(EstadoDirectorio.Inactivo, vm.ui.directorio)
+    }
+
+    @Test
+    fun `el codigo escaneado consulta sin esperar`() = runTest {
+        val vm = nuevoVm()
+
+        vm.alUsarCodigoEscaneado("PC-CONT-014")
+
+        assertEquals(listOf("PC-CONT-014"), directorio.consultas)   // RF-1202
+        assertEquals("María Quispe Huamán", vm.ui.responsable)
+    }
+
+    @Test
+    fun `mientras consulta muestra buscando y solo cuenta el ultimo codigo`() = runTest {
+        val vm = nuevoVm()
+        val espera = CompletableDeferred<Unit>()
+        directorio.enEspera = espera
+
+        vm.alUsarCodigoEscaneado("PC-LOG-009")
+        assertEquals(EstadoDirectorio.Buscando, vm.ui.directorio)   // RF-1203
+
+        vm.alUsarCodigoEscaneado("PC-CONT-014")
+        espera.complete(Unit)
+
+        assertEquals(listOf("PC-LOG-009", "PC-CONT-014"), directorio.consultas)
+        assertEquals("María Quispe Huamán", vm.ui.responsable)   // RF-1204: la de PC-LOG-009 se canceló
+    }
+
+    @Test
+    fun `escribir rapido solo consulta el codigo final`() = runTest {
+        val vm = nuevoVm()
+        vm.alCambiarCodigo("PC-LOG-009")
+        avanzar(300)
+        vm.alCambiarCodigo("PC-CONT-014")
+        avanzar(600)
+
+        assertEquals(listOf("PC-CONT-014"), directorio.consultas)   // RF-1204
+    }
+
+    @Test
+    fun `no pisa lo escrito a mano y Usar lo reemplaza`() = runTest {
+        val vm = nuevoVm()
+        vm.alCambiarResponsable("Juan Pérez")
+
+        vm.alUsarCodigoEscaneado("PC-CONT-014")
+
+        assertEquals("Juan Pérez", vm.ui.responsable)   // RF-1207, D-6
+        assertEquals(maria, vm.ui.sugerenciaDirectorio)
+        assertNull(vm.ui.areaYAnexo)
+
+        vm.alUsarDelDirectorio()
+
+        assertEquals("María Quispe Huamán", vm.ui.responsable)
+        assertTrue(vm.ui.responsableDelDirectorio)
+        assertNull(vm.ui.sugerenciaDirectorio)
+    }
+
+    @Test
+    fun `editar el nombre completado quita el area y deja Usar`() = runTest {
+        val vm = nuevoVm()
+        vm.alUsarCodigoEscaneado("PC-CONT-014")
+
+        vm.alCambiarResponsable("María Quispe")
+
+        assertFalse(vm.ui.responsableDelDirectorio)   // RF-1208, D-4
+        assertNull(vm.ui.areaYAnexo)
+        assertNull(vm.ui.areaParaGuardar)
+        assertEquals(maria, vm.ui.sugerenciaDirectorio)
+    }
+
+    @Test
+    fun `cambiar el codigo vacia lo completado pero no lo escrito a mano`() = runTest {
+        val vm = nuevoVm()
+        vm.alUsarCodigoEscaneado("PC-CONT-014")
+
+        vm.alCambiarCodigo("PC-CONT-01")
+
+        assertEquals("", vm.ui.responsable)   // RF-1209
+        assertFalse(vm.ui.responsableDelDirectorio)
+        assertEquals(EstadoDirectorio.Inactivo, vm.ui.directorio)
+
+        vm.alCambiarResponsable("Juan Pérez")
+        vm.alCambiarCodigo("PC-CONT-0")
+        assertEquals("Juan Pérez", vm.ui.responsable)
+    }
+
+    @Test
+    fun `sin responsable en el directorio deja el campo libre`() = runTest {
+        val vm = nuevoVm()
+
+        vm.alUsarCodigoEscaneado("PC-SIS-003")   // está en el catálogo, no en el directorio falso
+
+        assertEquals(EstadoDirectorio.NoEncontrado, vm.ui.directorio)   // RF-1211
+        assertEquals("", vm.ui.responsable)
+    }
+
+    @Test
+    fun `sin respuesta avisa y Reintentar vuelve a consultar`() = runTest {
+        val vm = nuevoVm()
+        directorio.falla = ErrorDirectorio.SIN_RESPUESTA
+
+        vm.alUsarCodigoEscaneado("PC-CONT-014")
+        assertEquals(EstadoDirectorio.SinRespuesta, vm.ui.directorio)   // RF-1212
+        assertEquals("", vm.ui.responsable)
+
+        directorio.falla = null
+        vm.alReintentarDirectorio()
+
+        assertEquals(listOf("PC-CONT-014", "PC-CONT-014"), directorio.consultas)
+        assertEquals("María Quispe Huamán", vm.ui.responsable)
+    }
+
+    @Test
+    fun `guardar lleva el area solo si el nombre vino del directorio`() = runTest {
+        val vm = nuevoVm()
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")
+        vm.alUsarCodigoEscaneado("PC-CONT-014")
+        vm.alCambiarDescripcion("No enciende")
+
+        vm.guardar()
+        main.dispatcher.scheduler.runCurrent()
+
+        assertEquals("Contabilidad", repo.incidencias.single().areaResponsable)   // RF-1214
+    }
+
+    @Test
+    fun `sin directorio se puede guardar escribiendo a mano`() = runTest {
+        val vm = nuevoVm()
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")
+        directorio.falla = ErrorDirectorio.SIN_RESPUESTA
+        vm.alUsarCodigoEscaneado("PC-CONT-014")
+        vm.alCambiarDescripcion("No enciende")
+        vm.alCambiarResponsable("María Quispe")
+
+        assertTrue(vm.ui.puedeGuardar)   // RF-1213
+        vm.guardar()
+        main.dispatcher.scheduler.runCurrent()
+
+        assertNull(repo.incidencias.single().areaResponsable)
     }
 }
