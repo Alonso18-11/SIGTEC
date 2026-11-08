@@ -58,4 +58,14 @@ interface AtencionRepository {
     suspend fun registrarConsultaLogistica(ahora: Instant, exitosa: Boolean)
 
     fun observarUltimaConsultaLogistica(): Flow<Instant?>
+
+    /** HU-11 (RF-1121): las solicitudes que pidió el técnico, con el código de su incidencia y de su equipo. */
+    fun observarSolicitudesDe(tecnicoId: String): Flow<List<SolicitudConIncidencia>>
 }
+
+/** RF-1122: la solicitud con lo que «Estado de repuestos» muestra de su incidencia; `codigoIncidencia` null = sin número aún. */
+data class SolicitudConIncidencia(
+    val solicitud: SolicitudRepuesto,
+    val codigoIncidencia: String?,
+    val codigoEquipo: String
+)
