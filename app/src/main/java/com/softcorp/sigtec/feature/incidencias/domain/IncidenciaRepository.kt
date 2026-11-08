@@ -5,6 +5,7 @@ import com.softcorp.sigtec.core.domain.model.Evidencia
 import com.softcorp.sigtec.core.domain.model.Incidencia
 import com.softcorp.sigtec.core.domain.model.InformeTecnico
 import com.softcorp.sigtec.core.domain.model.Movimiento
+import com.softcorp.sigtec.core.domain.model.SolicitudRepuesto
 import kotlinx.coroutines.flow.Flow
 import java.time.Instant
 
@@ -26,4 +27,7 @@ interface IncidenciaRepository {
     fun observarInforme(incidenciaId: String): Flow<InformeTecnico?>
 
     fun observarEvidencias(incidenciaId: String): Flow<List<Evidencia>>
+
+    /** HU-11 (RF-1120): las solicitudes de repuesto de la incidencia. */
+    fun observarSolicitudes(incidenciaId: String): Flow<List<SolicitudRepuesto>>
 }
