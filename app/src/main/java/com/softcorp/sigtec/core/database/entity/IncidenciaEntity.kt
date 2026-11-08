@@ -16,6 +16,7 @@ data class IncidenciaEntity(
     val codigoEquipo: String,
     val descripcion: String,
     val usuarioResponsable: String,
+    val areaResponsable: String? = null,   // HU-12 (RF-1214)
     val fechaRegistro: Instant,
     val registradoPorId: String,
     val registradoPorNombre: String,
@@ -34,7 +35,7 @@ data class IncidenciaEntity(
 
 fun IncidenciaEntity.toDomain() = Incidencia(
     id = id, numero = numero, codigoEquipo = codigoEquipo, descripcion = descripcion,
-    usuarioResponsable = usuarioResponsable, fechaRegistro = fechaRegistro,
+    usuarioResponsable = usuarioResponsable, areaResponsable = areaResponsable, fechaRegistro = fechaRegistro,
     registradoPorId = registradoPorId, registradoPorNombre = registradoPorNombre,
     marca = marca, tipoFalla = tipoFalla, prioridad = prioridad,
     tecnicoAsignadoId = tecnicoAsignadoId, tecnicoAsignadoNombre = tecnicoAsignadoNombre,
@@ -44,7 +45,7 @@ fun IncidenciaEntity.toDomain() = Incidencia(
 fun Incidencia.toEntity(pendienteSincronizar: Boolean, actualizadoEn: Instant = Instant.now()) =
     IncidenciaEntity(
         id = id, numero = numero, codigoEquipo = codigoEquipo, descripcion = descripcion,
-        usuarioResponsable = usuarioResponsable, fechaRegistro = fechaRegistro,
+        usuarioResponsable = usuarioResponsable, areaResponsable = areaResponsable, fechaRegistro = fechaRegistro,
         registradoPorId = registradoPorId, registradoPorNombre = registradoPorNombre,
         marca = marca, tipoFalla = tipoFalla, prioridad = prioridad,
         tecnicoAsignadoId = tecnicoAsignadoId, tecnicoAsignadoNombre = tecnicoAsignadoNombre,

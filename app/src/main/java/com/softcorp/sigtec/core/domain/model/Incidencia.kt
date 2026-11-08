@@ -20,6 +20,7 @@ data class Incidencia(
     val codigoEquipo: String,
     val descripcion: String,
     val usuarioResponsable: String,
+    val areaResponsable: String? = null,   // HU-12 (RF-1214): solo si vino del directorio sin editarse
     val fechaRegistro: Instant,
     val registradoPorId: String,
     val registradoPorNombre: String,

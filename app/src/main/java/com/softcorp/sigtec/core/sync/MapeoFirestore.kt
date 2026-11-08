@@ -23,6 +23,7 @@ internal fun IncidenciaEntity.aFirestore(numero: Int): Map<String, Any?> = mapOf
     "codigoEquipo" to codigoEquipo,
     "descripcion" to descripcion,
     "usuarioResponsable" to usuarioResponsable,
+    "areaResponsable" to areaResponsable,   // HU-12 (RF-1215)
     "fechaRegistro" to fechaRegistro.aTimestamp(),
     "registradoPorId" to registradoPorId,
     "registradoPorNombre" to registradoPorNombre,
@@ -42,6 +43,7 @@ internal fun DocumentSnapshot.aIncidenciaEntity(): IncidenciaEntity? = runCatchi
         codigoEquipo = getString("codigoEquipo")!!,
         descripcion = getString("descripcion")!!,
         usuarioResponsable = getString("usuarioResponsable")!!,
+        areaResponsable = getString("areaResponsable"),   // RF-1215: sin el campo (antes de la HU-12), null
         fechaRegistro = getTimestamp("fechaRegistro")!!.toInstant(),
         registradoPorId = getString("registradoPorId")!!,
         registradoPorNombre = getString("registradoPorNombre")!!,
