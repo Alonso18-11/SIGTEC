@@ -10,6 +10,10 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
+/** HU-12 (RF-1216): «María Quispe Huamán · Contabilidad», o solo el nombre si se escribió a mano. */
+fun Incidencia.responsableConArea(): String =
+    areaResponsable?.let { "$usuarioResponsable · $it" } ?: usuarioResponsable
+
 /** Nombre de cada marca en los filtros; coincide con el texto de EtiquetaIncidencia. */
 fun MarcaSeguimiento.etiqueta(): String = when (this) {
     MarcaSeguimiento.SIN_ASIGNAR -> "Sin asignar"
