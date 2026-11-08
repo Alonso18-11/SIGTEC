@@ -6,6 +6,7 @@ import com.softcorp.sigtec.core.domain.model.Evidencia
 import com.softcorp.sigtec.core.domain.model.Incidencia
 import com.softcorp.sigtec.core.domain.model.InformeTecnico
 import com.softcorp.sigtec.core.domain.model.Movimiento
+import com.softcorp.sigtec.core.domain.model.SolicitudRepuesto
 import com.softcorp.sigtec.feature.incidencias.domain.IncidenciaRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,6 +24,7 @@ class IncidenciaRepositoryFalso(var fallar: Boolean = false) : IncidenciaReposit
     private val _movimientos = MutableStateFlow<List<Movimiento>>(emptyList())
     private val _informes = MutableStateFlow<List<InformeTecnico>>(emptyList())
     private val _evidencias = MutableStateFlow<List<Evidencia>>(emptyList())   // HU-09
+    private val _solicitudes = MutableStateFlow<List<SolicitudRepuesto>>(emptyList())   // HU-11
 
     // RF-41: catálogo en memoria, con los 4 equipos de prueba reales por defecto.
     private val equiposValidos: MutableSet<String> = mutableSetOf(
@@ -42,12 +44,14 @@ class IncidenciaRepositoryFalso(var fallar: Boolean = false) : IncidenciaReposit
         incidencias: List<Incidencia> = emptyList(),
         movimientos: List<Movimiento> = emptyList(),
         informes: List<InformeTecnico> = emptyList(),
-        evidencias: List<Evidencia> = emptyList()
+        evidencias: List<Evidencia> = emptyList(),
+        solicitudes: List<SolicitudRepuesto> = emptyList()
     ) {
         _incidencias.value = incidencias
         _movimientos.value = movimientos
         _informes.value = informes
         _evidencias.value = evidencias
+        _solicitudes.value = solicitudes
     }
 
     /** Amplía el catálogo falso para pruebas que necesiten un código distinto a los 4 por defecto. */
@@ -96,4 +100,7 @@ class IncidenciaRepositoryFalso(var fallar: Boolean = false) : IncidenciaReposit
     // Mismo orden que EvidenciaDao: de la más antigua a la más reciente
     override fun observarEvidencias(incidenciaId: String): Flow<List<Evidencia>> =
         _evidencias.map { lista -> lista.filter { it.incidenciaId == incidenciaId }.sortedBy(Evidencia::fechaCaptura) }
+
+    override fun observarSolicitudes(incidenciaId: String): Flow<List<SolicitudRepuesto>> =
+        _solicitudes.map { lista -> lista.filter { it.incidenciaId == incidenciaId } }
 }

@@ -8,6 +8,7 @@ import com.softcorp.sigtec.core.database.dao.EvidenciaDao
 import com.softcorp.sigtec.core.database.dao.IncidenciaDao
 import com.softcorp.sigtec.core.database.dao.InformeTecnicoDao
 import com.softcorp.sigtec.core.database.dao.MovimientoDao
+import com.softcorp.sigtec.core.database.dao.SolicitudRepuestoDao
 import com.softcorp.sigtec.core.database.entity.toDomain
 import com.softcorp.sigtec.core.database.entity.toEntity
 import com.softcorp.sigtec.core.di.IoDispatcher
@@ -17,6 +18,7 @@ import com.softcorp.sigtec.core.domain.model.Evidencia
 import com.softcorp.sigtec.core.domain.model.Incidencia
 import com.softcorp.sigtec.core.domain.model.InformeTecnico
 import com.softcorp.sigtec.core.domain.model.Movimiento
+import com.softcorp.sigtec.core.domain.model.SolicitudRepuesto
 import com.softcorp.sigtec.feature.incidencias.domain.IncidenciaRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -34,6 +36,7 @@ class IncidenciaRepositoryImpl @Inject constructor(
     private val catalogoDao: CatalogoDao,
     private val informeTecnicoDao: InformeTecnicoDao,
     private val evidenciaDao: EvidenciaDao,   // HU-09: solo para leer; las fotos las escribe captura
+    private val solicitudRepuestoDao: SolicitudRepuestoDao,   // HU-11: solo para leer; las escribe atencion
     @IoDispatcher private val io: CoroutineDispatcher
 ) : IncidenciaRepository {
 
@@ -104,6 +107,11 @@ class IncidenciaRepositoryImpl @Inject constructor(
 
     override fun observarEvidencias(incidenciaId: String): Flow<List<Evidencia>> =
         evidenciaDao.observarPorIncidencia(incidenciaId)
+            .map { lista -> lista.map { it.toDomain() } }
+            .flowOn(io)
+
+    override fun observarSolicitudes(incidenciaId: String): Flow<List<SolicitudRepuesto>> =
+        solicitudRepuestoDao.observarPorIncidencia(incidenciaId)
             .map { lista -> lista.map { it.toDomain() } }
             .flowOn(io)
 

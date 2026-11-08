@@ -240,4 +240,37 @@ class ReglasSincronizacionTest {
     fun `reasignada de mi a otra persona no avisa`() {
         assertFalse(esAsignacionNuevaPara("luis", local = asignada("luis"), remota = asignada("ana")))
     }
+
+    // ---------- HU-11: solicitudes de repuesto ----------
+
+    private fun solicitudEntity(pendiente: Boolean, actualizadoEn: Instant, numero: String? = null) =
+        com.softcorp.sigtec.core.database.entity.SolicitudRepuestoEntity(
+            id = "s1", incidenciaId = "i124", pieza = "Fuente de poder ATX 500 W", motivo = "No entrega energía",
+            fechaSolicitud = Instant.EPOCH, confirmadoEn = Instant.EPOCH,
+            estadoEntrega = com.softcorp.sigtec.core.domain.model.EstadoEntrega.POR_DESPACHAR,
+            solicitadoPorId = "demo-lramirez", solicitadoPorNombre = "Luis Ramírez", numeroLogistica = numero,
+            stockConsultado = null, diasEnvio = null, despachadaEn = null, entregadaEn = null, llegadaEstimada = null,
+            rechazadaPorLogistica = false, pendienteSincronizar = pendiente, actualizadoEn = actualizadoEn
+        )
+
+    @Test
+    fun `una solicitud nueva o ya sincronizada se guarda con la version remota`() {
+        val remota = solicitudEntity(pendiente = false, actualizadoEn = Instant.ofEpochSecond(100))
+        assertTrue(debeReemplazarSolicitud(null, remota))
+        assertTrue(debeReemplazarSolicitud(solicitudEntity(false, Instant.ofEpochSecond(200)), remota))
+    }
+
+    @Test
+    fun `el numero de Logistica sin subir no se pisa con una version remota mas antigua`() {
+        val local = solicitudEntity(pendiente = true, actualizadoEn = Instant.ofEpochSecond(200), numero = "17")
+        val remota = solicitudEntity(pendiente = false, actualizadoEn = Instant.ofEpochSecond(100))
+        assertFalse(debeReemplazarSolicitud(local, remota))   // RF-1118
+    }
+
+    @Test
+    fun `una version remota mas reciente gana aunque haya un cambio local sin subir`() {
+        val local = solicitudEntity(pendiente = true, actualizadoEn = Instant.ofEpochSecond(100))
+        val remota = solicitudEntity(pendiente = false, actualizadoEn = Instant.ofEpochSecond(200), numero = "17")
+        assertTrue(debeReemplazarSolicitud(local, remota))
+    }
 }
