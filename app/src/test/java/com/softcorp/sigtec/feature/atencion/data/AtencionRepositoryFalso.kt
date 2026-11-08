@@ -6,6 +6,7 @@ import com.softcorp.sigtec.core.domain.model.Incidencia
 import com.softcorp.sigtec.core.domain.model.InformeTecnico
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
 import com.softcorp.sigtec.core.domain.model.Movimiento
+import com.softcorp.sigtec.core.domain.model.SolicitudRepuesto
 import com.softcorp.sigtec.feature.atencion.domain.AtencionRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,10 +23,12 @@ class AtencionRepositoryFalso(var fallar: Boolean = false) : AtencionRepository 
     private val _incidencias = MutableStateFlow<List<Incidencia>>(emptyList())
     private val _movimientos = MutableStateFlow<List<Movimiento>>(emptyList())
     private val _informes = MutableStateFlow<List<InformeTecnico>>(emptyList())
+    private val _solicitudes = MutableStateFlow<List<SolicitudRepuesto>>(emptyList())
 
     val incidencias: List<Incidencia> get() = _incidencias.value
     val movimientos: List<Movimiento> get() = _movimientos.value
     val informes: List<InformeTecnico> get() = _informes.value
+    val solicitudes: List<SolicitudRepuesto> get() = _solicitudes.value
 
     /** El `ahora` que recibió el último cerrarConInforme guardado. */
     var ultimoAhora: Instant? = null
@@ -62,6 +65,21 @@ class AtencionRepositoryFalso(var fallar: Boolean = false) : AtencionRepository 
         _incidencias.update { lista -> lista.map { if (it.id == incidencia.id) incidencia else it } }
         _movimientos.update { it + movimiento }
         _informes.update { it + informe }
+        ultimoAhora = ahora
+        return Resultado.Exito(Unit)
+    }
+
+    // HU-11: como Room, o se guarda todo o nada
+    override suspend fun solicitarRepuesto(
+        incidencia: Incidencia,
+        movimiento: Movimiento,
+        solicitud: SolicitudRepuesto,
+        ahora: Instant
+    ): Resultado<Unit> {
+        if (fallar) return Resultado.Error(ErrorDominio.Desconocido("fallo simulado"))
+        _incidencias.update { lista -> lista.map { if (it.id == incidencia.id) incidencia else it } }
+        _movimientos.update { it + movimiento }
+        _solicitudes.update { it + solicitud }
         ultimoAhora = ahora
         return Resultado.Exito(Unit)
     }
