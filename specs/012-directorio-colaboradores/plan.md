@@ -180,6 +180,8 @@ Lleva un registro por equipo de los 4 que hay en Firestore. Los nombres son fict
 
 Para comprobarlo, `GET <base>/colaboradores?equipo=PC-CONT-014` responde en el navegador y `?equipo=NO-EXISTE` responde 404.
 
+**Creado el 2026-11-08** en el proyecto «sigtec-directorio» de la segunda cuenta de Alonso, con los 4 registros de la tabla. La dirección base es `URL_DIRECTORIO = "https://6af0a81711a6aa866e7fa1fc.mockapi.io/api/v1/"`. Comprobado: `?equipo=PC-CONT-014` devuelve un registro, `?equipo=NO-EXISTE` da 404 y `?equipo=PC` devuelve 3 (la coincidencia es parcial, así que RF-1205 hace falta).
+
 ## 6. Pruebas
 - `MapeoDirectorioTest` (JVM):
   - coincidencia exacta entre parciales (`PC-CONT-01` frente a `PC-CONT-014`);

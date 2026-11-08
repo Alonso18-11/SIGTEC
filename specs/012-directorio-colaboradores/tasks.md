@@ -17,7 +17,7 @@
 > ⚠️ = compartido de `CLAUDE.md`; 🔶 = sensible fuera de esa lista.
 
 ## Antes de PR-02: servidor de prueba
-- [ ] **T00 · Otra cuenta de MockAPI.io con el recurso `colaboradores`** y los 4 registros del plan (sección 5). La cuenta y el proyecto los crea Alonso; el recurso y los datos, él o el asistente con su visto bueno. RF: —
+- [x] **T00 · Otra cuenta de MockAPI.io con el recurso `colaboradores`** y los 4 registros del plan (sección 5). La cuenta y el proyecto los crea Alonso; el recurso y los datos, él o el asistente con su visto bueno. RF: —
   - Hecho cuando: `GET <base>/colaboradores?equipo=PC-CONT-014` responde en el navegador y `?equipo=NO-EXISTE` da 404.
 
 ## PR-01: modelo (base `main`)
