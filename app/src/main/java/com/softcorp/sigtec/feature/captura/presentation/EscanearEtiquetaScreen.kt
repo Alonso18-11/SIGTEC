@@ -82,6 +82,7 @@ fun EscanearEtiquetaRoute(
         ImageAnalysis.Builder().setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST).build()
     }
     val casos = remember { listOf<UseCase>(analisis) }
+    val linterna = rememberLinternaCamara()   // HU-10 (RF-1030)
     // RF-906 y RF-908: con un código reconocido se deja de analizar; «Volver a escanear» lo reanuda
     val hayCodigo = estado.reconocido != null
     LaunchedEffect(hayCodigo) {
@@ -99,7 +100,10 @@ fun EscanearEtiquetaRoute(
         alVolver = alVolver,
         alVolverAEscanear = vm::alVolverAEscanear,
         alUsarCodigo = alUsarCodigo,
-        vistaCamara = { VistaCamara(casos, Modifier.fillMaxSize()) },
+        vistaCamara = { VistaCamara(casos, Modifier.fillMaxSize(), linterna) },
+        linternaVisible = linterna.tieneFlash,
+        linternaEncendida = linterna.encendida,
+        alAlternarLinterna = linterna::alternar,
         conPermisoCamara = { contenido ->
             ConPermisoCamara(
                 textoNegado = "También puedes escribir el código a mano en el formulario.", // RF-918
@@ -117,13 +121,21 @@ fun EscanearEtiquetaScreen(
     alVolverAEscanear: () -> Unit,
     alUsarCodigo: (String) -> Unit,
     vistaCamara: @Composable () -> Unit,
+    linternaVisible: Boolean = false,
+    linternaEncendida: Boolean = false,
+    alAlternarLinterna: () -> Unit = {},
     // Sin permiso se ve la explicación en lugar de la cámara y el marco (RF-916); las vistas previas no lo piden
     conPermisoCamara: @Composable (contenido: @Composable () -> Unit) -> Unit = { contenido -> contenido() }
 ) {
     // D-10: la barra clara del rediseño (#39) en vez de la barra oscura con «X» del prototipo
     Scaffold(
         contentWindowInsets = WindowInsets(0),
-        topBar = { BarraSuperior("Escanear etiqueta", alVolver = alVolver) }
+        topBar = {
+            BarraSuperior("Escanear etiqueta", alVolver = alVolver) {
+                // HU-10 (RF-1030, RF-1032): solo con la cámara abierta y con flash
+                if (linternaVisible) BotonLinterna(encendida = linternaEncendida, alAlternar = alAlternarLinterna)
+            }
+        }
     ) { padding ->
         Column(
             Modifier
@@ -322,5 +334,6 @@ private fun Previa(estado: EscaneoUiState) = EscanearEtiquetaScreen(
     alVolver = {},
     alVolverAEscanear = {},
     alUsarCodigo = {},
-    vistaCamara = { VistaCamaraDeMuestra() }
+    vistaCamara = { VistaCamaraDeMuestra() },
+    linternaVisible = true   // HU-10: con la cámara abierta se ofrece la linterna
 )
