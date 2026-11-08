@@ -28,8 +28,8 @@ Con esta HU, al escribir o escanear el código del equipo, la app consulta el di
 - RF-1205: EL SISTEMA compara el código sin distinguir mayúsculas ni espacios en los extremos, y solo acepta un colaborador cuyo equipo sea exactamente ese código (el servidor de prueba busca por coincidencia parcial).
 
 ### Completar el responsable
-- RF-1206: CUANDO el directorio devuelve el responsable y el campo «Usuario responsable» está vacío o todavía tiene lo que completó el directorio, EL SISTEMA escribe el nombre en el campo, cambia su texto de ayuda a «Completado desde el directorio» y muestra debajo «{área} · Anexo {anexo}» (prototipo 3). Sin anexo en el directorio, muestra solo el área.
-- RF-1207: SI el registrador ya escribió un responsable a mano, ENTONCES EL SISTEMA no lo reemplaza: muestra «El directorio indica: {nombre} · {área}» con el botón «Usar», que hace lo mismo que RF-1206 (D-6).
+- RF-1206: CUANDO el directorio devuelve el responsable y el campo «Usuario responsable» está vacío o todavía tiene lo que completó el directorio, EL SISTEMA escribe el nombre en el campo, cambia su texto de ayuda a «Completado desde el directorio» y muestra debajo «{área}, anexo {anexo}» (prototipo 3). Sin anexo en el directorio, muestra solo el área.
+- RF-1207: SI el registrador ya escribió un responsable a mano, ENTONCES EL SISTEMA no lo reemplaza: muestra «El directorio indica: {nombre}, {área}» con el botón «Usar», que hace lo mismo que RF-1206 (D-6).
 - RF-1208: CUANDO el registrador edita el nombre que completó el directorio, EL SISTEMA lo trata como escrito a mano: vuelve al texto de ayuda «Quien usa el equipo» y quita el área y el anexo (D-4). Pueden volver con «Usar» si el directorio ya respondió.
 - RF-1209: CUANDO el registrador cambia el código del equipo y el responsable lo había completado el directorio sin editarlo, EL SISTEMA vacía el campo, quita el área y el anexo, y vuelve a consultar con RF-1201. Lo escrito a mano no se toca.
 - RF-1210: EL SISTEMA no deja editar el área ni el anexo: solo los trae el directorio.
@@ -42,7 +42,7 @@ Con esta HU, al escribir o escanear el código del equipo, la app consulta el di
 ### Guardar y mostrar
 - RF-1214: CUANDO el registrador guarda, EL SISTEMA guarda en la incidencia el nombre del responsable (como hoy) y, si vino del directorio sin editarse, también su área (`areaResponsable`); si se escribió a mano, el área queda vacía. El anexo no se guarda (D-2).
 - RF-1215: EL SISTEMA sube `areaResponsable` a Firestore con la incidencia y la baja en los demás celulares (`core/sync`). Una incidencia sin ese campo en Firestore (registrada antes de esta HU o a mano) se lee con el área vacía.
-- RF-1216: EL SISTEMA muestra en el detalle de la incidencia «Usuario responsable: {nombre} · {área}» cuando hay área, y solo el nombre cuando no la hay (prototipo 4).
+- RF-1216: EL SISTEMA muestra en el detalle de la incidencia «Usuario responsable: {nombre}, {área}» cuando hay área, y solo el nombre cuando no la hay (prototipo 4).
 - RF-1217: EL SISTEMA no cambia nada más de la incidencia por el directorio: código, descripción, fecha, registrador, marca y movimiento `REGISTRADA` siguen como en la HU-03.
 - RF-1218: El área guardada no cambia si después el directorio cambia: es el dato del momento del registro.
 

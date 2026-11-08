@@ -162,10 +162,10 @@ private fun AvisoCamaraNoAbre(alReintentar: () -> Unit) {
     }
 }
 
-@VistaPrevia(name = "Cámara no abre · claro", showBackground = true, heightDp = 400)
+@VistaPrevia(name = "Cámara no abre, claro", showBackground = true, heightDp = 400)
 @Composable
 private fun AvisoClaro() = SigtecTheme { AvisoCamaraNoAbre(alReintentar = {}) }
 
-@VistaPrevia(name = "Cámara no abre · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 400)
+@VistaPrevia(name = "Cámara no abre, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 400)
 @Composable
 private fun AvisoOscuro() = SigtecTheme(darkTheme = true) { AvisoCamaraNoAbre(alReintentar = {}) }

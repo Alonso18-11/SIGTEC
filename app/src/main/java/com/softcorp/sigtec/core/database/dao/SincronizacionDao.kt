@@ -12,7 +12,7 @@ interface SincronizacionDao {
     @Insert
     suspend fun registrar(ejecucion: SincronizacionEntity)
 
-    // "Sin conexión · mostrando lo descargado a las 09:40" (HU-05)
+    // "Sin conexión. Datos de las 09:40." (HU-05)
     @Query("""
         SELECT * FROM sincronizaciones
         WHERE tipoTarea = :tipo AND exitosa = 1

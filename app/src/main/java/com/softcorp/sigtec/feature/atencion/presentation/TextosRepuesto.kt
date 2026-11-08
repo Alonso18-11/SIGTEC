@@ -13,11 +13,11 @@ data class TextoDisponibilidad(val titulo: String, val detalle: String?)
 fun textoDisponibilidad(disponibilidad: Disponibilidad): TextoDisponibilidad? = when (disponibilidad) {
     Disponibilidad.Consultando -> null
     is Disponibilidad.ConStock -> TextoDisponibilidad(
-        titulo = "Disponible en almacén · ${unidades(disponibilidad.unidades)}",
-        detalle = "Consultado a Logística hace un momento · ${textoEnvio(disponibilidad.diasEnvio)}"
+        titulo = "Disponible en almacén: ${unidades(disponibilidad.unidades)}",
+        detalle = "Consultado a Logística hace un momento, ${textoEnvio(disponibilidad.diasEnvio)}"
     )
     is Disponibilidad.SinStock -> TextoDisponibilidad(
-        titulo = "Sin stock en almacén · Logística deberá conseguirla",
+        titulo = "Sin stock en almacén, Logística deberá conseguirla",
         detalle = "Consultado a Logística hace un momento"
     )
     Disponibilidad.NoEnCatalogo -> TextoDisponibilidad(
@@ -34,4 +34,4 @@ private fun unidades(n: Int) = if (n == 1) "1 unidad" else "$n unidades"
 
 /** RF-1122: los días que lleva esperando, atribuidos a Logística. */
 fun textoDiasEspera(dias: Long): String =
-    (if (dias == 1L) "1 día de espera" else "$dias días de espera") + " · la demora se atribuye a Logística"
+    (if (dias == 1L) "1 día de espera" else "$dias días de espera") + ", la demora se atribuye a Logística"

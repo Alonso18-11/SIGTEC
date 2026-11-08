@@ -45,10 +45,10 @@ private fun Previa() = Surface {
     }
 }
 
-@Preview(name = "Linterna · claro", showBackground = true)
+@Preview(name = "Linterna, claro", showBackground = true)
 @Composable
 private fun LinternaClaro() = SigtecTheme { Previa() }
 
-@Preview(name = "Linterna · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Linterna, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun LinternaOscuro() = SigtecTheme(darkTheme = true) { Previa() }

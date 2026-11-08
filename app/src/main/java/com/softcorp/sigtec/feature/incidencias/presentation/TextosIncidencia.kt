@@ -10,9 +10,9 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
-/** HU-12 (RF-1216): «María Quispe Huamán · Contabilidad», o solo el nombre si se escribió a mano. */
+/** HU-12 (RF-1216): «María Quispe Huamán, Contabilidad», o solo el nombre si se escribió a mano. */
 fun Incidencia.responsableConArea(): String =
-    areaResponsable?.let { "$usuarioResponsable · $it" } ?: usuarioResponsable
+    areaResponsable?.let { "$usuarioResponsable, $it" } ?: usuarioResponsable
 
 /** Nombre de cada marca en los filtros; coincide con el texto de EtiquetaIncidencia. */
 fun MarcaSeguimiento.etiqueta(): String = when (this) {
@@ -52,7 +52,7 @@ fun Incidencia.diasPendiente(ahora: Instant): Long =
 
 private val formatoHora = DateTimeFormatter.ofPattern("HH:mm")
 private val formatoDia = DateTimeFormatter.ofPattern("dd/MM")
-private val formatoCompleto = DateTimeFormatter.ofPattern("dd/MM/yyyy · HH:mm")
+private val formatoCompleto = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
 
 /** «Hoy 10:42» si es de hoy; si no, «21/09», como en la lista del prototipo. */
 fun fechaCorta(fecha: Instant, ahora: Instant, zona: ZoneId = ZoneId.systemDefault()): String {

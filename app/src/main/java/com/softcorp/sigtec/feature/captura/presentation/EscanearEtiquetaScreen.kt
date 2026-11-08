@@ -218,7 +218,7 @@ private fun PanelCodigoReconocido(lectura: LecturaCodigo, alVolverAEscanear: () 
                     }
                     Column {
                         Text(
-                            "Código reconocido · sin conexión",
+                            "Código reconocido, sin conexión",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -297,31 +297,31 @@ internal fun VistaCamaraDeMuestra(modifier: Modifier = Modifier) {
 
 // ---------- Vistas previas: la pantalla se prueba sin cámara ni ViewModel ----------
 
-@Preview(name = "Buscando · claro", showBackground = true, heightDp = 700)
+@Preview(name = "Buscando, claro", showBackground = true, heightDp = 700)
 @Composable
 private fun BuscandoClaro() = SigtecTheme {
     Surface { Previa(EscaneoUiState()) }
 }
 
-@Preview(name = "Buscando · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 700)
+@Preview(name = "Buscando, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 700)
 @Composable
 private fun BuscandoOscuro() = SigtecTheme(darkTheme = true) {
     Surface { Previa(EscaneoUiState()) }
 }
 
-@Preview(name = "Reconocido · claro", showBackground = true, heightDp = 700)
+@Preview(name = "Reconocido, claro", showBackground = true, heightDp = 700)
 @Composable
 private fun ReconocidoClaro() = SigtecTheme { Surface { Previa(reconocido) } }
 
-@Preview(name = "Reconocido · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 700)
+@Preview(name = "Reconocido, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 700)
 @Composable
 private fun ReconocidoOscuro() = SigtecTheme(darkTheme = true) { Surface { Previa(reconocido) } }
 
-@Preview(name = "Fuera del catálogo · claro", showBackground = true, heightDp = 700)
+@Preview(name = "Fuera del catálogo, claro", showBackground = true, heightDp = 700)
 @Composable
 private fun FueraDeCatalogoClaro() = SigtecTheme { Surface { Previa(fueraDeCatalogo) } }
 
-@Preview(name = "Fuera del catálogo · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 700)
+@Preview(name = "Fuera del catálogo, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 700)
 @Composable
 private fun FueraDeCatalogoOscuro() = SigtecTheme(darkTheme = true) { Surface { Previa(fueraDeCatalogo) } }
 

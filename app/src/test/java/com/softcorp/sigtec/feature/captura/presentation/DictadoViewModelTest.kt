@@ -26,7 +26,7 @@ class DictadoViewModelTest {
         SavedStateHandle(
             mapOf(
                 DictadoViewModel.ARG_CAMPO to campo.name,
-                DictadoViewModel.ARG_SUBTITULO to "Nueva incidencia · PC-CONT-014"
+                DictadoViewModel.ARG_SUBTITULO to "Nueva incidencia - PC-CONT-014"
             )
         ),
         reconocedor
@@ -50,7 +50,7 @@ class DictadoViewModelTest {
     fun `lee el campo y el subtitulo de la ruta`() {
         val vm = nuevoVm(CampoDictado.DIAGNOSTICO)
         assertEquals(CampoDictado.DIAGNOSTICO, vm.ui.campo)
-        assertEquals("Nueva incidencia · PC-CONT-014", vm.ui.subtitulo)
+        assertEquals("Nueva incidencia - PC-CONT-014", vm.ui.subtitulo)
     }
 
     @Test

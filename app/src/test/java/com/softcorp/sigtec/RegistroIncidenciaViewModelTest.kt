@@ -229,7 +229,7 @@ class RegistroIncidenciaViewModelTest {
         assertEquals(listOf("PC-CONT-014"), directorio.consultas)
         assertEquals("María Quispe Huamán", vm.ui.responsable)   // RF-1206
         assertTrue(vm.ui.responsableDelDirectorio)
-        assertEquals("Contabilidad · Anexo 2314", vm.ui.areaYAnexo)
+        assertEquals("Contabilidad, anexo 2314", vm.ui.areaYAnexo)
     }
 
     @Test

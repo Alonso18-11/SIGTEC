@@ -130,11 +130,11 @@ private fun gradosSegunExif(ruta: String): Int {
     }
 }
 
-@Preview(name = "Miniaturas · claro", showBackground = true)
+@Preview(name = "Miniaturas, claro", showBackground = true)
 @Composable
 private fun MiniaturasClaro() = SigtecTheme { Surface { Previa() } }
 
-@Preview(name = "Miniaturas · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Miniaturas, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun MiniaturasOscuro() = SigtecTheme(darkTheme = true) { Surface { Previa() } }
 

@@ -16,7 +16,7 @@ fun NavGraphBuilder.inicioGraph(navController: NavController) {
         val primerNombre = usuario?.nombre?.substringBefore(' ').orEmpty()
 
         PantallaEnConstruccion(
-            titulo = "Hola, $primerNombre · ${usuario?.cargo.orEmpty()}",
+            titulo = "Hola, $primerNombre",
             historia = "panel del perfil",
             acciones = listOf(
                 "Registrar incidencia" to { navController.navigate(Ruta.RegistroIncidencia) },
