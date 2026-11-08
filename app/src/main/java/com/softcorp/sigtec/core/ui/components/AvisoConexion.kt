@@ -8,9 +8,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.ErrorOutline
-import androidx.compose.material.icons.outlined.WifiOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -73,9 +73,9 @@ fun AvisoConexionContenido(
     alEntendido: () -> Unit = {}
 ) {
     val texto = textoAviso(estado) ?: return
-    // Como los «section messages» de Jira: amarillo sin conexión, rojo si algo se rechazó, azul al enviar
+    // v2 (DESIGN.md 4): ámbar claro con nube tachada sin conexión, rojo si algo se rechazó, teal al enviar
     val (icono, color) = when {
-        !estado.enLinea -> Icons.Outlined.WifiOff to SigtecTheme.estados.advertencia
+        !estado.enLinea -> Icons.Outlined.CloudOff to SigtecTheme.estados.advertencia
         estado.necesitanAtencion > 0 -> Icons.Outlined.ErrorOutline to ColorEstado(
             contenido = SigtecTheme.estados.critico.contenido,
             contenedor = MaterialTheme.colorScheme.errorContainer
@@ -91,7 +91,7 @@ fun AvisoConexionContenido(
         modifier = modifier.fillMaxWidth()
     ) {
         Row(
-            Modifier.padding(horizontal = Espaciado.sm, vertical = Espaciado.s),
+            Modifier.padding(horizontal = Espaciado.m, vertical = Espaciado.sm),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(icono, contentDescription = null, tint = color.contenido, modifier = Modifier.size(20.dp))
@@ -99,7 +99,7 @@ fun AvisoConexionContenido(
             Text(
                 texto,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = color.contenido,
                 modifier = Modifier.weight(1f)
             )
             if (puedeDescartar(estado)) {
@@ -116,10 +116,13 @@ fun AvisoConexionContenido(
 internal fun textoAviso(estado: EstadoDatos): String? {
     val pendientes = estado.pendientesPorEnviar
     return when {
-        !estado.enLinea -> buildString {
-            append("Sin conexión")
-            estado.ultimaDescarga?.let { append(" · mostrando lo descargado a las ${it.horaLocal()}") }
-            if (pendientes > 0) append(" · ${cambios(pendientes)} por enviar")
+        // Retema v2 (plan, sección 5.1): «Sin conexión. Datos de las 09:40, 2 cambios por enviar.»
+        !estado.enLinea -> {
+            val partes = listOfNotNull(
+                estado.ultimaDescarga?.let { "Datos de las ${it.horaLocal()}" },
+                cambios(pendientes).takeIf { pendientes > 0 }?.let { "$it por enviar" }
+            )
+            if (partes.isEmpty()) "Sin conexión" else "Sin conexión. ${partes.joinToString(", ")}."
         }
         estado.necesitanAtencion > 0 -> "${cambios(estado.necesitanAtencion)} no se ${pudo(estado.necesitanAtencion)} enviar"
         pendientes > 0 -> "Enviando ${cambios(pendientes)}…"
@@ -150,9 +153,9 @@ private fun AvisoSinConexionPreview() = SigtecTheme {
     )
 }
 
-@Preview(name = "Sin conexión · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Sin conexión, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun AvisoSinConexionOscuroPreview() = SigtecTheme {
+private fun AvisoSinConexionOscuroPreview() = SigtecTheme(darkTheme = true) {
     AvisoConexionContenido(
         EstadoDatos(enLinea = false, ultimaDescarga = Instant.now(), pendientesPorEnviar = 2, necesitanAtencion = 0),
         Modifier.padding(Espaciado.m)
@@ -168,9 +171,9 @@ private fun AvisoEnviandoPreview() = SigtecTheme {
     )
 }
 
-@Preview(name = "Enviando · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Enviando, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun AvisoEnviandoOscuroPreview() = SigtecTheme {
+private fun AvisoEnviandoOscuroPreview() = SigtecTheme(darkTheme = true) {
     AvisoConexionContenido(
         EstadoDatos(enLinea = true, ultimaDescarga = Instant.now(), pendientesPorEnviar = 1, necesitanAtencion = 0),
         Modifier.padding(Espaciado.m)
@@ -186,7 +189,7 @@ private fun AvisoNecesitaAtencionPreview() = SigtecTheme {
     )
 }
 
-@Preview(name = "No se pudo enviar · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "No se pudo enviar, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun AvisoNecesitaAtencionOscuroPreview() = SigtecTheme(darkTheme = true) {
     AvisoConexionContenido(
