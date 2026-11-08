@@ -23,7 +23,8 @@ sealed interface Ruta {
     // Captura (recursos del celular)
     @Serializable data object EscanearEtiqueta : Ruta
     @Serializable data class CapturarEvidencia(val incidenciaId: String) : Ruta
-    @Serializable data object DictarTexto : Ruta
+    // HU-10 (D-9, P-4): campo es el nombre de CampoDictado; core no depende de feature
+    @Serializable data class DictarTexto(val campo: String, val subtitulo: String) : Ruta
     // Conocimiento e IA
     @Serializable data object Diccionario : Ruta
     @Serializable data class Asistente(val incidenciaId: String) : Ruta

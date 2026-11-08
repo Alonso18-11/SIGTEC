@@ -16,8 +16,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Fingerprint
+import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -48,6 +50,7 @@ import com.softcorp.sigtec.core.theme.SigtecTheme
 import com.softcorp.sigtec.core.ui.components.BarraSuperior
 import com.softcorp.sigtec.core.ui.components.BotonPrincipal
 import com.softcorp.sigtec.core.ui.mensaje
+import com.softcorp.sigtec.feature.captura.domain.CampoDictado
 import com.softcorp.sigtec.feature.captura.presentation.FotoAmpliada
 import com.softcorp.sigtec.feature.captura.presentation.SeccionEvidencias
 
@@ -56,10 +59,23 @@ fun InformeTecnicoRoute(
     alVolver: () -> Unit,
     alCerrar: () -> Unit,
     alAgregarFoto: () -> Unit,
+    textosDictados: Map<CampoDictado, String?>,
+    alConsumirDictado: (CampoDictado) -> Unit,
+    alDictar: (campo: CampoDictado, subtitulo: String) -> Unit,
     vm: InformeTecnicoViewModel = hiltViewModel()
 ) {
     val estado by vm.estado.collectAsStateWithLifecycle()
     val verificador = rememberVerificadorBiometrico()
+
+    // HU-10 (RF-1011): cada texto se aplica una sola vez a su campo y se borra
+    LaunchedEffect(textosDictados) {
+        textosDictados.forEach { (campo, texto) ->
+            if (texto != null) {
+                vm.alRecibirDictado(campo, texto)
+                alConsumirDictado(campo)
+            }
+        }
+    }
 
     LaunchedEffect(estado.cerrada) {
         if (estado.cerrada) alCerrar()
@@ -77,8 +93,24 @@ fun InformeTecnicoRoute(
                 if (resultado is ResultadoBiometrico.Exito) vm.alConfirmarCierre(resultado.instante)
             }
         },
-        alAgregarFoto = alAgregarFoto
+        alAgregarFoto = alAgregarFoto,
+        // RF-1003: «Informe técnico · INC-0124» bajo el título de «Dictar»
+        alDictar = { campo ->
+            alDictar(campo, estado.codigoIncidencia?.let { "Informe técnico · $it" } ?: "Informe técnico")
+        }
     )
+}
+
+/** HU-10 (RF-1001, RF-1002): el micrófono al final de un campo; se deshabilita junto con el campo. */
+@Composable
+private fun MicrofonoCampo(descripcion: String, habilitado: Boolean, alDictar: () -> Unit) {
+    IconButton(onClick = alDictar, enabled = habilitado) {
+        Icon(
+            Icons.Outlined.Mic,
+            contentDescription = descripcion,
+            tint = if (habilitado) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
 }
 
 @Composable
@@ -90,7 +122,8 @@ fun InformeTecnicoScreen(
     alCambiarPiezas: (String) -> Unit,
     alCambiarObservaciones: (String) -> Unit,
     alConfirmar: () -> Unit,
-    alAgregarFoto: () -> Unit = {}
+    alAgregarFoto: () -> Unit = {},
+    alDictar: (CampoDictado) -> Unit = {}
 ) {
     val editable = !estado.guardando
     var intentoConfirmar by remember { mutableStateOf(false) }
@@ -119,6 +152,7 @@ fun InformeTecnicoScreen(
                 value = estado.diagnostico,
                 onValueChange = alCambiarDiagnostico,
                 label = { Text("Diagnóstico *") },
+                trailingIcon = { MicrofonoCampo("Dictar diagnóstico", editable) { alDictar(CampoDictado.DIAGNOSTICO) } },
                 supportingText = { Text("La causa del problema") },
                 isError = intentoConfirmar && estado.diagnostico.isBlank(),
                 enabled = editable,
@@ -131,6 +165,9 @@ fun InformeTecnicoScreen(
                 value = estado.trabajoRealizado,
                 onValueChange = alCambiarTrabajo,
                 label = { Text("Solución aplicada *") },
+                trailingIcon = {
+                    MicrofonoCampo("Dictar solución aplicada", editable) { alDictar(CampoDictado.SOLUCION) }
+                },
                 supportingText = { Text("Qué se hizo para resolverlo") },
                 isError = intentoConfirmar && estado.trabajoRealizado.isBlank(),
                 enabled = editable,
@@ -152,6 +189,9 @@ fun InformeTecnicoScreen(
                 value = estado.observaciones,
                 onValueChange = alCambiarObservaciones,
                 label = { Text("Observaciones") },
+                trailingIcon = {
+                    MicrofonoCampo("Dictar observaciones", editable) { alDictar(CampoDictado.OBSERVACIONES) }
+                },
                 enabled = editable,
                 minLines = 2,
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
