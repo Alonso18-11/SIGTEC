@@ -83,4 +83,24 @@ class AtencionRepositoryFalso(var fallar: Boolean = false) : AtencionRepository 
         ultimoAhora = ahora
         return Resultado.Exito(Unit)
     }
+
+    override suspend fun solicitudesPorRegistrar(): List<SolicitudRepuesto> =
+        _solicitudes.value.filter { it.numeroLogistica == null && !it.rechazadaPorLogistica }
+
+    override suspend fun marcarRegistrada(solicitudId: String, numero: String, ahora: Instant): Resultado<Unit> {
+        if (fallar) return Resultado.Error(ErrorDominio.Desconocido("fallo simulado"))
+        _solicitudes.update { lista -> lista.map { if (it.id == solicitudId) it.copy(numeroLogistica = numero) else it } }
+        return Resultado.Exito(Unit)
+    }
+
+    override suspend fun marcarRechazada(solicitudId: String, ahora: Instant): Resultado<Unit> {
+        if (fallar) return Resultado.Error(ErrorDominio.Desconocido("fallo simulado"))
+        _solicitudes.update { lista -> lista.map { if (it.id == solicitudId) it.copy(rechazadaPorLogistica = true) else it } }
+        return Resultado.Exito(Unit)
+    }
+
+    /** Carga solicitudes de prueba sin pasar por solicitarRepuesto(). */
+    fun cargarSolicitudes(solicitudes: List<SolicitudRepuesto>) {
+        _solicitudes.value = solicitudes
+    }
 }
