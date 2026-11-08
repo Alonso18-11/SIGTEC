@@ -8,6 +8,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.softcorp.sigtec.core.navigation.Ruta
+import com.softcorp.sigtec.feature.captura.domain.CampoDictado
 import com.softcorp.sigtec.feature.captura.presentation.CLAVE_CODIGO_ESCANEADO
 import com.softcorp.sigtec.feature.incidencias.domain.POR_SINCRONIZAR
 
@@ -32,7 +33,9 @@ fun NavGraphBuilder.incidenciasGraph(navController: NavController) {
             alConsumirCodigo = { entrada.savedStateHandle[CLAVE_CODIGO_ESCANEADO] = null },
             alVolver = { navController.popBackStack() },
             alEscanear = { navController.navigate(Ruta.EscanearEtiqueta) },
-            alDictar = { navController.navigate(Ruta.DictarTexto) },
+            alDictar = {
+                navController.navigate(Ruta.DictarTexto(CampoDictado.DESCRIPCION.name, "Nueva incidencia"))
+            },
             alRegistrarse = { id ->
                 // Al volver desde el detalle se llega a la lista, no al formulario ya guardado
                 navController.navigate(Ruta.DetalleIncidencia(id)) {
