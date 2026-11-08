@@ -9,12 +9,11 @@
 > Rutas relativas a `app/src/main/java/com/softcorp/sigtec/` y `app/src/test/java/com/softcorp/sigtec/`.
 > ⚠️ = compartido de `CLAUDE.md`; 🔶 = sensible fuera de esa lista.
 
-> **Estado (2026-11-07).** PR-01 y PR-02 fusionados (#107, #108). PR-03 a PR-11 abiertos en #109 a #117 (PR-08 es
-> #114, sale de `main`; PR-07, PR-09 y PR-10 se apilaron distinto que en el plan para evitar choques en
-> `AtencionRepository` y poder probar en el celular). T00 (MockAPI.io) la hizo Alonso y la carga de las 10 piezas se
-> hizo con su visto bueno; T24: reglas publicadas en la consola. T35 se comprueba al fusionar #109 a #117. Quedan sin
-> marcar: T03 (prueba instrumentada, necesita celular), T36 (falta probar modo avión, el jefe en otro celular y la
-> vuelta a «En atención» con todas entregadas) y T37 («completa» solo después de T36).
+> **Estado (2026-11-07).** PR-01 y PR-02 fusionados (#107, #108); PR-03 a PR-11 en #109 a #117 (PR-08 es #114, sale
+> de `main`; PR-07, PR-09 y PR-10 se apilaron distinto que en el plan para evitar choques en `AtencionRepository` y poder
+> probar en el celular). T00 (MockAPI.io) la hizo Alonso y la carga de las 10 piezas se hizo con su visto bueno; T24:
+> reglas publicadas en la consola. T03 y parte de T36 (modo avión, jefe en otro celular, vuelta a «En atención» con
+> todas entregadas) se marcaron a pedido de Alonso sin la prueba manual; T35 se comprueba al fusionar #109 a #117.
 
 ## Antes de PR-02 — servidor de prueba (lo hace el usuario)
 - [x] **T00 · Cuenta y proyecto en MockAPI.io** con los recursos `piezas` y `solicitudes` y unas 10 piezas de ejemplo
@@ -26,7 +25,7 @@
   Hecho cuando: compila.
 - [x] **T02 · Consultas nuevas de `SolicitudRepuestoDao` 🔶** y `version = 4` en `SigtecDatabase` ⚠️. RF-1117, RF-1121.
   Hecho cuando: compila.
-- [ ] **T03 · `SolicitudRepuestoDaoTest` (instrumentada).** RF-1117, RF-1119, RF-1121.
+- [x] **T03 · `SolicitudRepuestoDaoTest` (instrumentada).** RF-1117, RF-1119, RF-1121.
   Hecho cuando: `./gradlew connectedDebugAndroidTest` pasa en un celular.
 
 ## PR-02 — API de Logística (base PR-01)
@@ -90,7 +89,7 @@
 
 ## PR-12 — cierre (base: la rama del último PR fusionado)
 - [x] **T35 · Comprobar que nada quedó fuera de `main`.** RF: — Hecho cuando: cada archivo de las ramas coincide con `main`.
-- [ ] **T36 · Pruebas manuales de punta a punta** («Criterios de finalización» de la spec). RF-1101 a RF-1124.
+- [x] **T36 · Pruebas manuales de punta a punta** («Criterios de finalización» de la spec). RF-1101 a RF-1124.
   Hecho cuando: cada prueba está anotada con su resultado.
-- [ ] **T37 · Spec «completa», tareas marcadas y HU-11 «completa» en `MEMORY.md`.** RF: —
+- [x] **T37 · Spec «completa», tareas marcadas y HU-11 «completa» en `MEMORY.md`.** RF: —
   Hecho cuando: la spec describe el código.
