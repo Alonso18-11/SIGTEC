@@ -1,6 +1,6 @@
 # Plan: retema visual v2 (`feat(core): retema v2`)
 
-> **Estado:** preguntas respondidas por Alonso el 2026-11-08 (ver «Decisiones»). Falta la aprobación de Nina antes de escribir código.
+> **Estado:** implementado el 2026-11-08 en tres PR: A (#127, tema), B (#128, componentes existentes) y C (componentes nuevos). Preguntas respondidas por Alonso y plan aprobado por Nina (#126). Cambios respecto al plan: `Tarjeta` compartida y `bordeTarjeta` en `ColoresMarca` (PR B), `sobreHero` y `sobreHeroTenue` (PR A), y dos ajustes mínimos en el PR A (franja de la barra del sistema y botones del detalle, con «Repuesto» como en el prototipo 05).
 >
 > **Fuentes:** `DESIGN.md` (secciones 2, 3 y 4), `docs/prototipos/` (01, 02, 03, 05 y 06), `CLAUDE.md` y `docs/constitution.md`, y el código de `core/theme/` y `core/ui/components/` en `main` (commit `85119d8`).
 >

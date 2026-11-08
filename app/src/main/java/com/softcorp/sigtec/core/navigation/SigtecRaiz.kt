@@ -1,21 +1,11 @@
 package com.softcorp.sigtec.core.navigation
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -29,6 +19,8 @@ import com.softcorp.sigtec.core.biometric.ResultadoBiometrico
 import com.softcorp.sigtec.core.biometric.rememberVerificadorBiometrico
 import com.softcorp.sigtec.core.domain.model.EstadoAcceso
 import com.softcorp.sigtec.core.notificaciones.PedirPermisoNotificaciones
+import com.softcorp.sigtec.core.ui.components.BarraNavegacion
+import com.softcorp.sigtec.core.ui.components.PestanaNavegacion
 import com.softcorp.sigtec.feature.acceso.presentation.OfertaHuellaDialogo
 import com.softcorp.sigtec.feature.acceso.presentation.accesoGraph
 import com.softcorp.sigtec.feature.asignacion.presentation.asignacionGraph
@@ -109,30 +101,17 @@ fun SigtecRaiz(vm: RaizViewModel = hiltViewModel()) {
     Scaffold(
         bottomBar = {
             if (mostrarBarra) {
-                // Al estilo de Jira móvil: blanca, con una línea fina arriba y sin la «píldora» de Material 3
-                Column {
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    NavigationBar(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        tonalElevation = 0.dp
-                    ) {
-                        destinos.forEach { destino ->
-                            NavigationBarItem(
-                                selected = destinoActual?.hierarchy?.any { it.hasRoute(destino.ruta::class) } == true,
-                                onClick = { navController.navegarAPrincipal(destino.ruta) },
-                                icon = { Icon(destino.icono, contentDescription = null) },
-                                label = { Text(destino.etiqueta, maxLines = 1) },
-                                colors = NavigationBarItemDefaults.colors(
-                                    selectedIconColor = MaterialTheme.colorScheme.primary,
-                                    selectedTextColor = MaterialTheme.colorScheme.primary,
-                                    indicatorColor = Color.Transparent,
-                                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            )
-                        }
+                // Retema v2 (P-9): estilo de DESIGN.md con los mismos destinos por permiso de siempre
+                BarraNavegacion(
+                    destinos.map { destino ->
+                        PestanaNavegacion(
+                            etiqueta = destino.etiqueta,
+                            icono = destino.icono,
+                            seleccionada = destinoActual?.hierarchy?.any { it.hasRoute(destino.ruta::class) } == true,
+                            alPulsar = { navController.navegarAPrincipal(destino.ruta) }
+                        )
                     }
-                }
+                )
             }
         }
     ) { innerPadding ->
