@@ -283,7 +283,7 @@ private fun PanelDatos(incidencia: Incidencia, alVerHistorial: (String) -> Unit)
                             .clickable(role = Role.Button) { alVerHistorial(incidencia.codigoEquipo) }
                     )
                 }
-                FilaDato("Usuario responsable") { ValorDato(incidencia.usuarioResponsable) }
+                FilaDato("Usuario responsable") { ValorDato(incidencia.responsableConArea()) }   // HU-12 (RF-1216)
                 FilaDato("Registrado por") { Persona(incidencia.registradoPorNombre) }
                 FilaDato("Fecha y hora") { ValorDato(fechaCompleta(incidencia.fechaRegistro)) }
             }
@@ -512,6 +512,7 @@ private val detalleDePrueba = DetalleIncidencia(
     incidencia = Incidencia(
         id = "c", numero = 124, codigoEquipo = "PC-CONT-014",
         descripcion = "No enciende después del corte de luz", usuarioResponsable = "María Quispe Huamán",
+        areaResponsable = "Contabilidad",
         fechaRegistro = ahoraDePrueba.minus(Duration.ofMinutes(105)), registradoPorId = "t1",
         registradoPorNombre = "Luis Ramírez", marca = MarcaSeguimiento.EN_ATENCION,
         tipoFalla = TipoFalla.HARDWARE, prioridad = Prioridad.ALTA,

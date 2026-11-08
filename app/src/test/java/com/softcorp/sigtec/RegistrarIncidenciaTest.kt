@@ -31,6 +31,37 @@ class RegistrarIncidenciaTest {
     }
 
     @Test
+    fun `el area del directorio se guarda recortada`() = runTest {
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")
+        val r = registrar("PC-CONT-014", "No enciende", "María Quispe Huamán", ahora, areaResponsable = "  Contabilidad ")
+
+        // HU-12 (RF-1214)
+        assertEquals("Contabilidad", (r as Resultado.Exito).valor.areaResponsable)
+        assertEquals("Contabilidad", repo.incidencias.single().areaResponsable)
+    }
+
+    @Test
+    fun `un area en blanco o escrita a mano queda sin area`() = runTest {
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")
+        val enBlanco = registrar("PC-CONT-014", "No enciende", "María Quispe", ahora, areaResponsable = "   ")
+        val aMano = registrar("PC-CONT-014", "No enciende", "María Quispe", ahora)
+
+        assertNull((enBlanco as Resultado.Exito).valor.areaResponsable)
+        assertNull((aMano as Resultado.Exito).valor.areaResponsable)
+    }
+
+    @Test
+    fun `el area no cambia nada mas de la incidencia`() = runTest {
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")
+        val conArea = (registrar("PC-CONT-014", "No enciende", "María Quispe", ahora, "Contabilidad") as Resultado.Exito).valor
+        val sinArea = (registrar("PC-CONT-014", "No enciende", "María Quispe", ahora) as Resultado.Exito).valor
+
+        // RF-1217: mismo resultado salvo el id generado y el área
+        assertEquals(sinArea.copy(id = conArea.id, areaResponsable = "Contabilidad"), conArea)
+        assertEquals(listOf(TipoMovimiento.REGISTRADA, TipoMovimiento.REGISTRADA), repo.movimientos.map { it.tipo })
+    }
+
+    @Test
     fun `sin sesion no registra`() = runTest {
         val r = registrar("PC-CONT-014", "No enciende", "María Quispe", ahora)
         assertEquals(Resultado.Error(ErrorDominio.SinPermiso), r)

@@ -3,6 +3,7 @@ package com.softcorp.sigtec
 import com.softcorp.sigtec.core.domain.model.Incidencia
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
 import com.softcorp.sigtec.feature.incidencias.domain.codigoParaMostrar
+import com.softcorp.sigtec.feature.incidencias.presentation.responsableConArea
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.time.Instant
@@ -20,5 +21,12 @@ class TextosIncidenciaTest {
     fun `sin numero se muestra por sincronizar`() {
         assertEquals("Por sincronizar", sinSincronizar.codigoParaMostrar())
         assertEquals("INC-0124", sinSincronizar.copy(numero = 124).codigoParaMostrar())
+    }
+
+    @Test
+    fun `el responsable lleva su area solo si vino del directorio`() {
+        // HU-12 (RF-1216)
+        assertEquals("María Quispe · Contabilidad", sinSincronizar.copy(areaResponsable = "Contabilidad").responsableConArea())
+        assertEquals("María Quispe", sinSincronizar.responsableConArea())
     }
 }

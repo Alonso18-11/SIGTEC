@@ -18,7 +18,8 @@ class RegistrarIncidencia @Inject constructor(
     private val repo: IncidenciaRepository
 ) {
     suspend operator fun invoke(
-        codigoEquipo: String, descripcion: String, responsable: String, ahora: Instant
+        codigoEquipo: String, descripcion: String, responsable: String, ahora: Instant,
+        areaResponsable: String? = null   // HU-12 (RF-1214): solo cuando el responsable vino del directorio
     ): Resultado<Incidencia> {
         val usuario = when (val r = verificarPermiso(Permiso.REGISTRAR_INCIDENCIA)) {
             is Resultado.Exito -> r.valor
@@ -42,6 +43,7 @@ class RegistrarIncidencia @Inject constructor(
             codigoEquipo = codigo,
             descripcion = texto,
             usuarioResponsable = quien,
+            areaResponsable = areaResponsable?.trim()?.ifEmpty { null },
             fechaRegistro = ahora,                  // automática, no editable
             registradoPorId = usuario.id,
             registradoPorNombre = usuario.nombre,
