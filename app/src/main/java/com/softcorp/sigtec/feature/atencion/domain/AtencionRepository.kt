@@ -27,4 +27,13 @@ interface AtencionRepository {
         solicitud: SolicitudRepuesto,
         ahora: Instant
     ): Resultado<Unit>
+
+    /** HU-11 (RF-1117): las solicitudes que todavía no tienen número de Logística y no fueron rechazadas. */
+    suspend fun solicitudesPorRegistrar(): List<SolicitudRepuesto>
+
+    /** RF-1117: guarda el número que devolvió Logística; la solicitud queda por subir a Firestore. */
+    suspend fun marcarRegistrada(solicitudId: String, numero: String, ahora: Instant): Resultado<Unit>
+
+    /** RF-1119: Logística no la acepta; ya no se reintenta. */
+    suspend fun marcarRechazada(solicitudId: String, ahora: Instant): Resultado<Unit>
 }
