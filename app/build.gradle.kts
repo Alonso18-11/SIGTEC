@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -6,6 +8,12 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.google.services)
 }
+
+// Clave de subida a Google Play: keystore.properties vive solo en la PC de quien publica (está en .gitignore).
+// Sin ese archivo, el release se compila sin firma, como en el CI. Ver docs/google-play.md.
+val propiedadesFirma: Properties? = rootProject.file("keystore.properties")
+    .takeIf { it.exists() }
+    ?.let { archivo -> Properties().apply { archivo.inputStream().use { load(it) } } }
 
 android {
     namespace = "com.softcorp.sigtec"
@@ -23,8 +31,20 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        if (propiedadesFirma != null) {
+            create("lanzamiento") {
+                storeFile = rootProject.file(propiedadesFirma.getProperty("storeFile"))
+                storePassword = propiedadesFirma.getProperty("storePassword")
+                keyAlias = propiedadesFirma.getProperty("keyAlias")
+                keyPassword = propiedadesFirma.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig = signingConfigs.findByName("lanzamiento")
             optimization {
                 enable = false
             }
