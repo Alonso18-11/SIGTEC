@@ -24,6 +24,11 @@ class ErroresReconocedorTest {
     }
 
     @Test
+    fun `un idioma que el servicio de voz no tiene es como no tener reconocimiento`() {
+        assertEquals(ErrorDictado.SIN_SERVICIO, errorDictadoDe(12))   // ERROR_LANGUAGE_NOT_SUPPORTED (API 31)
+    }
+
+    @Test
     fun `sin permiso vuelve a la explicacion`() {
         assertEquals(ErrorDictado.SIN_PERMISO, errorDictadoDe(SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS))
     }
