@@ -13,7 +13,7 @@ import com.softcorp.sigtec.core.database.entity.*
         SugerenciaIAEntity::class, TecnicoEntity::class, EquipoEntity::class,
         SincronizacionEntity::class
     ],
-    version = 4,   // HU-11: campos de Logística y de entrega en solicitudes_repuesto
+    version = 5,   // HU-12: área del responsable en incidencias
     exportSchema = false
 )
 @TypeConverters(Convertidores::class)

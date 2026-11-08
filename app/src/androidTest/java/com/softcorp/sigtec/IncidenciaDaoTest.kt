@@ -121,6 +121,17 @@ class IncidenciaDaoTest {
         assertEquals(1, dao.asignacionesSinSubir("t2"))
     }
 
+    @Test
+    fun el_area_del_responsable_se_guarda_y_puede_faltar() = runTest {
+        val ahora = Instant.parse("2026-11-08T10:00:00Z")
+        dao.guardar(incidencia("con", MarcaSeguimiento.SIN_ASIGNAR, ahora).copy(areaResponsable = "Contabilidad").toEntity(true))
+        dao.guardar(incidencia("sin", MarcaSeguimiento.SIN_ASIGNAR, ahora).toEntity(true))
+
+        // HU-12 (RF-1214): el área solo existe si vino del directorio
+        assertEquals("Contabilidad", dao.porId("con")!!.toDomain().areaResponsable)
+        assertEquals(null, dao.porId("sin")!!.toDomain().areaResponsable)
+    }
+
     private fun movimiento(id: String, incidenciaId: String, tipo: TipoMovimiento = TipoMovimiento.ASIGNADA) =
         Movimiento(
             id = id, incidenciaId = incidenciaId, tipo = tipo,
