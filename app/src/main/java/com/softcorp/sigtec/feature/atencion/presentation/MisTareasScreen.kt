@@ -21,6 +21,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.outlined.Inventory2
+import com.softcorp.sigtec.core.ui.components.BotonTexto
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,20 +48,31 @@ import java.time.Instant
 @Composable
 fun MisTareasRoute(
     alAbrir: (String) -> Unit,
+    alVerRepuestos: () -> Unit,
     vm: MisTareasViewModel = hiltViewModel()
 ) {
     val estado by vm.estado.collectAsStateWithLifecycle()
-    MisTareasScreen(estado = estado, alAbrir = alAbrir)
+    MisTareasScreen(estado = estado, alAbrir = alAbrir, alVerRepuestos = alVerRepuestos)
 }
 
 @Composable
 fun MisTareasScreen(
     estado: MisTareasUiState,
-    alAbrir: (String) -> Unit
+    alAbrir: (String) -> Unit,
+    alVerRepuestos: () -> Unit = {}
 ) {
     Scaffold(
         contentWindowInsets = WindowInsets(0),
-        topBar = { BarraSuperior("Mis tareas") }
+        topBar = {
+            BarraSuperior("Mis tareas") {
+                // HU-11 (RF-1121, prototipo 7): las piezas pedidas a Logística
+                BotonTexto(onClick = alVerRepuestos) {
+                    Icon(Icons.Outlined.Inventory2, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(Espaciado.s))
+                    Text("Repuestos")
+                }
+            }
+        }
     ) { padding ->
         when {
             estado.cargando -> Box(

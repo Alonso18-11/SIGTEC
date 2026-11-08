@@ -19,9 +19,11 @@ import com.softcorp.sigtec.core.domain.model.InformeTecnico
 import com.softcorp.sigtec.core.domain.model.Movimiento
 import com.softcorp.sigtec.core.domain.model.SolicitudRepuesto
 import com.softcorp.sigtec.feature.atencion.domain.AtencionRepository
+import com.softcorp.sigtec.feature.atencion.domain.SolicitudConIncidencia
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -136,6 +138,15 @@ class AtencionRepositoryImpl @Inject constructor(
         sincronizacionDao.observarUltimaExitosa(TAREA_CONSULTAR_LOGISTICA)
             .map { it?.ejecutadaEn }
             .flowOn(io)
+
+    override fun observarSolicitudesDe(tecnicoId: String): Flow<List<SolicitudConIncidencia>> =
+        combine(solicitudRepuestoDao.observarDeTecnico(tecnicoId), incidenciaDao.observarTodas()) { solicitudes, incidencias ->
+            val porId = incidencias.associateBy { it.id }
+            solicitudes.map { s ->
+                val incidencia = porId[s.incidenciaId]?.toDomain()
+                SolicitudConIncidencia(s.toDomain(), incidencia?.codigoVisible, incidencia?.codigoEquipo.orEmpty())
+            }
+        }.flowOn(io)
 
     private suspend fun escribir(que: String, bloque: suspend () -> Unit): Resultado<Unit> = withContext(io) {
         try {

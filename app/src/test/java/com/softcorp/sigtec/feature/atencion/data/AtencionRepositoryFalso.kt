@@ -8,6 +8,7 @@ import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
 import com.softcorp.sigtec.core.domain.model.Movimiento
 import com.softcorp.sigtec.core.domain.model.SolicitudRepuesto
 import com.softcorp.sigtec.feature.atencion.domain.AtencionRepository
+import com.softcorp.sigtec.feature.atencion.domain.SolicitudConIncidencia
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -140,4 +141,14 @@ class AtencionRepositoryFalso(var fallar: Boolean = false) : AtencionRepository 
     }
 
     override fun observarUltimaConsultaLogistica(): Flow<Instant?> = _ultimaConsulta
+
+    override fun observarSolicitudesDe(tecnicoId: String): Flow<List<SolicitudConIncidencia>> =
+        kotlinx.coroutines.flow.combine(_solicitudes, _incidencias) { solicitudes, incidencias ->
+            solicitudes.filter { it.solicitadoPorId == tecnicoId }
+                .sortedByDescending { it.fechaSolicitud }
+                .map { s ->
+                    val incidencia = incidencias.firstOrNull { it.id == s.incidenciaId }
+                    SolicitudConIncidencia(s, incidencia?.codigoVisible, incidencia?.codigoEquipo.orEmpty())
+                }
+        }
 }

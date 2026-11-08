@@ -43,4 +43,10 @@ class TextosRepuestoTest {
     fun `mientras consulta no hay texto`() {
         assertNull(textoDisponibilidad(Disponibilidad.Consultando))
     }
+
+    @Test
+    fun `los dias de espera se atribuyen a Logistica`() {
+        assertEquals("1 día de espera · la demora se atribuye a Logística", textoDiasEspera(1))   // RF-1122
+        assertEquals("4 días de espera · la demora se atribuye a Logística", textoDiasEspera(4))
+    }
 }
