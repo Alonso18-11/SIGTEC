@@ -6,6 +6,8 @@ import com.softcorp.sigtec.core.database.SigtecDatabase
 import com.softcorp.sigtec.core.database.dao.IncidenciaDao
 import com.softcorp.sigtec.core.database.dao.InformeTecnicoDao
 import com.softcorp.sigtec.core.database.dao.MovimientoDao
+import com.softcorp.sigtec.core.database.dao.SincronizacionDao
+import com.softcorp.sigtec.core.database.entity.SincronizacionEntity
 import com.softcorp.sigtec.core.database.dao.SolicitudRepuestoDao
 import com.softcorp.sigtec.core.database.entity.toDomain
 import com.softcorp.sigtec.core.database.entity.toEntity
@@ -17,9 +19,11 @@ import com.softcorp.sigtec.core.domain.model.InformeTecnico
 import com.softcorp.sigtec.core.domain.model.Movimiento
 import com.softcorp.sigtec.core.domain.model.SolicitudRepuesto
 import com.softcorp.sigtec.feature.atencion.domain.AtencionRepository
+import com.softcorp.sigtec.feature.atencion.domain.SolicitudConIncidencia
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -32,6 +36,7 @@ class AtencionRepositoryImpl @Inject constructor(
     private val movimientoDao: MovimientoDao,
     private val informeTecnicoDao: InformeTecnicoDao,
     private val solicitudRepuestoDao: SolicitudRepuestoDao,
+    private val sincronizacionDao: SincronizacionDao,
     private val programadorLogistica: ProgramadorLogistica,
     @IoDispatcher private val io: CoroutineDispatcher
 ) : AtencionRepository {
@@ -103,6 +108,46 @@ class AtencionRepositoryImpl @Inject constructor(
             solicitudRepuestoDao.marcarRechazada(solicitudId, ahora)
         }
 
+    override suspend fun solicitudesSinEntregarDe(tecnicoId: String): List<SolicitudRepuesto> =
+        withContext(io) { solicitudRepuestoDao.sinEntregarDe(tecnicoId).map { it.toDomain() } }
+
+    override suspend fun contarSinEntregarDe(incidenciaId: String): Int =
+        withContext(io) { solicitudRepuestoDao.contarSinEntregarDe(incidenciaId) }
+
+    override suspend fun aplicarEstado(
+        solicitud: SolicitudRepuesto,
+        incidencia: Incidencia?,
+        movimiento: Movimiento?,
+        ahora: Instant
+    ): Resultado<Unit> = escribir("aplicar el estado de Logística a la solicitud ${solicitud.id}") {
+        db.withTransaction {
+            solicitudRepuestoDao.guardar(solicitud.toEntity(pendienteSincronizar = true, actualizadoEn = ahora))
+            incidencia?.let { incidenciaDao.guardar(it.toEntity(pendienteSincronizar = true, actualizadoEn = ahora)) }
+            movimiento?.let { movimientoDao.guardar(it.toEntity(pendienteSincronizar = true)) }
+        }
+    }
+
+    override suspend fun registrarConsultaLogistica(ahora: Instant, exitosa: Boolean) {
+        escribir("registrar la consulta a Logística") {
+            sincronizacionDao.registrar(SincronizacionEntity(tipoTarea = TAREA_CONSULTAR_LOGISTICA, ejecutadaEn = ahora, exitosa = exitosa))
+            sincronizacionDao.recortar(TAREA_CONSULTAR_LOGISTICA)
+        }
+    }
+
+    override fun observarUltimaConsultaLogistica(): Flow<Instant?> =
+        sincronizacionDao.observarUltimaExitosa(TAREA_CONSULTAR_LOGISTICA)
+            .map { it?.ejecutadaEn }
+            .flowOn(io)
+
+    override fun observarSolicitudesDe(tecnicoId: String): Flow<List<SolicitudConIncidencia>> =
+        combine(solicitudRepuestoDao.observarDeTecnico(tecnicoId), incidenciaDao.observarTodas()) { solicitudes, incidencias ->
+            val porId = incidencias.associateBy { it.id }
+            solicitudes.map { s ->
+                val incidencia = porId[s.incidenciaId]?.toDomain()
+                SolicitudConIncidencia(s.toDomain(), incidencia?.codigoVisible, incidencia?.codigoEquipo.orEmpty())
+            }
+        }.flowOn(io)
+
     private suspend fun escribir(que: String, bloque: suspend () -> Unit): Resultado<Unit> = withContext(io) {
         try {
             bloque()
@@ -117,5 +162,7 @@ class AtencionRepositoryImpl @Inject constructor(
 
     private companion object {
         const val TAG = "AtencionRepository"
+        // La misma tarea que usará el worker diario de la HU-18
+        const val TAREA_CONSULTAR_LOGISTICA = "CONSULTAR_REPUESTOS"
     }
 }

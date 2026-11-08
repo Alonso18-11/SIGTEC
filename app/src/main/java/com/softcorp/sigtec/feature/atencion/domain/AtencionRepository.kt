@@ -36,4 +36,36 @@ interface AtencionRepository {
 
     /** RF-1119: Logística no la acepta; ya no se reintenta. */
     suspend fun marcarRechazada(solicitudId: String, ahora: Instant): Resultado<Unit>
+
+    /** HU-11 (RF-1123): las del técnico ya registradas en Logística que todavía no se entregaron. */
+    suspend fun solicitudesSinEntregarDe(tecnicoId: String): List<SolicitudRepuesto>
+
+    /** RF-1124: cuántas solicitudes de la incidencia faltan entregar (las por enviar también cuentan). */
+    suspend fun contarSinEntregarDe(incidenciaId: String): Int
+
+    /**
+     * RF-1123 y RF-1124: guarda el estado que informó Logística y, si con eso llegó el último repuesto, la incidencia
+     * de vuelta en «En atención» con su movimiento, todo en una transacción.
+     */
+    suspend fun aplicarEstado(
+        solicitud: SolicitudRepuesto,
+        incidencia: Incidencia?,
+        movimiento: Movimiento?,
+        ahora: Instant
+    ): Resultado<Unit>
+
+    /** RF-1123: «Consultado a Logística hoy a las HH:mm» muestra la última consulta correcta. */
+    suspend fun registrarConsultaLogistica(ahora: Instant, exitosa: Boolean)
+
+    fun observarUltimaConsultaLogistica(): Flow<Instant?>
+
+    /** HU-11 (RF-1121): las solicitudes que pidió el técnico, con el código de su incidencia y de su equipo. */
+    fun observarSolicitudesDe(tecnicoId: String): Flow<List<SolicitudConIncidencia>>
 }
+
+/** RF-1122: la solicitud con lo que «Estado de repuestos» muestra de su incidencia; `codigoIncidencia` null = sin número aún. */
+data class SolicitudConIncidencia(
+    val solicitud: SolicitudRepuesto,
+    val codigoIncidencia: String?,
+    val codigoEquipo: String
+)

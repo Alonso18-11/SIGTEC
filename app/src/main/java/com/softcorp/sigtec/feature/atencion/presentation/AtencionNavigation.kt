@@ -6,7 +6,6 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.softcorp.sigtec.core.navigation.Ruta
-import com.softcorp.sigtec.core.ui.components.PantallaEnConstruccion
 import com.softcorp.sigtec.feature.captura.domain.CampoDictado
 import com.softcorp.sigtec.feature.captura.presentation.claveDictado
 import com.softcorp.sigtec.feature.incidencias.presentation.CLAVE_AVISO
@@ -17,7 +16,8 @@ private val CAMPOS_INFORME = listOf(CampoDictado.DIAGNOSTICO, CampoDictado.SOLUC
 fun NavGraphBuilder.atencionGraph(navController: NavController) {
     composable<Ruta.MisTareas> {
         MisTareasRoute(
-            alAbrir = { id -> navController.navigate(Ruta.DetalleIncidencia(id)) }
+            alAbrir = { id -> navController.navigate(Ruta.DetalleIncidencia(id)) },
+            alVerRepuestos = { navController.navigate(Ruta.EstadoRepuestos) }
         )
     }
     // El ViewModel lee incidenciaId de los argumentos de la ruta (SolicitudRepuestoViewModel.ARG_INCIDENCIA_ID)
@@ -50,6 +50,10 @@ fun NavGraphBuilder.atencionGraph(navController: NavController) {
         )
     }
     composable<Ruta.EstadoRepuestos> {
-        PantallaEnConstruccion(titulo = "Estado de repuestos", historia = "HU-11 · HU-18")
+        // HU-11 (RF-1121): la consulta diaria automática es de la HU-18
+        EstadoRepuestosRoute(
+            alVolver = { navController.popBackStack() },
+            alAbrirIncidencia = { id -> navController.navigate(Ruta.DetalleIncidencia(id)) }
+        )
     }
 }
