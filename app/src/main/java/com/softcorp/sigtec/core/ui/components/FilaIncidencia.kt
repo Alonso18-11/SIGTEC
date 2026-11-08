@@ -112,39 +112,6 @@ fun FilaIncidencia(
     }
 }
 
-/** Círculo con las iniciales de una persona, como los avatares de Jira. */
-@Composable
-fun Avatar(nombre: String, modifier: Modifier = Modifier, tamano: Dp = 32.dp) {
-    Box(
-        modifier = modifier
-            .size(tamano)
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.primaryContainer),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            iniciales(nombre),
-            style = when {
-                tamano < 28.dp -> MaterialTheme.typography.labelSmall
-                tamano < 40.dp -> MaterialTheme.typography.labelMedium
-                else -> MaterialTheme.typography.titleMedium
-            },
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
-            maxLines = 1
-        )
-    }
-}
-
-/** «Luis Ramírez» → «LR»; «Sin técnico» → «ST». Solo letras, como máximo dos. */
-internal fun iniciales(nombre: String): String =
-    nombre.split(' ')
-        .mapNotNull { palabra -> palabra.firstOrNull { it.isLetter() } }
-        .take(2)
-        .joinToString("")
-        .uppercase(Locale.forLanguageTag("es-PE"))
-        .ifEmpty { "?" }
-
 @Composable
 private fun FilasDePrueba() {
     Surface {
