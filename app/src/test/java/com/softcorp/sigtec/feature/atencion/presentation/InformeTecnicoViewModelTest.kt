@@ -14,6 +14,7 @@ import com.softcorp.sigtec.core.domain.usecase.VerificarPermiso
 import com.softcorp.sigtec.feature.atencion.data.AtencionRepositoryFalso
 import com.softcorp.sigtec.feature.atencion.domain.CerrarIncidenciaConInforme
 import com.softcorp.sigtec.feature.captura.data.EvidenciaRepositoryFalso
+import com.softcorp.sigtec.feature.captura.domain.CampoDictado
 import com.softcorp.sigtec.feature.captura.domain.MAX_FOTOS
 import com.softcorp.sigtec.feature.captura.domain.ObservarCapturaEvidencia
 import kotlinx.coroutines.test.runTest
@@ -217,5 +218,51 @@ class InformeTecnicoViewModelTest {
         repo.fallar = false
         vm.alConfirmarCierre(confirmadoEn)
         assertTrue(vm.estado.value.cerrada)
+    }
+
+    // HU-10 (specs/010-dictado-linterna)
+
+    @Test
+    fun `cada campo recibe su texto dictado al final`() = runTest {
+        val vm = nuevoVm()
+        vm.alCambiarDiagnostico("Fusor dañado.")
+
+        vm.alRecibirDictado(CampoDictado.DIAGNOSTICO, "Por sobrecalentamiento")
+        vm.alRecibirDictado(CampoDictado.SOLUCION, "Se cambió el fusor")
+        vm.alRecibirDictado(CampoDictado.OBSERVACIONES, "Revisar en un mes")
+
+        assertEquals("Fusor dañado. Por sobrecalentamiento", vm.estado.value.diagnostico)   // RF-1011
+        assertEquals("Se cambió el fusor", vm.estado.value.trabajoRealizado)
+        assertEquals("Revisar en un mes", vm.estado.value.observaciones)
+        assertEquals("", vm.estado.value.piezasCambiadas)
+    }
+
+    @Test
+    fun `la descripcion no es un campo del informe`() = runTest {
+        val vm = nuevoVm()
+        vm.alRecibirDictado(CampoDictado.DESCRIPCION, "No enciende")
+        assertEquals("", vm.estado.value.diagnostico)
+        assertEquals("", vm.estado.value.trabajoRealizado)
+        assertEquals("", vm.estado.value.observaciones)
+    }
+
+    @Test
+    fun `con el informe confirmado lo dictado no cambia nada`() = runTest {
+        // RF-1002
+        val vm = nuevoVm()
+        vm.alCambiarDiagnostico("Fusor dañado")
+        vm.alCambiarTrabajo("Se cambió el fusor")
+        vm.alConfirmarCierre(confirmadoEn)
+
+        vm.alRecibirDictado(CampoDictado.OBSERVACIONES, "Revisar en un mes")
+
+        assertEquals("", vm.estado.value.observaciones)
+    }
+
+    @Test
+    fun `el codigo de la incidencia llega para el subtitulo de Dictar`() = runTest {
+        // RF-1003
+        val vm = nuevoVm()
+        assertEquals("INC-0127", vm.estado.value.codigoIncidencia)
     }
 }
