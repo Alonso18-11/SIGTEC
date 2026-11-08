@@ -113,6 +113,7 @@ ERROR_NO_MATCH, ERROR_SPEECH_TIMEOUT                         -> SIN_ENTENDER   /
 ERROR_NETWORK, ERROR_NETWORK_TIMEOUT, ERROR_SERVER,
 ERROR_SERVER_DISCONNECTED, ERROR_LANGUAGE_UNAVAILABLE        -> SIN_CONEXION   // RF-1016
 ERROR_INSUFFICIENT_PERMISSIONS                               -> SIN_PERMISO    // vuelve a la explicación (RF-1021)
+ERROR_LANGUAGE_NOT_SUPPORTED (después de probar todos, D-5)  -> SIN_SERVICIO   // RF-1017
 cualquier otro (ERROR_AUDIO, ERROR_CLIENT, ERROR_RECOGNIZER_BUSY…) -> MICROFONO // RF-1018
 ```
 Vive en `data` porque usa las constantes de `SpeechRecognizer`; son constantes de compilación, así que la prueba
@@ -142,7 +143,7 @@ escuchar() = callbackFlow {
         onResults        -> Final(primer resultado o ""); cerrar
         onError(codigo)  -> Error(errorDictadoDe(codigo)); cerrar
     )
-    reconocedor.startListening(intent con LANGUAGE_MODEL_FREE_FORM, EXTRA_LANGUAGE = "es-PE" (D-5),
+    reconocedor.startListening(intent con LANGUAGE_MODEL_FREE_FORM, EXTRA_LANGUAGE de la configuración en curso (D-5),
                                EXTRA_PARTIAL_RESULTS = true, EXTRA_PREFER_OFFLINE = true (D-6))
     awaitClose { reconocedor.cancel(); reconocedor.destroy() }           // RF-1012, RF-1014
 }.flowOn(Dispatchers.Main.immediate)
@@ -150,6 +151,9 @@ escuchar() = callbackFlow {
 `detener()` llama a `stopListening()` del reconocedor en curso. Nunca guarda el audio (RF-1013).
 
 ### 4.3 `DictadoViewModel` (PR-05)
+> Ajustado el 2026-11-07 (D-10): la escucha sigue tras cada pausa hasta «Detener» o 60 s sin palabras.
+> Los errores 12 y 13 (idioma no disponible) se reintentan en `ReconocedorVozAndroid` con la siguiente
+> configuración de D-5, antes de que lleguen al `ViewModel`.
 ```text
 DictadoUiState(campo, subtitulo, escuchando = false, texto = "", parcial = "", error: ErrorDictado? = null,
                textoListo: String? = null)            // evento de un solo uso, como registradaId
@@ -267,7 +271,7 @@ Las de producto (D-1 a D-9) están en `spec.md`. Estas son las del cómo:
 | # | Decisión | Por qué | Alternativa descartada |
 |---|---|---|---|
 | P-1 | `SpeechRecognizer` dentro de un `callbackFlow` en `Dispatchers.Main.immediate`. | El reconocedor exige el hilo principal; el flujo frío ata su vida a quien lo recolecta y `awaitClose` lo destruye siempre. | Manejarlo desde la pantalla: la lógica quedaría en la UI (principio 3). |
-| P-2 | Una escucha por toque; cada pausa termina la escucha y el micrófono la reanuda sumando. | Es como funciona `SpeechRecognizer` (no hay escucha continua estable) y deja al usuario el control. | Reiniciar solo al terminar cada frase: escucharía sin que la persona lo sepa y gasta batería. |
+| P-2 | Escuchar hasta «Detener» (D-10): cuando Android cierra un tramo por una pausa, el `ViewModel` suma lo reconocido y vuelve a escuchar tras 250 ms, con un tope de 60 s sin palabras nuevas. | `SpeechRecognizer` no tiene escucha continua: siempre corta en las pausas. Reiniciarlo desde el `ViewModel` se puede probar con el reconocedor falso y el tiempo virtual. | Una escucha por toque (la primera versión): obligaba a tocar el micrófono en cada pausa. |
 | P-3 | Se toma el primer resultado de `RESULTS_RECOGNITION`. | Android lo ordena por confianza; ofrecer alternativas complica la pantalla sin pedido de la HU. | Mostrar las alternativas para elegir. |
 | P-4 | `DictarTexto(campo: String, subtitulo: String)`, con `campo` como nombre de `CampoDictado`. | `core/navigation` no depende de `feature/`; el `ViewModel` convierte el texto con `CampoDictado.valueOf`. | Poner `CampoDictado` en `core/domain/model`: otro archivo compartido sin necesidad. |
 | P-5 | Linterna del detalle con `CameraManager.setTorchMode`. | Enciende el flash sin abrir la cámara ni pedir su permiso; `registerTorchCallback` da el estado real. | Abrir CameraX en el detalle: pediría el permiso de cámara solo para alumbrar. |
