@@ -24,7 +24,7 @@ fun PantallaEnConstruccion(
         verticalArrangement = Arrangement.spacedBy(Espaciado.s)
     ) {
         Text(titulo, style = MaterialTheme.typography.headlineSmall)
-        EtiquetaEstado(texto = "Pendiente · $historia", color = SigtecTheme.estados.asignada)
+        EtiquetaEstado(texto = "Pendiente ($historia)", color = SigtecTheme.estados.asignada)
         if (acciones.isNotEmpty()) {
             Spacer(Modifier.height(Espaciado.m))
             acciones.forEach { (texto, alPulsar) ->
@@ -34,14 +34,14 @@ fun PantallaEnConstruccion(
     }
 }
 
-@Preview(name = "En construcción · claro", showBackground = true)
+@Preview(name = "En construcción, claro", showBackground = true)
 @Composable
 private fun EnConstruccionClaro() = SigtecTheme {
-    Surface { PantallaEnConstruccion("Hola, Luis · Técnico", "panel del perfil", acciones = listOf("Registrar incidencia" to {})) }
+    Surface { PantallaEnConstruccion("Hola, Luis", "panel del perfil", acciones = listOf("Registrar incidencia" to {})) }
 }
 
-@Preview(name = "En construcción · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "En construcción, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun EnConstruccionOscuro() = SigtecTheme(darkTheme = true) {
-    Surface { PantallaEnConstruccion("Hola, Luis · Técnico", "panel del perfil", acciones = listOf("Registrar incidencia" to {})) }
+    Surface { PantallaEnConstruccion("Hola, Luis", "panel del perfil", acciones = listOf("Registrar incidencia" to {})) }
 }

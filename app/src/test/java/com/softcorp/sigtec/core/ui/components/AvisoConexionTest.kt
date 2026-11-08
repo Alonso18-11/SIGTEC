@@ -12,7 +12,7 @@ import java.time.Instant
 class AvisoConexionTest {
 
     @Test
-    fun `sin conexion y sin descarga previa muestra el mensaje sin la parte de mostrando`() {
+    fun `sin conexion y sin descarga previa ni pendientes muestra solo sin conexion`() {
         val texto = textoAviso(
             EstadoDatos(enLinea = false, ultimaDescarga = null, pendientesPorEnviar = 0, necesitanAtencion = 0)
         )
@@ -29,9 +29,25 @@ class AvisoConexionTest {
                 necesitanAtencion = 0
             )
         )
-        assertTrue(texto!!.startsWith("Sin conexión"))
-        assertTrue(texto.contains("mostrando lo descargado a las"))
-        assertTrue(texto.contains("3 cambios por enviar"))
+        // La hora depende de la zona del equipo: se compara el resto del texto (retema v2, sin punto medio)
+        assertTrue(texto!!.startsWith("Sin conexión. Datos de las "))
+        assertTrue(texto.endsWith(", 3 cambios por enviar."))
+    }
+
+    @Test
+    fun `sin conexion con descarga previa y sin pendientes muestra solo la hora`() {
+        val texto = textoAviso(
+            EstadoDatos(enLinea = false, ultimaDescarga = Instant.parse("2026-10-11T15:30:00Z"), pendientesPorEnviar = 0, necesitanAtencion = 0)
+        )
+        assertTrue(texto!!.matches(Regex("Sin conexión\\. Datos de las \\d{2}:\\d{2}\\.")))
+    }
+
+    @Test
+    fun `sin conexion sin descarga previa y con pendientes muestra solo los pendientes`() {
+        val texto = textoAviso(
+            EstadoDatos(enLinea = false, ultimaDescarga = null, pendientesPorEnviar = 1, necesitanAtencion = 0)
+        )
+        assertEquals("Sin conexión. 1 cambio por enviar.", texto)
     }
 
     @Test
