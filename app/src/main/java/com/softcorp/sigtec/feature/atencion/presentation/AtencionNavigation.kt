@@ -9,6 +9,7 @@ import com.softcorp.sigtec.core.navigation.Ruta
 import com.softcorp.sigtec.core.ui.components.PantallaEnConstruccion
 import com.softcorp.sigtec.feature.captura.domain.CampoDictado
 import com.softcorp.sigtec.feature.captura.presentation.claveDictado
+import com.softcorp.sigtec.feature.incidencias.presentation.CLAVE_AVISO
 
 // HU-10 (D-2): los campos del informe con micrófono
 private val CAMPOS_INFORME = listOf(CampoDictado.DIAGNOSTICO, CampoDictado.SOLUCION, CampoDictado.OBSERVACIONES)
@@ -19,12 +20,16 @@ fun NavGraphBuilder.atencionGraph(navController: NavController) {
             alAbrir = { id -> navController.navigate(Ruta.DetalleIncidencia(id)) }
         )
     }
-    composable<Ruta.SolicitarRepuesto> { entrada ->
-        val ruta = entrada.toRoute<Ruta.SolicitarRepuesto>()
-        PantallaEnConstruccion(
-            titulo = "Solicitar repuesto · ${ruta.incidenciaId}",
-            historia = "HU-11",
-            acciones = listOf("Enviar con huella" to { navController.popBackStack() })
+    // El ViewModel lee incidenciaId de los argumentos de la ruta (SolicitudRepuestoViewModel.ARG_INCIDENCIA_ID)
+    composable<Ruta.SolicitarRepuesto> {
+        SolicitudRepuestoRoute(
+            alVolver = { navController.popBackStack() },
+            // RF-1114: el detalle muestra el aviso al volver, como el registro (HU-03)
+            alRegistrada = {
+                navController.previousBackStackEntry?.savedStateHandle
+                    ?.set(CLAVE_AVISO, "Solicitud registrada · Por enviar a Logística")
+                navController.popBackStack()
+            }
         )
     }
     composable<Ruta.RegistrarInforme> { entrada ->
