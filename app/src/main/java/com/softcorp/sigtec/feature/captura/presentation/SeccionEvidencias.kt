@@ -58,7 +58,6 @@ fun SeccionEvidencias(
         }
         // RF-933: las fotos no se sincronizan, así que en otro celular la incidencia aparece sin ellas
         if (evidencias.isEmpty()) Nota("Sin fotos en este celular.")
-        Nota("Las fotos se guardan solo en el celular que las tomó.")
     }
 }
 

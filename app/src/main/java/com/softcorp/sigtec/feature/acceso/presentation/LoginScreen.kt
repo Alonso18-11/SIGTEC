@@ -156,7 +156,7 @@ fun LoginScreen(
             ) {
                 Text(
                     estado.usuarioBloqueado?.let { "Hola de nuevo, ${it.nombre.substringBefore(' ')}" }
-                        ?: "Inicia sesión para continuar",
+                        ?: "Iniciar sesión",
                     style = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center
                 )

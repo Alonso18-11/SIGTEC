@@ -60,7 +60,7 @@ Esta HU le permite a cualquier persona del área leer el código desde la etique
 
 ### Ver, ampliar y eliminar las fotos de una incidencia
 - RF-932: EL SISTEMA muestra en la sección «Evidencias» del detalle las fotos que la incidencia tiene en este celular, de la más antigua a la más reciente, cada una rotulada «Foto de la falla» o «Foto de la pieza cambiada» (prototipo 5). Las ve cualquier persona que abra el detalle en este celular, aunque no tenga «Agregar foto».
-- RF-933: EL SISTEMA indica en la sección «Evidencias» que «Las fotos se guardan solo en el celular que las tomó.»; SI la incidencia no tiene fotos en este celular, ENTONCES muestra además «Sin fotos en este celular.».
+- RF-933: SI la incidencia no tiene fotos en este celular, ENTONCES EL SISTEMA muestra «Sin fotos en este celular.» en la sección «Evidencias». (Hasta el retema v2 también decía «Las fotos se guardan solo en el celular que las tomó.»; se quitó por la regla 2 de redacción.)
 - RF-934: CUANDO alguien toca una miniatura, EL SISTEMA muestra la foto ampliada, con su tipo y la fecha y hora en que se tomó; se cierra con «Volver» o con el botón atrás del sistema.
 - RF-935: SI el archivo de una foto enlazada ya no existe o no se puede leer, ENTONCES EL SISTEMA muestra «Foto no disponible» en su lugar, sin fallar.
 - RF-936: EL SISTEMA actualiza la sección «Evidencias» sola cuando se agrega o se elimina una foto, sin salir del detalle, igual que el resto del detalle (HU-04).

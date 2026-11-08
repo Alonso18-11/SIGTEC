@@ -231,7 +231,7 @@ private fun Contador(estado: ListaIncidenciasUiState) {
     }
     Column {
         Text(
-            "$cantidad, de la más reciente a la más antigua",
+            cantidad,
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(start = Espaciado.m, end = Espaciado.m, top = Espaciado.m, bottom = Espaciado.s)

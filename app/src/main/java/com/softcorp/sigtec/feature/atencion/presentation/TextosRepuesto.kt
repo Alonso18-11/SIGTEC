@@ -32,6 +32,6 @@ fun textoDisponibilidad(disponibilidad: Disponibilidad): TextoDisponibilidad? = 
 
 private fun unidades(n: Int) = if (n == 1) "1 unidad" else "$n unidades"
 
-/** RF-1122: los días que lleva esperando, atribuidos a Logística. */
+/** RF-1122: los días que lleva esperando desde la solicitud. */
 fun textoDiasEspera(dias: Long): String =
-    (if (dias == 1L) "1 día de espera" else "$dias días de espera") + ", la demora se atribuye a Logística"
+    if (dias == 1L) "1 día de espera" else "$dias días de espera"

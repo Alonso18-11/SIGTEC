@@ -144,8 +144,7 @@ fun AjustesSeguridadScreen(
                     FilaInformativa(
                         Icons.Outlined.Lock,
                         "Cierre de incidencias y solicitudes de repuesto",
-                        "Siempre se confirman con tu huella o, si no hay sensor, con el bloqueo de pantalla " +
-                                "del celular. Esta opción no se puede desactivar."
+                        "Siempre se confirman con tu huella o, si no hay sensor, con el bloqueo de pantalla del celular."
                     )
                 }
             }
@@ -156,8 +155,7 @@ fun AjustesSeguridadScreen(
                     FilaInformativa(
                         Icons.Outlined.Shield,
                         null,
-                        "SIGTEC no guarda ni envía tu huella. Android solo le indica a la aplicación " +
-                                "si la verificación fue correcta."
+                        "SIGTEC no guarda ni envía tu huella."
                     )
                 }
             }
@@ -170,7 +168,6 @@ fun AjustesSeguridadScreen(
                         Spacer(Modifier.width(Espaciado.s))
                         Text("Bloquear SIGTEC")
                     }
-                    NotaSalida("Tu sesión se conserva: vuelves a entrar con tu huella.")
                     Spacer(Modifier.height(Espaciado.s))
                 }
                 BotonPeligro(

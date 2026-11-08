@@ -108,7 +108,7 @@ fun MisTareasScreen(
 private fun Resumen(cantidad: Int) {
     Column {
         Text(
-            "${if (cantidad == 1) "1 pendiente" else "$cantidad pendientes"}, de la más antigua a la más reciente",
+            if (cantidad == 1) "1 pendiente" else "$cantidad pendientes",
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(start = Espaciado.m, end = Espaciado.m, top = Espaciado.m, bottom = Espaciado.s)

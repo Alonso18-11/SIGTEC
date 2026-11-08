@@ -142,13 +142,11 @@ fun RegistroIncidenciaScreen(
                         )
                     }
                 },
-                // HU-09 (RF-910, RF-911): dice de dónde salió el código mientras nadie lo edite a mano
-                supportingText = {
-                    Text(
-                        if (estado.codigoLeidoConCamara) "Leído desde la etiqueta con la cámara"
-                        else "Escríbelo o léelo de la etiqueta con la cámara"
-                    )
-                },
+                // HU-09 (RF-910, RF-911): dice de dónde salió el código mientras nadie lo edite a mano.
+                // Sin la ayuda «Escríbelo o léelo…»: el botón de cámara ya lo dice (reglas de redacción, regla 2)
+                supportingText = if (estado.codigoLeidoConCamara) {
+                    { Text("Leído desde la etiqueta con la cámara") }
+                } else null,
                 singleLine = true,
                 enabled = editable,
                 keyboardOptions = KeyboardOptions(
@@ -193,7 +191,6 @@ fun RegistroIncidenciaScreen(
                         )
                     }
                 },
-                supportingText = { Text("Puedes dictarla con el micrófono y corregirla antes de guardar") },
                 minLines = LINEAS_DESCRIPCION,
                 enabled = editable,
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
@@ -326,11 +323,6 @@ private fun BarraGuardar(estado: RegistroIncidenciaUiState, alGuardar: () -> Uni
                         Text("Guardar incidencia")
                     }
                 }
-                Text(
-                    "La incidencia se guardará en estado Pendiente",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
         }
     }
