@@ -25,9 +25,52 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 
 /**
- * Dibuja [contenido] (la cámara) solo con el permiso concedido; si no, explica para qué se usa y lo pide al
- * pulsar «Permitir cámara», nunca antes (RF-916 a RF-920). Lo usan «Escanear etiqueta» y «Evidencia fotográfica».
+ * Dibuja [contenido] solo con el [permiso] de Android concedido; si no, explica para qué se usa y lo pide al pulsar
+ * el botón de [textos], nunca antes (HU-09: RF-916 a RF-920; HU-10: RF-1019 a RF-1022). [tieneRecurso] es falso si
+ * el celular no tiene el hardware (o el servicio) que el permiso protege.
  */
+@Composable
+fun ConPermiso(
+    permiso: String,
+    tieneRecurso: Boolean,
+    textos: TextosPermiso,
+    textoNegado: String?,
+    modifier: Modifier = Modifier,
+    contenido: @Composable () -> Unit
+) {
+    val contexto = LocalContext.current
+    val actividad = LocalActivity.current
+    var concedido by remember { mutableStateOf(estaConcedido(contexto, permiso)) }
+    // Solo recuerda una negativa: con el permiso concedido no importa si se pidió
+    var yaSePidio by rememberSaveable { mutableStateOf(false) }
+    var androidLoExplicaria by remember { mutableStateOf(explicariaElPermiso(actividad, permiso)) }
+    val lanzador = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { otorgado ->
+        concedido = otorgado
+        yaSePidio = !otorgado
+        androidLoExplicaria = explicariaElPermiso(actividad, permiso)
+    }
+    // RF-919, RF-922 y RF-1022: el permiso pudo cambiar en los ajustes de Android mientras la app no estaba a la vista
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        concedido = estaConcedido(contexto, permiso)
+        androidLoExplicaria = explicariaElPermiso(actividad, permiso)
+        if (concedido) yaSePidio = false
+    }
+
+    Box(modifier) {
+        when (val vista = vistaPermiso(tieneRecurso, concedido, yaSePidio, androidLoExplicaria)) {
+            VistaPermiso.CONCEDIDO -> contenido()
+            else -> ExplicacionPermiso(
+                vista = vista,
+                textos = textos,
+                textoNegado = textoNegado,
+                alPermitir = { lanzador.launch(permiso) },
+                alAbrirAjustes = { contexto.startActivity(ajustesDeLaApp(contexto)) } // RF-919, RF-1022
+            )
+        }
+    }
+}
+
+/** HU-09: «Escanear etiqueta» y «Evidencia fotográfica» piden la cámara con sus textos de siempre. */
 @Composable
 fun ConPermisoCamara(
     textoNegado: String?,
@@ -35,43 +78,23 @@ fun ConPermisoCamara(
     contenido: @Composable () -> Unit
 ) {
     val contexto = LocalContext.current
-    val actividad = LocalActivity.current
     val tieneCamara = remember { contexto.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY) }
-    var concedido by remember { mutableStateOf(camaraConcedida(contexto)) }
-    // Solo recuerda una negativa: con el permiso concedido no importa si se pidió
-    var yaSePidio by rememberSaveable { mutableStateOf(false) }
-    var androidLoExplicaria by remember { mutableStateOf(explicariaElPermiso(actividad)) }
-    val lanzador = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { otorgado ->
-        concedido = otorgado
-        yaSePidio = !otorgado
-        androidLoExplicaria = explicariaElPermiso(actividad)
-    }
-    // RF-919 y RF-922: el permiso pudo cambiar en los ajustes de Android mientras la app no estaba a la vista
-    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-        concedido = camaraConcedida(contexto)
-        androidLoExplicaria = explicariaElPermiso(actividad)
-        if (concedido) yaSePidio = false
-    }
-
-    Box(modifier) {
-        when (val vista = vistaPermiso(tieneCamara, concedido, yaSePidio, androidLoExplicaria)) {
-            VistaPermiso.CAMARA -> contenido()
-            else -> ExplicacionPermisoCamara(
-                vista = vista,
-                textoNegado = textoNegado,
-                alPermitir = { lanzador.launch(Manifest.permission.CAMERA) },
-                alAbrirAjustes = { contexto.startActivity(ajustesDeLaApp(contexto)) } // RF-919
-            )
-        }
-    }
+    ConPermiso(
+        permiso = Manifest.permission.CAMERA,
+        tieneRecurso = tieneCamara,
+        textos = TextosPermisoCamara,
+        textoNegado = textoNegado,
+        modifier = modifier,
+        contenido = contenido
+    )
 }
 
-private fun camaraConcedida(contexto: Context): Boolean =
-    ContextCompat.checkSelfPermission(contexto, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+private fun estaConcedido(contexto: Context, permiso: String): Boolean =
+    ContextCompat.checkSelfPermission(contexto, permiso) == PackageManager.PERMISSION_GRANTED
 
 /** Lo que responde `shouldShowRequestPermissionRationale`: verdadero si Android aún mostraría su diálogo. */
-private fun explicariaElPermiso(actividad: Activity?): Boolean =
-    actividad != null && ActivityCompat.shouldShowRequestPermissionRationale(actividad, Manifest.permission.CAMERA)
+private fun explicariaElPermiso(actividad: Activity?, permiso: String): Boolean =
+    actividad != null && ActivityCompat.shouldShowRequestPermissionRationale(actividad, permiso)
 
 /** La página de SIGTEC en los ajustes de Android, donde están sus permisos. */
 private fun ajustesDeLaApp(contexto: Context): Intent =
