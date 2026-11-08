@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SIGTEC · Política de privacidad</title>
+<style>
+  :root { --fondo: #ffffff; --texto: #172b4d; --suave: #44546f; --borde: #dcdfe4; --enlace: #0c66e4; }
+  @media (prefers-color-scheme: dark) {
+    :root { --fondo: #1d2125; --texto: #dee4ea; --suave: #9fadbc; --borde: #38414a; --enlace: #579dff; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fondo); color: var(--texto); font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 1.75rem; margin: 0 0 4px; }
+  h2 { font-size: 1.15rem; margin: 32px 0 8px; padding-top: 16px; border-top: 1px solid var(--borde); }
+  p, li { color: var(--texto); }
+  .meta { color: var(--suave); margin: 0 0 24px; }
+  table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+  th, td { text-align: left; vertical-align: top; padding: 8px; border-bottom: 1px solid var(--borde); }
+  th { color: var(--suave); font-weight: 600; }
+  a { color: var(--enlace); }
+  .tabla { overflow-x: auto; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Política de privacidad de SIGTEC</h1>
+  <p class="meta">Última actualización: 7 de noviembre de 2026</p>
+
+  <p>SIGTEC es una aplicación para Android del área de Soporte y Sistemas de Soft Corporation, desarrollada como
+  proyecto del curso Desarrollo de Sistemas Móviles de la Universidad Nacional Mayor de San Marcos. Sirve para
+  registrar, asignar, atender y cerrar incidencias técnicas de equipos de cómputo. La usa solo el personal del área,
+  con cuentas que el área crea; no está dirigida a menores de edad.</p>
+
+  <h2>Qué datos se guardan en el servidor</h2>
+  <p>La app usa servicios de Google Firebase (Authentication y Cloud Firestore). Todo viaja cifrado.</p>
+  <div class="tabla">
+  <table>
+    <tr><th>Dato</th><th>Para qué</th></tr>
+    <tr><td>Correo institucional e identificador de la cuenta</td><td>Iniciar sesión y saber qué puede hacer cada persona (jefe, técnico o personal de sistemas).</td></tr>
+    <tr><td>Nombre, área y cargo</td><td>Mostrar quién registra, asigna o atiende cada incidencia.</td></tr>
+    <tr><td>Incidencias, movimientos e informes técnicos</td><td>El trabajo del área: código del equipo, descripción del problema, nombre del usuario responsable del equipo, técnico asignado, diagnóstico, solución y la fecha y hora de la confirmación del cierre.</td></tr>
+  </table>
+  </div>
+
+  <h2>Qué datos se quedan solo en el celular</h2>
+  <ul>
+    <li><strong>Fotos de evidencia.</strong> Se guardan en el almacenamiento interno de la app, en el celular que las
+    tomó. No se suben a ningún servidor, no van a la copia de seguridad de Android y se borran al cerrar sesión.</li>
+    <li><strong>Copia local de las incidencias</strong>, para trabajar sin conexión. Se borra al cerrar sesión.</li>
+    <li><strong>Preferencia de ingreso con huella.</strong> Solo se guarda si está activada y quién es el dueño del
+    celular; nunca la huella.</li>
+  </ul>
+
+  <h2>Permisos que pide la app</h2>
+  <ul>
+    <li><strong>Cámara:</strong> para leer la etiqueta del equipo y fotografiar la falla y la pieza cambiada. El texto
+    de la etiqueta se reconoce dentro del celular; las imágenes del escaneo no se guardan.</li>
+    <li><strong>Micrófono:</strong> solo mientras la persona dicta. La voz la convierte en texto el servicio de
+    reconocimiento de voz del propio celular (según el celular, puede usar internet). SIGTEC no graba ni guarda el
+    audio; solo recibe el texto, y ese texto se guarda únicamente si la persona guarda el formulario.</li>
+    <li><strong>Huella o bloqueo de pantalla:</strong> para desbloquear la app y confirmar cierres. Android solo le
+    dice a la app si la verificación fue correcta; la app no recibe ni guarda ningún dato biométrico.</li>
+    <li><strong>Notificaciones:</strong> para avisar al técnico de una incidencia nueva asignada. Los avisos los genera
+    el propio celular.</li>
+  </ul>
+
+  <h2>Con quién se comparten</h2>
+  <p>Con nadie fuera del área. No hay publicidad, no se venden datos y no se usan para perfiles comerciales. Google
+  procesa los datos como proveedor de Firebase, según sus propias condiciones.</p>
+
+  <h2>Cuánto tiempo se guardan y cómo borrarlos</h2>
+  <p>Los datos del servidor se conservan mientras la cuenta exista, porque forman el historial de los equipos. Las
+  cuentas no se crean desde la app: para dar de baja una cuenta y sus datos personales, se pide al jefe del área de
+  Soporte y Sistemas. Cerrar sesión en la app borra todos los datos guardados en ese celular.</p>
+
+  <h2>Cambios y contacto</h2>
+  <p>Si esta política cambia, se actualiza esta página con su nueva fecha. Para cualquier consulta, escribir al
+  correo de contacto que figura en la ficha de SIGTEC en Google Play.</p>
+</main>
+</body>
+</html>
