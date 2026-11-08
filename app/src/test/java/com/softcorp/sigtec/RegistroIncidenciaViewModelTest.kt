@@ -162,4 +162,41 @@ class RegistroIncidenciaViewModelTest {
 
         assertNull(vm.ui.error)
     }
+
+    // HU-10 (specs/010-dictado-linterna)
+
+    @Test
+    fun `lo dictado en una descripcion vacia queda tal cual`() = runTest {
+        val vm = nuevoVm()
+
+        vm.alRecibirDictado("No enciende tras el corte de luz")
+
+        assertEquals("No enciende tras el corte de luz", vm.ui.descripcion)   // RF-1011
+    }
+
+    @Test
+    fun `lo dictado se agrega al final de lo escrito`() = runTest {
+        val vm = nuevoVm()
+        vm.alCambiarDescripcion("No enciende.")
+
+        vm.alRecibirDictado("Huele a quemado")
+
+        assertEquals("No enciende. Huele a quemado", vm.ui.descripcion)   // RF-1011, D-3
+    }
+
+    @Test
+    fun `durante el guardado lo dictado no cambia la descripcion`() = runTest {
+        val vm = nuevoVm()
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")
+        vm.alCambiarCodigo("PC-CONT-014")
+        vm.alCambiarDescripcion("No enciende")
+        vm.alCambiarResponsable("María Quispe")
+        vm.guardar()
+        main.dispatcher.scheduler.runCurrent()
+        assertTrue(vm.ui.guardando)
+
+        vm.alRecibirDictado("Huele a quemado")
+
+        assertEquals("No enciende", vm.ui.descripcion)   // RF-1002
+    }
 }

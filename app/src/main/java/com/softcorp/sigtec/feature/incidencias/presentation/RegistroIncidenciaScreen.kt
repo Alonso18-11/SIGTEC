@@ -36,15 +36,21 @@ private val formatoFecha = DateTimeFormatter.ofPattern("dd/MM/yyyy · HH:mm")
 
 private const val LINEAS_DESCRIPCION = 4
 
+/** HU-10 (RF-1003): «Nueva incidencia», con el código del equipo si ya está escrito. */
+private fun subtituloDictado(codigo: String): String =
+    codigo.trim().uppercase().let { if (it.isEmpty()) "Nueva incidencia" else "Nueva incidencia · $it" }
+
 private val AnchoEtiquetaDato = 148.dp
 
 @Composable
 fun RegistroIncidenciaRoute(
     codigoEscaneado: String?,
     alConsumirCodigo: () -> Unit,
+    textoDictado: String?,
+    alConsumirDictado: () -> Unit,
     alVolver: () -> Unit,
     alEscanear: () -> Unit,
-    alDictar: () -> Unit,
+    alDictar: (subtitulo: String) -> Unit,
     alRegistrarse: (String) -> Unit,
     vm: RegistroIncidenciaViewModel = hiltViewModel()
 ) {
@@ -55,6 +61,14 @@ fun RegistroIncidenciaRoute(
         codigoEscaneado?.let { codigo ->
             vm.alUsarCodigoEscaneado(codigo)
             alConsumirCodigo()
+        }
+    }
+
+    // HU-10 (RF-1011): igual que el código, se aplica una sola vez y se borra
+    LaunchedEffect(textoDictado) {
+        textoDictado?.let { texto ->
+            vm.alRecibirDictado(texto)
+            alConsumirDictado()
         }
     }
 
@@ -72,7 +86,7 @@ fun RegistroIncidenciaRoute(
         alCambiarDescripcion = vm::alCambiarDescripcion,
         alCambiarResponsable = vm::alCambiarResponsable,
         alEscanear = alEscanear,
-        alDictar = alDictar,
+        alDictar = { alDictar(subtituloDictado(estado.codigoEquipo)) },
         alGuardar = vm::guardar
     )
 }
