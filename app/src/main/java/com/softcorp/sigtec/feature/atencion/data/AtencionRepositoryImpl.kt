@@ -6,6 +6,7 @@ import com.softcorp.sigtec.core.database.SigtecDatabase
 import com.softcorp.sigtec.core.database.dao.IncidenciaDao
 import com.softcorp.sigtec.core.database.dao.InformeTecnicoDao
 import com.softcorp.sigtec.core.database.dao.MovimientoDao
+import com.softcorp.sigtec.core.database.dao.SolicitudRepuestoDao
 import com.softcorp.sigtec.core.database.entity.toDomain
 import com.softcorp.sigtec.core.database.entity.toEntity
 import com.softcorp.sigtec.core.di.IoDispatcher
@@ -14,6 +15,7 @@ import com.softcorp.sigtec.core.domain.Resultado
 import com.softcorp.sigtec.core.domain.model.Incidencia
 import com.softcorp.sigtec.core.domain.model.InformeTecnico
 import com.softcorp.sigtec.core.domain.model.Movimiento
+import com.softcorp.sigtec.core.domain.model.SolicitudRepuesto
 import com.softcorp.sigtec.feature.atencion.domain.AtencionRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -29,6 +31,7 @@ class AtencionRepositoryImpl @Inject constructor(
     private val incidenciaDao: IncidenciaDao,
     private val movimientoDao: MovimientoDao,
     private val informeTecnicoDao: InformeTecnicoDao,
+    private val solicitudRepuestoDao: SolicitudRepuestoDao,
     @IoDispatcher private val io: CoroutineDispatcher
 ) : AtencionRepository {
 
@@ -58,6 +61,29 @@ class AtencionRepositoryImpl @Inject constructor(
                 throw e
             } catch (e: Exception) {
                 Log.w(TAG, "Error al cerrar la incidencia ${incidencia.id}", e)
+                Resultado.Error(ErrorDominio.Desconocido(e.message))
+            }
+        }
+
+    // HU-11 (RF-1115): o se guardan las tres cosas, o ninguna
+    override suspend fun solicitarRepuesto(
+        incidencia: Incidencia,
+        movimiento: Movimiento,
+        solicitud: SolicitudRepuesto,
+        ahora: Instant
+    ): Resultado<Unit> =
+        withContext(io) {
+            try {
+                db.withTransaction {
+                    incidenciaDao.guardar(incidencia.toEntity(pendienteSincronizar = true, actualizadoEn = ahora))
+                    movimientoDao.guardar(movimiento.toEntity(pendienteSincronizar = true))
+                    solicitudRepuestoDao.guardar(solicitud.toEntity(pendienteSincronizar = true, actualizadoEn = ahora))
+                }
+                Resultado.Exito(Unit)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.w(TAG, "Error al guardar la solicitud de repuesto de ${incidencia.id}", e)
                 Resultado.Error(ErrorDominio.Desconocido(e.message))
             }
         }
