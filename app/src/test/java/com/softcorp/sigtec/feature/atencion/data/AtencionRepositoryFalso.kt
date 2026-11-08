@@ -103,4 +103,41 @@ class AtencionRepositoryFalso(var fallar: Boolean = false) : AtencionRepository 
     fun cargarSolicitudes(solicitudes: List<SolicitudRepuesto>) {
         _solicitudes.value = solicitudes
     }
+
+    private val _ultimaConsulta = MutableStateFlow<Instant?>(null)
+
+    /** Cada consulta a Logística registrada: el instante y si fue correcta. */
+    val consultas = mutableListOf<Pair<Instant, Boolean>>()
+
+    override suspend fun solicitudesSinEntregarDe(tecnicoId: String): List<SolicitudRepuesto> =
+        _solicitudes.value.filter {
+            it.solicitadoPorId == tecnicoId && it.numeroLogistica != null && !it.rechazadaPorLogistica &&
+                it.estadoEntrega != com.softcorp.sigtec.core.domain.model.EstadoEntrega.ENTREGADO
+        }
+
+    override suspend fun contarSinEntregarDe(incidenciaId: String): Int =
+        _solicitudes.value.count {
+            it.incidenciaId == incidenciaId && !it.rechazadaPorLogistica &&
+                it.estadoEntrega != com.softcorp.sigtec.core.domain.model.EstadoEntrega.ENTREGADO
+        }
+
+    override suspend fun aplicarEstado(
+        solicitud: SolicitudRepuesto,
+        incidencia: Incidencia?,
+        movimiento: Movimiento?,
+        ahora: Instant
+    ): Resultado<Unit> {
+        if (fallar) return Resultado.Error(ErrorDominio.Desconocido("fallo simulado"))
+        _solicitudes.update { lista -> lista.map { if (it.id == solicitud.id) solicitud else it } }
+        incidencia?.let { nueva -> _incidencias.update { lista -> lista.map { if (it.id == nueva.id) nueva else it } } }
+        movimiento?.let { m -> _movimientos.update { it + m } }
+        return Resultado.Exito(Unit)
+    }
+
+    override suspend fun registrarConsultaLogistica(ahora: Instant, exitosa: Boolean) {
+        consultas += ahora to exitosa
+        if (exitosa) _ultimaConsulta.value = ahora
+    }
+
+    override fun observarUltimaConsultaLogistica(): Flow<Instant?> = _ultimaConsulta
 }
