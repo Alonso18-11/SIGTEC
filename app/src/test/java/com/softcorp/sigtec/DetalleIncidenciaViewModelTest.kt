@@ -64,6 +64,21 @@ class DetalleIncidenciaViewModelTest {
         tecnicoAsignadoId = "demo-lramirez", tecnicoAsignadoNombre = "Luis Ramírez"
     )
 
+    // HU-11 (RF-1120): el detalle muestra las solicitudes a cualquier perfil
+    private fun TestScope.nuevoVmConSolicitudes(solicitudes: List<com.softcorp.sigtec.core.domain.model.SolicitudRepuesto>): DetalleIncidenciaViewModel {
+        val repo = IncidenciaRepositoryFalso().also { it.cargar(listOf(incidencia), solicitudes = solicitudes) }
+        val vm = DetalleIncidenciaViewModel(
+            SavedStateHandle(mapOf(DetalleIncidenciaViewModel.ARG_INCIDENCIA_ID to incidencia.id)),
+            ObservarDetalleIncidencia(repo),
+            ObservarUsuarioActual(sesion),
+            IniciarAtencion(VerificarPermiso(sesion), repo),
+            EliminarEvidencia(VerificarPermiso(sesion), EvidenciaRepositoryFalso()),
+            linterna
+        )
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.estado.collect {} }
+        return vm
+    }
+
     private fun TestScope.nuevoVm(
         id: String = "c",
         inc: Incidencia = incidencia
@@ -400,5 +415,22 @@ class DetalleIncidenciaViewModelTest {
         linterna.apagarDesdeFuera()
 
         assertFalse(vm.estado.value.linternaEncendida)   // RF-1029
+    }
+
+    // HU-11 (specs/011-solicitud-repuestos)
+
+    private fun solicitud(id: String, minutos: Long) = com.softcorp.sigtec.core.domain.model.SolicitudRepuesto(
+        id = id, incidenciaId = "c", pieza = "Pieza $id", motivo = "Motivo",
+        fechaSolicitud = t0.plusSeconds(minutos * 60), confirmadoEn = t0.plusSeconds(minutos * 60),
+        estadoEntrega = com.softcorp.sigtec.core.domain.model.EstadoEntrega.POR_DESPACHAR,
+        solicitadoPorId = "demo-lramirez", solicitadoPorNombre = "Luis Ramírez"
+    )
+
+    @Test
+    fun `las solicitudes llegan al detalle de la mas reciente a la mas antigua para cualquier perfil`() = runTest {
+        sesion.iniciarSesion("cmendoza@softcorp.pe", "")   // el jefe tambien las ve
+        val vm = nuevoVmConSolicitudes(listOf(solicitud("a", 1), solicitud("b", 5), solicitud("otra", 9).copy(incidenciaId = "x")))
+
+        assertEquals(listOf("b", "a"), vm.estado.value.detalle!!.solicitudes.map { it.id })   // RF-1120
     }
 }
