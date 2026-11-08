@@ -6,6 +6,7 @@ import com.softcorp.sigtec.core.domain.ErrorDominio
 import com.softcorp.sigtec.core.domain.Resultado
 import com.softcorp.sigtec.core.domain.usecase.ObservarUsuarioActual
 import com.softcorp.sigtec.feature.incidencias.domain.RegistrarIncidencia
+import com.softcorp.sigtec.feature.captura.domain.unirTexto
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -60,6 +61,11 @@ class RegistroIncidenciaViewModel @Inject constructor(
         formulario.update { it.copy(codigoEquipo = codigo, codigoLeidoConCamara = true, error = null) }
 
     fun alCambiarDescripcion(valor: String) = formulario.update { it.copy(descripcion = valor, error = null) }
+
+    /** HU-10 (RF-1011): lo dictado se agrega al final de la descripción; durante el guardado no cambia nada (RF-1002). */
+    fun alRecibirDictado(texto: String) = formulario.update {
+        if (it.guardando) it else it.copy(descripcion = unirTexto(it.descripcion, texto), error = null)
+    }
 
     fun alCambiarResponsable(valor: String) = formulario.update { it.copy(responsable = valor, error = null) }
 

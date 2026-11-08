@@ -1,11 +1,17 @@
 package com.softcorp.sigtec.feature.atencion.presentation
 
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.softcorp.sigtec.core.navigation.Ruta
 import com.softcorp.sigtec.core.ui.components.PantallaEnConstruccion
+import com.softcorp.sigtec.feature.captura.domain.CampoDictado
+import com.softcorp.sigtec.feature.captura.presentation.claveDictado
+
+// HU-10 (D-2): los campos del informe con micrófono
+private val CAMPOS_INFORME = listOf(CampoDictado.DIAGNOSTICO, CampoDictado.SOLUCION, CampoDictado.OBSERVACIONES)
 
 fun NavGraphBuilder.atencionGraph(navController: NavController) {
     composable<Ruta.MisTareas> {
@@ -23,11 +29,19 @@ fun NavGraphBuilder.atencionGraph(navController: NavController) {
     }
     composable<Ruta.RegistrarInforme> { entrada ->
         val id = entrada.toRoute<Ruta.RegistrarInforme>().incidenciaId
+        // HU-10 (RF-1010): «Dictar» deja el texto con la clave de su campo
+        val textosDictados = CAMPOS_INFORME.associateWith { campo ->
+            entrada.savedStateHandle.getStateFlow<String?>(claveDictado(campo), null)
+                .collectAsStateWithLifecycle().value
+        }
         InformeTecnicoRoute(
             alVolver = { navController.popBackStack() },
             alCerrar = { navController.popBackStack() },
             // RF-938: el informe sigue en la pila con su ViewModel, así que al volver conserva lo escrito
-            alAgregarFoto = { navController.navigate(Ruta.CapturarEvidencia(id)) }
+            alAgregarFoto = { navController.navigate(Ruta.CapturarEvidencia(id)) },
+            textosDictados = textosDictados,
+            alConsumirDictado = { campo -> entrada.savedStateHandle[claveDictado(campo)] = null },
+            alDictar = { campo, subtitulo -> navController.navigate(Ruta.DictarTexto(campo.name, subtitulo)) }
         )
     }
     composable<Ruta.EstadoRepuestos> {
