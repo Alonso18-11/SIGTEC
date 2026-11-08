@@ -17,7 +17,7 @@ private val EsquemaClaro = lightColorScheme(
     tertiaryContainer = ContenedorTerciarioClaro, onTertiaryContainer = SobreContenedorTerciarioClaro,
     error = ErrorClaro, onError = SobreErrorClaro,
     errorContainer = ContenedorErrorClaro, onErrorContainer = SobreContenedorErrorClaro,
-    background = SuperficieClaro, onBackground = SobreSuperficieClaro,
+    background = FondoClaro, onBackground = SobreSuperficieClaro,
     surface = SuperficieClaro, onSurface = SobreSuperficieClaro,
     surfaceVariant = VarianteSuperficieClaro, onSurfaceVariant = SobreVarianteSuperficieClaro,
     outline = ContornoClaro, outlineVariant = VarianteContornoClaro,
@@ -37,7 +37,7 @@ private val EsquemaOscuro = darkColorScheme(
     tertiaryContainer = ContenedorTerciarioOscuro, onTertiaryContainer = SobreContenedorTerciarioOscuro,
     error = ErrorOscuro, onError = SobreErrorOscuro,
     errorContainer = ContenedorErrorOscuro, onErrorContainer = SobreContenedorErrorOscuro,
-    background = SuperficieOscuro, onBackground = SobreSuperficieOscuro,
+    background = FondoOscuro, onBackground = SobreSuperficieOscuro,
     surface = SuperficieOscuro, onSurface = SobreSuperficieOscuro,
     surfaceVariant = VarianteSuperficieOscuro, onSurfaceVariant = SobreVarianteSuperficieOscuro,
     outline = ContornoOscuro, outlineVariant = VarianteContornoOscuro,
@@ -48,16 +48,17 @@ private val EsquemaOscuro = darkColorScheme(
     surfaceContainerHighest = ContenedorMasAltoOscuro
 )
 
+/** Tema de SIGTEC. Sin color dinámico: los colores son siempre los de la marca (CLAUDE.md). */
 @Composable
 fun SigtecTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-
     val esquema = if (darkTheme) EsquemaOscuro else EsquemaClaro
     val estados = if (darkTheme) EstadosOscuro else EstadosClaro
+    val marca = if (darkTheme) MarcaOscuro else MarcaClaro
 
-    CompositionLocalProvider(LocalColoresEstado provides estados) {
+    CompositionLocalProvider(LocalColoresEstado provides estados, LocalColoresMarca provides marca) {
         MaterialTheme(
             colorScheme = esquema,
             typography = Tipografia,
@@ -71,4 +72,9 @@ object SigtecTheme {
     val estados: ColoresEstado
         @Composable @ReadOnlyComposable
         get() = LocalColoresEstado.current
+
+    /** hero, acento y sobreAcento (DESIGN.md, sección 3). */
+    val marca: ColoresMarca
+        @Composable @ReadOnlyComposable
+        get() = LocalColoresMarca.current
 }

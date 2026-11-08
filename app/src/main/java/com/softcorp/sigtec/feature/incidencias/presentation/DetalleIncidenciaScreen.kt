@@ -474,19 +474,21 @@ private fun BarraAcciones(estado: DetalleIncidenciaUiState, acciones: AccionesDe
                     }
                 }
                 if (estado.puedeAtender) {
+                    // Retema v2 (prototipo 05): «Repuesto» más angosto y «Cerrar con informe» más ancho; con la
+                    // tipografía v2, los dos textos largos no cabían en dos columnas iguales
                     Row(horizontalArrangement = Arrangement.spacedBy(Espaciado.s)) {
                         BotonSecundario(onClick = acciones.alSolicitarRepuesto, modifier = Modifier.weight(1f)) {
                             IconoBoton(Icons.Outlined.Inventory2)
-                            Text("Solicitar repuesto", maxLines = 1)
+                            Text("Repuesto", maxLines = 1)
                         }
                         val contenidoCerrar: @Composable RowScope.() -> Unit = {
                             IconoBoton(Icons.Outlined.Check)
                             Text("Cerrar con informe", maxLines = 1)
                         }
                         if (estado.puedeIniciarAtencion) {
-                            BotonSecundario(onClick = acciones.alCerrar, modifier = Modifier.weight(1f), content = contenidoCerrar)
+                            BotonSecundario(onClick = acciones.alCerrar, modifier = Modifier.weight(1.5f), content = contenidoCerrar)
                         } else {
-                            BotonPrincipal(onClick = acciones.alCerrar, modifier = Modifier.weight(1f), content = contenidoCerrar)
+                            BotonPrincipal(onClick = acciones.alCerrar, modifier = Modifier.weight(1.5f), content = contenidoCerrar)
                         }
                     }
                 }

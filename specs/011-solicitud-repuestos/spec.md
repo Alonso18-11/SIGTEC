@@ -22,7 +22,7 @@ Esta HU le permite al técnico asignado consultar desde la incidencia si la piez
 ## Requisitos funcionales (criterios de aceptación en EARS)
 
 ### Abrir la solicitud
-- RF-1101: CUANDO el técnico asignado toca «Solicitar repuesto» en el detalle de una incidencia pendiente, EL SISTEMA abre «Solicitar repuesto» (prototipo 8) con un recuadro «Para la incidencia» (código visible o «Por sincronizar», código del equipo y descripción), el campo «Pieza requerida *», el campo «Motivo *», el aviso «Mientras llega la pieza, la incidencia seguirá Pendiente con la marca «Esperando repuesto» y el conteo de días.» y el botón «Enviar con huella».
+- RF-1101: CUANDO el técnico asignado toca «Repuesto» (antes «Solicitar repuesto», cambiado en el retema v2) en el detalle de una incidencia pendiente, EL SISTEMA abre «Solicitar repuesto» (prototipo 8) con un recuadro «Para la incidencia» (código visible o «Por sincronizar», código del equipo y descripción), el campo «Pieza requerida *», el campo «Motivo *», el aviso «Mientras llega la pieza, la incidencia seguirá Pendiente con la marca «Esperando repuesto» y el conteo de días.» y el botón «Enviar con huella».
 - RF-1102: EL SISTEMA solo deja solicitar repuestos al técnico asignado y mientras la incidencia esté pendiente (marcas Asignada, En atención o Esperando repuesto). Lo verifica en el dominio con `VerificarPermiso(ATENDER_INCIDENCIA)` y comparando el técnico asignado con quien tiene la sesión; si no se cumple, devuelve `SinPermiso` o `IncidenciaCerrada` (errores que ya existen) y no guarda nada.
 - RF-1103: Una incidencia puede tener varias solicitudes; pedir una pieza más con otra ya en camino está permitido.
 
@@ -99,7 +99,7 @@ Esta HU le permite al técnico asignado consultar desde la incidencia si la piez
   - Como técnico asignado, buscar una pieza con stock y otra sin stock, enviar con huella y ver la marca «Esperando repuesto», el movimiento y la sección «Repuestos» del detalle; comprobar en MockAPI.io que la solicitud llegó.
   - En modo avión, enviar una solicitud, ver «Por enviar a Logística» y comprobar que se registra sola al volver la conexión.
   - Cambiar a mano el estado en MockAPI.io a «En camino» y luego «Entregado», actualizar «Estado de repuestos» y ver que la incidencia vuelve a «En atención».
-  - Como jefe, ver la sección «Repuestos» del detalle y comprobar que no aparece «Solicitar repuesto».
+  - Como jefe, ver la sección «Repuestos» del detalle y comprobar que no aparece «Repuesto».
 - La línea de la HU-11 en `MEMORY.md` dice «completa».
 
 ## Decisiones
