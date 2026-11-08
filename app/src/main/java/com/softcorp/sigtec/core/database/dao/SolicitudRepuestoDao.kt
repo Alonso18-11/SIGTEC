@@ -71,6 +71,25 @@ interface SolicitudRepuestoDao {
     @Query("SELECT * FROM solicitudes_repuesto WHERE pendienteSincronizar = 1")
     suspend fun pendientesDeSincronizar(): List<SolicitudRepuestoEntity>
 
-    @Query("UPDATE solicitudes_repuesto SET pendienteSincronizar = 0 WHERE id = :id")
-    suspend fun marcarSincronizada(id: String)
+    // RF-1118: como el informe técnico, solo sube cuando su incidencia ya está en el servidor
+    @Query("""
+        SELECT s.* FROM solicitudes_repuesto s LEFT JOIN incidencias i ON i.id = s.incidenciaId
+        WHERE s.pendienteSincronizar = 1 AND s.necesitaAtencion = 0
+          AND (i.id IS NULL OR (i.pendienteSincronizar = 0 AND i.necesitaAtencion = 0))
+    """)
+    suspend fun listosParaSubir(): List<SolicitudRepuestoEntity>
+
+    @Query("SELECT COUNT(*) FROM solicitudes_repuesto WHERE pendienteSincronizar = 1")
+    fun observarPendientes(): Flow<Int>
+
+    // Si cambió mientras se subía (por ejemplo, llegó el número de Logística), sigue pendiente
+    @Query("""
+        UPDATE solicitudes_repuesto SET pendienteSincronizar = 0
+        WHERE id = :id AND actualizadoEn = :actualizadoEn
+    """)
+    suspend fun marcarSincronizada(id: String, actualizadoEn: Instant): Int
+
+    // Firestore la rechazó de forma permanente: ya no se reintenta, como el informe técnico (RF-825)
+    @Query("UPDATE solicitudes_repuesto SET pendienteSincronizar = 0, necesitaAtencion = 1 WHERE id = :id")
+    suspend fun marcarNecesitaAtencion(id: String)
 }

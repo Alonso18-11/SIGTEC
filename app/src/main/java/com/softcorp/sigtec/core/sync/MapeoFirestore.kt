@@ -6,7 +6,9 @@ import com.softcorp.sigtec.core.database.entity.EquipoEntity
 import com.softcorp.sigtec.core.database.entity.IncidenciaEntity
 import com.softcorp.sigtec.core.database.entity.InformeTecnicoEntity
 import com.softcorp.sigtec.core.database.entity.MovimientoEntity
+import com.softcorp.sigtec.core.database.entity.SolicitudRepuestoEntity
 import com.softcorp.sigtec.core.database.entity.TecnicoEntity
+import com.softcorp.sigtec.core.domain.model.EstadoEntrega
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
 import com.softcorp.sigtec.core.domain.model.Prioridad
 import com.softcorp.sigtec.core.domain.model.TipoFalla
@@ -86,6 +88,50 @@ internal fun InformeTecnicoEntity.aFirestore(): Map<String, Any?> = mapOf(
     "fechaCierre" to fechaCierre.aTimestamp(),
     "confirmadoEn" to confirmadoEn.aTimestamp()
 )
+
+// ---------- Solicitudes de repuesto (HU-11) ----------
+
+internal fun SolicitudRepuestoEntity.aFirestore(): Map<String, Any?> = mapOf(
+    "incidenciaId" to incidenciaId,
+    "pieza" to pieza,
+    "motivo" to motivo,
+    "fechaSolicitud" to fechaSolicitud.aTimestamp(),
+    "confirmadoEn" to confirmadoEn.aTimestamp(),
+    "estadoEntrega" to estadoEntrega.name,
+    "solicitadoPorId" to solicitadoPorId,
+    "solicitadoPorNombre" to solicitadoPorNombre,
+    "numeroLogistica" to numeroLogistica,
+    "stockConsultado" to stockConsultado,
+    "diasEnvio" to diasEnvio,
+    "despachadaEn" to despachadaEn?.aTimestamp(),
+    "entregadaEn" to entregadaEn?.aTimestamp(),
+    "llegadaEstimada" to llegadaEstimada?.aTimestamp(),
+    "rechazadaPorLogistica" to rechazadaPorLogistica,
+    "actualizadoEn" to actualizadoEn.aTimestamp()
+)
+
+internal fun DocumentSnapshot.aSolicitudEntity(): SolicitudRepuestoEntity? = runCatching {
+    SolicitudRepuestoEntity(
+        id = id,
+        incidenciaId = getString("incidenciaId")!!,
+        pieza = getString("pieza")!!,
+        motivo = getString("motivo")!!,
+        fechaSolicitud = getTimestamp("fechaSolicitud")!!.toInstant(),
+        confirmadoEn = getTimestamp("confirmadoEn")!!.toInstant(),
+        estadoEntrega = EstadoEntrega.valueOf(getString("estadoEntrega")!!),
+        solicitadoPorId = getString("solicitadoPorId")!!,
+        solicitadoPorNombre = getString("solicitadoPorNombre")!!,
+        numeroLogistica = getString("numeroLogistica"),
+        stockConsultado = getLong("stockConsultado")?.toInt(),
+        diasEnvio = getLong("diasEnvio")?.toInt(),
+        despachadaEn = getTimestamp("despachadaEn")?.toInstant(),
+        entregadaEn = getTimestamp("entregadaEn")?.toInstant(),
+        llegadaEstimada = getTimestamp("llegadaEstimada")?.toInstant(),
+        rechazadaPorLogistica = getBoolean("rechazadaPorLogistica") ?: false,
+        pendienteSincronizar = false,
+        actualizadoEn = getTimestamp("actualizadoEn")?.toInstant() ?: Instant.EPOCH
+    )
+}.getOrNull()
 
 // ---------- Catálogo ----------
 

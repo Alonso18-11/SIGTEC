@@ -12,6 +12,7 @@ import com.softcorp.sigtec.core.database.dao.CatalogoDao
 import com.softcorp.sigtec.core.database.dao.IncidenciaDao
 import com.softcorp.sigtec.core.database.dao.MovimientoDao
 import com.softcorp.sigtec.core.database.dao.SincronizacionDao
+import com.softcorp.sigtec.core.database.dao.SolicitudRepuestoDao
 import com.softcorp.sigtec.core.database.entity.SincronizacionEntity
 import com.softcorp.sigtec.core.database.entity.toDomain
 import com.softcorp.sigtec.core.di.ApplicationScope
@@ -38,6 +39,7 @@ class SincronizacionTiempoReal @Inject constructor(
     private val movimientoDao: MovimientoDao,
     private val catalogoDao: CatalogoDao,
     private val sincronizacionDao: SincronizacionDao,
+    private val solicitudRepuestoDao: SolicitudRepuestoDao,
     private val programador: ProgramadorSincronizacion,
     private val reloj: Reloj,
     private val notificador: NotificadorAsignaciones,
@@ -68,6 +70,8 @@ class SincronizacionTiempoReal @Inject constructor(
                                 escuchar("incidencias", { snap -> guardarIncidencias(snap, uid) }),
                                 escuchar("movimientos", ::guardarMovimientos),
                                 escuchar("equipos", ::guardarEquipos),
+                                // HU-11 (RF-1120): el detalle muestra las solicitudes de repuesto a todos los perfiles
+                                escuchar("solicitudesRepuesto", ::guardarSolicitudes),
                                 // RF-619 (HU-06): solo los técnicos; quien deja de serlo llega como REMOVED
                                 escuchar(
                                     "usuarios", ::guardarTecnicos,
@@ -127,6 +131,16 @@ class SincronizacionTiempoReal @Inject constructor(
         }
     }
 
+    private suspend fun guardarSolicitudes(snap: QuerySnapshot) {
+        for (cambio in snap.documentChanges) {
+            if (cambio.type == DocumentChange.Type.REMOVED) continue
+            val documento = cambio.document
+            if (documento.metadata.hasPendingWrites()) continue   // cambio propio aún sin confirmar
+            val remota = documento.aSolicitudEntity() ?: continue
+            if (debeReemplazarSolicitud(solicitudRepuestoDao.porId(remota.id), remota)) solicitudRepuestoDao.guardar(remota)
+        }
+    }
+
     // RF-41: /equipos es de solo lectura, sin lógica de conflictos ni pendientes de sincronizar.
     private suspend fun guardarEquipos(snap: QuerySnapshot) {
         val nuevos = snap.documentChanges
@@ -144,8 +158,13 @@ class SincronizacionTiempoReal @Inject constructor(
     }
 
     private fun vigilarPendientes(): Flow<Unit> =
-        combine(incidenciaDao.observarPendientes(), movimientoDao.observarPendientes()) { i, m ->
-            i + m > 0
+        // HU-11: también las solicitudes, que quedan pendientes solas cuando llega el número de Logística
+        combine(
+            incidenciaDao.observarPendientes(),
+            movimientoDao.observarPendientes(),
+            solicitudRepuestoDao.observarPendientes()
+        ) { i, m, s ->
+            i + m + s > 0
         }
             .distinctUntilChanged()
             .filter { it }
