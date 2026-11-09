@@ -1,5 +1,7 @@
 package com.softcorp.sigtec.feature.inicio.presentation
 
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -106,6 +108,8 @@ fun InicioScreen(
     val resumen = estado.resumen
     IconosBarraEstadoClaros()   // la cabecera oscura queda detrás de la barra de estado
     val desplazamiento = rememberScrollState()
+    // Solo cambia al cruzar el cero, no en cada píxel del desplazamiento
+    val desplazado by remember { derivedStateOf { desplazamiento.value > 0 } }
     Box(Modifier.fillMaxSize()) {
     Column(
         Modifier
@@ -124,7 +128,7 @@ fun InicioScreen(
             }
         }
     }
-    FondoBarraEstado(visible = desplazamiento.value > 0)
+    FondoBarraEstado(visible = desplazado)
     }
 }
 
