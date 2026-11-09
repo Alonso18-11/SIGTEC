@@ -66,11 +66,12 @@ fun DiccionarioRoute(
     vm: DiccionarioViewModel = hiltViewModel()
 ) {
     val estado by vm.estado.collectAsStateWithLifecycle()
+    val texto by vm.texto.collectAsStateWithLifecycle()
     val avisos = remember { SnackbarHostState() }
     // RF-1313: «Falla registrada en el diccionario» al volver del formulario
     LaunchedEffect(aviso) { aviso?.let { avisos.showSnackbar(it) } }
     DiccionarioScreen(
-        estado = estado,
+        estado = estado.copy(texto = texto),
         avisos = avisos,
         alBuscar = vm::alBuscar,
         alFiltrarTipo = vm::alFiltrarTipo,
