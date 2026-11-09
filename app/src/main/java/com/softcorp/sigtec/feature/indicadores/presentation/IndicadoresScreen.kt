@@ -149,10 +149,11 @@ private fun Cabecera(estado: IndicadoresUiState) {
 
 @Composable
 private fun TituloTarjeta(texto: String, detalle: String? = null) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espaciado.s)) {
+    // El detalle va debajo: junto al título lo partía en dos líneas en celulares angostos
+    Column {
         Text(texto, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { heading() })
         detalle?.let {
-            Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
