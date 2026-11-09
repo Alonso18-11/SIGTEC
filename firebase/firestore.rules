@@ -119,10 +119,30 @@ service cloud.firestore {
     }
 
     // ---------- Diccionario ----------
+    // HU-13 (RF-1323): solo un técnico, a su nombre, con los campos de RF-1320 y sin campos extra
+    function textoLleno(campo) {
+      return request.resource.data[campo] is string && request.resource.data[campo].trim().size() > 0;
+    }
+    function fallaValida() {
+      let d = request.resource.data;
+      return d.keys().hasOnly(['titulo', 'sintomas', 'componente', 'tipo', 'solucion', 'autorId',
+                               'autorNombre', 'incidenciaOrigenId', 'registradaEn'])
+        && d.keys().hasAll(['titulo', 'sintomas', 'componente', 'tipo', 'solucion', 'autorId',
+                            'autorNombre', 'registradaEn'])
+        && textoLleno('titulo') && textoLleno('sintomas') && textoLleno('componente')
+        && textoLleno('solucion') && textoLleno('autorNombre')
+        && d.tipo in ['HARDWARE', 'SOFTWARE', 'RED']
+        && d.autorId == request.auth.uid
+        && (d.get('incidenciaOrigenId', null) == null || d.incidenciaOrigenId is string)
+        && d.registradaEn is timestamp;
+    }
+
     match /fallas/{id} {
       allow read: if autenticado();
-      allow create: if esTecnico();
-      allow update, delete: if false;
+      allow create: if esTecnico() && fallaValida();
+      // D-4: no se editan. Solo se acepta volver a subir exactamente lo mismo (un reintento de la subida)
+      allow update: if esTecnico() && request.resource.data == resource.data;
+      allow delete: if false;
     }
 
     // ---------- Catálogo ----------
