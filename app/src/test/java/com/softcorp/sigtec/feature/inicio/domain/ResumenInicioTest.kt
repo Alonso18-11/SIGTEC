@@ -60,7 +60,7 @@ class ResumenInicioTest {
 
     @Test
     fun `el jefe ve todo el area`() {
-        val r = calcularResumen(carlos, incidencias)
+        val r = calcularResumen(carlos, incidencias, ahora = t0.plusSeconds(86_400))
 
         assertEquals(VistaInicio.JEFE, r.vista)
         assertEquals(
@@ -139,5 +139,13 @@ class ResumenInicioTest {
         assertEquals("Buenas tardes", saludo(12))
         assertEquals("Buenas tardes", saludo(18))
         assertEquals("Buenas noches", saludo(19))
+    }
+
+    // HU-15 (D-1): crítica también la pendiente hace más de 5 días, como en el tablero
+    @Test
+    fun `para el jefe tambien es critica la pendiente hace mas de cinco dias`() {
+        val r = calcularResumen(carlos, incidencias, ahora = t0.plusSeconds(10 * 86_400))
+        // todas las pendientes tienen más de 5 días (las de 1 y 3 días también): 8 pendientes; la cerrada no cuenta
+        assertEquals(8, r.metricas.first { it.tipo == TipoMetrica.CRITICAS }.valor)
     }
 }

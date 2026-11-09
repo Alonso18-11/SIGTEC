@@ -23,7 +23,7 @@ El perfil se decide por permisos (`perfil.puede(...)`), nunca comparando el perf
 
 ### Métricas por perfil
 - RF-I4: Técnico: «Asignadas» (marca Asignada), «En atención» (En atención, en `acento`) y «Esperando repuesto». Cuenta solo las incidencias asignadas a él que no estén cerradas. Tocar cualquiera abre «Mis tareas».
-- RF-I5: Jefe: «Sin asignar» (en `acento`), «En atención» y «Críticas» (pendientes con la marca de crítica, en la variante crítica si hay alguna). Cuenta todas las incidencias del área. Tocar cualquiera abre la lista de incidencias.
+- RF-I5: Jefe: «Sin asignar» (en `acento`), «En atención» y «Críticas» (pendientes hace más de 5 días o con la marca de crítica, la misma regla que el tablero de la HU-15; en la variante crítica si hay alguna). Cuenta todas las incidencias del área. Tocar cualquiera abre la lista de incidencias.
 - RF-I6: Personal de sistemas: «Pendientes» (las que registró y no están cerradas, en `acento`), «En atención» (las que registró y alguien está atendiendo) y «Solucionadas» (las que registró y están cerradas). Tocar cualquiera abre la lista.
 
 ### Contenido debajo de la cabecera
