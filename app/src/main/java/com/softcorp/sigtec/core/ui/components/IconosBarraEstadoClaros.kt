@@ -1,5 +1,13 @@
 package com.softcorp.sigtec.core.ui.components
 
+import com.softcorp.sigtec.core.theme.SigtecTheme
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.windowInsetsTopHeight
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
 import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
@@ -23,3 +31,18 @@ fun IconosBarraEstadoClaros() {
         onDispose { controlador?.isAppearanceLightStatusBars = !temaOscuro }
     }
 }
+
+/**
+ * Franja del color de la cabecera detrás de la barra de estado. Va encima del contenido que se desplaza, así los íconos
+ * claros siguen visibles cuando la cabecera ya pasó.
+ */
+@Composable
+fun FondoBarraEstado(modifier: Modifier = Modifier) {
+    Box(
+        modifier
+            .fillMaxWidth()
+            .windowInsetsTopHeight(WindowInsets.statusBars)
+            .background(SigtecTheme.marca.hero)
+    )
+}
+
