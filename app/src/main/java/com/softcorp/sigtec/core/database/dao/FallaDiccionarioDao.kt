@@ -32,6 +32,10 @@ interface FallaDiccionarioDao {
     @Query("SELECT COUNT(*) FROM fallas_diccionario WHERE pendienteSincronizar = 1")
     fun observarCantidadPendientes(): Flow<Int>
 
+    // HU-13 (RF-1322): solo para reflejar una falla borrada a mano en la consola de Firebase
+    @Query("DELETE FROM fallas_diccionario WHERE id = :id AND pendienteSincronizar = 0")
+    suspend fun borrarSincronizada(id: String)
+
     @Query("UPDATE fallas_diccionario SET pendienteSincronizar = 0 WHERE id = :id")
     suspend fun marcarSincronizada(id: String)
 }
