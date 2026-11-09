@@ -58,7 +58,6 @@ fun SeccionEvidencias(
         }
         // RF-933: las fotos no se sincronizan, así que en otro celular la incidencia aparece sin ellas
         if (evidencias.isEmpty()) Nota("Sin fotos en este celular.")
-        Nota("Las fotos se guardan solo en el celular que las tomó.")
     }
 }
 
@@ -98,25 +97,25 @@ private val fotosDePrueba = listOf(
     Evidencia("b", "i124", TipoEvidencia.PIEZA_CAMBIADA, "/no-existe/b.jpg", Instant.parse("2026-10-18T15:05:00Z"))
 )
 
-@Preview(name = "Con fotos, técnico asignado · claro", showBackground = true)
+@Preview(name = "Con fotos, técnico asignado, claro", showBackground = true)
 @Composable
 private fun ConFotosClaro() = SigtecTheme {
     Surface { SeccionEvidencias(fotosDePrueba, puedeAgregar = true, {}, {}, Modifier.padding(Espaciado.m)) }
 }
 
-@Preview(name = "Con fotos, otro perfil · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Con fotos, otro perfil, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun ConFotosOscuro() = SigtecTheme(darkTheme = true) {
     Surface { SeccionEvidencias(fotosDePrueba, puedeAgregar = false, {}, {}, Modifier.padding(Espaciado.m)) }
 }
 
-@Preview(name = "Sin fotos · claro", showBackground = true)
+@Preview(name = "Sin fotos, claro", showBackground = true)
 @Composable
 private fun SinFotosClaro() = SigtecTheme {
     Surface { SeccionEvidencias(emptyList(), puedeAgregar = true, {}, {}, Modifier.padding(Espaciado.m)) }
 }
 
-@Preview(name = "Sin fotos · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Sin fotos, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun SinFotosOscuro() = SigtecTheme(darkTheme = true) {
     Surface { SeccionEvidencias(emptyList(), puedeAgregar = false, {}, {}, Modifier.padding(Espaciado.m)) }

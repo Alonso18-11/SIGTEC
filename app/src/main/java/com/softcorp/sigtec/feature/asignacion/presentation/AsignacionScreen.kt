@@ -175,9 +175,9 @@ private fun TarjetaResumen(opciones: OpcionesAsignacion, ahora: Instant) {
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(Modifier.padding(Espaciado.m), verticalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
-            // «INC-0127 · IMP-RRHH-002 · Recursos Humanos»; la oficina se omite si el equipo no está en el catálogo
+            // «INC-0127 - IMP-RRHH-002, Recursos Humanos»; la oficina se omite si el equipo no está en el catálogo
             Text(
-                listOfNotNull(incidencia.codigoParaMostrar(), incidencia.codigoEquipo, opciones.oficina).joinToString(" · "),
+                "${incidencia.codigoParaMostrar()} - ${incidencia.codigoEquipo}" + opciones.oficina?.let { ", $it" }.orEmpty(),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -188,7 +188,7 @@ private fun TarjetaResumen(opciones: OpcionesAsignacion, ahora: Instant) {
                 val clasificacion = listOfNotNull(incidencia.tipoFalla?.etiqueta(), incidencia.prioridad?.etiqueta())
                 if (clasificacion.isNotEmpty()) {
                     Text(
-                        clasificacion.joinToString(" · "),
+                        clasificacion.joinToString(", "),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -368,15 +368,15 @@ private fun estadoDePrueba(
 @Composable
 private fun Previa(estado: AsignacionUiState) = AsignacionScreen(estado, alVolver = {}, alElegir = {}, alAsignar = {})
 
-@Preview(name = "Elegido · claro", showBackground = true)
+@Preview(name = "Elegido, claro", showBackground = true)
 @Composable
 private fun AsignacionElegidoClaro() = SigtecTheme { Previa(estadoDePrueba()) }
 
-@Preview(name = "Elegido · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Elegido, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun AsignacionElegidoOscuro() = SigtecTheme(darkTheme = true) { Previa(estadoDePrueba()) }
 
-@Preview(name = "Reasignar · claro", showBackground = true)
+@Preview(name = "Reasignar, claro", showBackground = true)
 @Composable
 private fun AsignacionReasignar() = SigtecTheme {
     Previa(
@@ -390,7 +390,7 @@ private fun AsignacionReasignar() = SigtecTheme {
     )
 }
 
-@Preview(name = "Por sincronizar · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Por sincronizar, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun AsignacionPorSincronizar() = SigtecTheme(darkTheme = true) {
     Previa(
@@ -402,6 +402,6 @@ private fun AsignacionPorSincronizar() = SigtecTheme(darkTheme = true) {
     )
 }
 
-@Preview(name = "Sin técnicos · claro", showBackground = true)
+@Preview(name = "Sin técnicos, claro", showBackground = true)
 @Composable
 private fun AsignacionSinTecnicos() = SigtecTheme { Previa(estadoDePrueba(tecnicos = emptyList(), elegidoId = null)) }

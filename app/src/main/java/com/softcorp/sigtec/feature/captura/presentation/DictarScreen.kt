@@ -320,7 +320,7 @@ private const val DURACION_LATIDO_MS = 700
 
 private val escuchando = DictadoUiState(
     campo = CampoDictado.DESCRIPCION,
-    subtitulo = "Nueva incidencia · PC-CONT-014",
+    subtitulo = "Nueva incidencia - PC-CONT-014",
     escuchando = true,
     texto = "El equipo no enciende desde el corte de luz de esta mañana.",
     parcial = "No prende ninguna luz del"
@@ -332,33 +332,33 @@ private val detenido = escuchando.copy(
     parcial = ""
 )
 
-private val conError = detenido.copy(campo = CampoDictado.DIAGNOSTICO, subtitulo = "Informe técnico · INC-0124",
+private val conError = detenido.copy(campo = CampoDictado.DIAGNOSTICO, subtitulo = "Informe técnico - INC-0124",
     error = ErrorDictado.SIN_ENTENDER)
 
 @Composable
 private fun Previa(estado: DictadoUiState) = DictarScreen(estado, {}, {}, {}, {})
 
-@Preview(name = "Escuchando · claro", showBackground = true, heightDp = 760)
+@Preview(name = "Escuchando, claro", showBackground = true, heightDp = 760)
 @Composable
 private fun EscuchandoClaro() = SigtecTheme { Previa(escuchando) }
 
-@Preview(name = "Escuchando · oscuro", showBackground = true, heightDp = 760, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Escuchando, oscuro", showBackground = true, heightDp = 760, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun EscuchandoOscuro() = SigtecTheme(darkTheme = true) { Previa(escuchando) }
 
-@Preview(name = "Detenido con texto · claro", showBackground = true, heightDp = 760)
+@Preview(name = "Detenido con texto, claro", showBackground = true, heightDp = 760)
 @Composable
 private fun DetenidoClaro() = SigtecTheme { Previa(detenido) }
 
-@Preview(name = "Detenido con texto · oscuro", showBackground = true, heightDp = 760, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Detenido con texto, oscuro", showBackground = true, heightDp = 760, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun DetenidoOscuro() = SigtecTheme(darkTheme = true) { Previa(detenido) }
 
-@Preview(name = "Error · claro", showBackground = true, heightDp = 760)
+@Preview(name = "Error, claro", showBackground = true, heightDp = 760)
 @Composable
 private fun ErrorClaro() = SigtecTheme { Previa(conError) }
 
-@Preview(name = "Error · oscuro", showBackground = true, heightDp = 760, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Error, oscuro", showBackground = true, heightDp = 760, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun ErrorOscuro() = SigtecTheme(darkTheme = true) { Previa(conError) }
 
@@ -371,18 +371,18 @@ private fun PreviaPermiso(vista: VistaPermiso) = DictarScreen(
     }
 )
 
-@Preview(name = "Permiso de micrófono · claro", showBackground = true, heightDp = 760)
+@Preview(name = "Permiso de micrófono, claro", showBackground = true, heightDp = 760)
 @Composable
 private fun PermisoClaro() = SigtecTheme { PreviaPermiso(VistaPermiso.EXPLICAR) }
 
-@Preview(name = "Permiso de micrófono · oscuro", showBackground = true, heightDp = 760, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Permiso de micrófono, oscuro", showBackground = true, heightDp = 760, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun PermisoOscuro() = SigtecTheme(darkTheme = true) { PreviaPermiso(VistaPermiso.EXPLICAR) }
 
-@Preview(name = "Sin reconocimiento de voz · claro", showBackground = true, heightDp = 760)
+@Preview(name = "Sin reconocimiento de voz, claro", showBackground = true, heightDp = 760)
 @Composable
 private fun SinServicioClaro() = SigtecTheme { PreviaPermiso(VistaPermiso.SIN_RECURSO) }
 
-@Preview(name = "Sin reconocimiento de voz · oscuro", showBackground = true, heightDp = 760, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Sin reconocimiento de voz, oscuro", showBackground = true, heightDp = 760, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun SinServicioOscuro() = SigtecTheme(darkTheme = true) { PreviaPermiso(VistaPermiso.SIN_RECURSO) }

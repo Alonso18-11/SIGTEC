@@ -189,7 +189,7 @@ private fun ParaLaIncidencia(incidencia: Incidencia) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                "${incidencia.codigoVisible ?: POR_SINCRONIZAR} · ${incidencia.codigoEquipo}",
+                "${incidencia.codigoVisible ?: POR_SINCRONIZAR} - ${incidencia.codigoEquipo}",
                 style = MaterialTheme.typography.titleSmall
             )
             Text(
@@ -370,12 +370,12 @@ private class EstadosDePrueba : PreviewParameterProvider<SolicitudRepuestoUiStat
 private fun Previa(estado: SolicitudRepuestoUiState) =
     SolicitudRepuestoScreen(estado, {}, {}, {}, {}, {}, {})
 
-@Preview(name = "Solicitar repuesto · claro", showBackground = true, heightDp = 820)
+@Preview(name = "Solicitar repuesto, claro", showBackground = true, heightDp = 820)
 @Composable
 private fun SolicitudClaro(@PreviewParameter(EstadosDePrueba::class) estado: SolicitudRepuestoUiState) =
     SigtecTheme { Previa(estado) }
 
-@Preview(name = "Solicitar repuesto · oscuro", showBackground = true, heightDp = 820, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Solicitar repuesto, oscuro", showBackground = true, heightDp = 820, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun SolicitudOscuro(@PreviewParameter(EstadosDePrueba::class) estado: SolicitudRepuestoUiState) =
     SigtecTheme(darkTheme = true) { Previa(estado) }

@@ -28,7 +28,7 @@ Esta HU le permite al técnico asignado consultar desde la incidencia si la piez
 
 ### Consultar la disponibilidad (RF-18 del producto)
 - RF-1104: MIENTRAS el técnico escribe en «Pieza requerida», EL SISTEMA consulta el catálogo de piezas de Logística cuando hay al menos 3 letras y el técnico deja de escribir 0,6 segundos, y muestra debajo hasta 5 piezas que coinciden, cada una con su nombre.
-- RF-1105: CUANDO el técnico elige una pieza de la lista, EL SISTEMA escribe su nombre en el campo y muestra su disponibilidad: con stock, «Disponible en almacén · N unidades» con el envío estimado («envío estimado en N días», en singular con 1) y la hora de la consulta («Consultado a Logística hace un momento»), en el color de estado verde; sin stock, «Sin stock en almacén · Logística deberá conseguirla», en el color de estado amarillo (D-3).
+- RF-1105: CUANDO el técnico elige una pieza de la lista, EL SISTEMA escribe su nombre en el campo y muestra su disponibilidad: con stock, «Disponible en almacén: N unidades» con el envío estimado («envío estimado en N días», en singular con 1) y la hora de la consulta («Consultado a Logística hace un momento»), en el color de estado verde; sin stock, «Sin stock en almacén, Logística deberá conseguirla», en el color de estado amarillo (D-3).
 - RF-1106: MIENTRAS la consulta está en curso, EL SISTEMA muestra «Consultando a Logística…» con un indicador de progreso y deja seguir escribiendo; la pantalla nunca se congela (sección 14 del producto). Si el técnico sigue escribiendo, la consulta anterior se cancela y solo cuenta la última.
 - RF-1107: SI ninguna pieza del catálogo coincide, ENTONCES EL SISTEMA muestra «Logística no tiene esa pieza en su catálogo. Puedes solicitarla igual y describirla en el motivo.» y deja enviar.
 - RF-1108: SI la consulta falla por falta de conexión o porque Logística no responde en 10 segundos, ENTONCES EL SISTEMA muestra «No se pudo consultar a Logística. Puedes solicitarla igual; la disponibilidad se confirmará después.» con «Reintentar», y deja enviar (D-2).
@@ -39,7 +39,7 @@ Esta HU le permite al técnico asignado consultar desde la incidencia si la piez
 - RF-1111: CUANDO el técnico pulsa «Enviar con huella», EL SISTEMA muestra el diálogo de Android con el título «Confirma la solicitud de repuesto» y acepta huella o PIN, patrón o contraseña (`rememberVerificadorBiometrico()`, RF-23 del producto).
 - RF-1112: SI el técnico cancela el diálogo o la verificación falla, ENTONCES EL SISTEMA no guarda nada y deja el formulario como estaba.
 - RF-1113: CUANDO la verificación es correcta, EL SISTEMA guarda en una sola transacción de Room la solicitud (id UUID generado en el celular, incidencia, pieza y motivo sin espacios en los extremos, fecha de la solicitud, `confirmadoEn` = instante de la verificación, estado «Por despachar» y la disponibilidad consultada, si la hubo), el movimiento `REPUESTO_SOLICITADO` («Fuente de poder ATX 500 W» como detalle) y la marca «Esperando repuesto» en la incidencia, todo con `pendienteSincronizar = true`. Si la incidencia ya estaba esperando otro repuesto, la marca no cambia.
-- RF-1114: CUANDO el guardado termina, EL SISTEMA vuelve al detalle y muestra «Solicitud registrada · Por enviar a Logística». La solicitud se guarda primero en el celular, así que funciona sin conexión (D-2).
+- RF-1114: CUANDO el guardado termina, EL SISTEMA vuelve al detalle y muestra «Solicitud registrada, por enviar a Logística». La solicitud se guarda primero en el celular, así que funciona sin conexión (D-2).
 - RF-1115: SI Room falla al guardar, ENTONCES EL SISTEMA no guarda ni la solicitud ni el movimiento ni el cambio de marca, muestra «Ocurrió un error inesperado. Inténtalo de nuevo.» y conserva lo escrito.
 - RF-1116: MIENTRAS se guarda, EL SISTEMA mantiene deshabilitado «Enviar con huella», para que un doble toque no registre dos solicitudes.
 
@@ -51,7 +51,7 @@ Esta HU le permite al técnico asignado consultar desde la incidencia si la piez
 ### Ver las solicitudes
 - RF-1120: EL SISTEMA muestra en el detalle de la incidencia, a todos los perfiles, una sección «Repuestos» con cada solicitud: pieza, estado («Por enviar a Logística», «Por despachar», «En camino», «Entregado» o «Rechazada») con su color y texto, fecha de la solicitud y quién la confirmó con huella. Sin solicitudes, la sección no se muestra.
 - RF-1121: CUANDO el técnico toca «Repuestos» en «Mis tareas» (prototipo 7), EL SISTEMA abre «Estado de repuestos» (prototipo 17) con sus solicitudes, de la más reciente a la más antigua, y los filtros «Todos», «Pendientes» y «Entregados».
-- RF-1122: EL SISTEMA muestra cada solicitud con la pieza, el código visible de la incidencia y el del equipo, la etiqueta de estado, una línea de avance de tres pasos (Solicitado, Despachado, Entregado) con sus fechas o el envío estimado, y, mientras no se entregue, los días de espera desde la solicitud con «la demora se atribuye a Logística».
+- RF-1122: EL SISTEMA muestra cada solicitud con la pieza, el código visible de la incidencia y el del equipo, la etiqueta de estado, una línea de avance de tres pasos (Solicitado, Despachado, Entregado) con sus fechas o el envío estimado, y, mientras no se entregue, los días de espera desde la solicitud («4 días de espera»; hasta el retema v2 decía además «la demora se atribuye a Logística», quitado por la regla 2 de redacción).
 - RF-1123: CUANDO el técnico abre «Estado de repuestos» o desliza hacia abajo, EL SISTEMA consulta a Logística el estado de sus solicitudes no entregadas y actualiza los que cambiaron; muestra «Consultado a Logística hoy a las HH:mm» con la hora de la última consulta correcta. Sin conexión muestra lo último guardado con esa hora. La consulta automática diaria es de la HU-18.
 - RF-1124: CUANDO la consulta trae que una solicitud pasó a «Entregado» y era la última sin entregar de su incidencia, EL SISTEMA, en una sola transacción, cambia la marca de la incidencia de «Esperando repuesto» a «En atención» y guarda el movimiento `REPUESTO_RECIBIDO`, para que el técnico retome la reparación (PN-4). Si la incidencia ya no está esperando repuesto (por ejemplo, ya se cerró), solo actualiza la solicitud.
 
@@ -87,7 +87,7 @@ Esta HU le permite al técnico asignado consultar desde la incidencia si la piez
 - Cancelar o editar una solicitud ya enviada.
 - Dictar el motivo con el micrófono: «Dictar» (HU-10) se puede conectar después sin cambiarla.
 - El directorio de colaboradores (HU-12), la otra API con Retrofit.
-- Cambiar el conteo de días de la etiqueta «Esperando repuesto · N días» de las listas, que hoy cuenta desde el registro (D-9).
+- Cambiar el conteo de días de la etiqueta «Esperando repuesto, N días» de las listas, que hoy cuenta desde el registro (D-9).
 
 ## Criterios de finalización
 - RF-1101 a RF-1124 implementados.
@@ -105,13 +105,13 @@ Esta HU le permite al técnico asignado consultar desde la incidencia si la piez
 ## Decisiones
 - D-1 · Servidor de prueba de Logística (RF-1104 a RF-1124). **Aprobada el 2026-11-07:** MockAPI.io en su plan gratuito, con dos recursos: el catálogo de piezas (nombre, stock, días de envío) y las solicitudes (con su estado y fechas). La cuenta y el proyecto los crea el usuario; la app solo conoce la dirección base. Se descartaron my-json-server (ya no responde: error 530 el 2026-11-07) y un JSON en GitHub Pages (solo permite consultar, no registrar).
 - D-2 · Sin conexión (RF-1108, RF-1114, RF-1117). **Aprobada el 2026-11-07:** se puede enviar con huella sin haber consultado; la solicitud queda «Por enviar a Logística» y se registra sola al volver la conexión.
-- D-3 · Sin stock (RF-1105). **Aprobada el 2026-11-07:** se puede solicitar igual, con el aviso «Sin stock en almacén · Logística deberá conseguirla».
+- D-3 · Sin stock (RF-1105). **Aprobada el 2026-11-07:** se puede solicitar igual, con el aviso «Sin stock en almacén, Logística deberá conseguirla».
 - D-4 · «Estado de repuestos» (RF-1121 a RF-1124). **Aprobada el 2026-11-07:** entra en esta HU, con consulta al abrir y al deslizar; la consulta diaria automática queda para la HU-18.
 - D-5 · Quién y cuándo solicita (RF-1102, RF-1103). **Aprobada el 2026-11-07:** solo el técnico asignado, en las marcas Asignada, En atención o Esperando repuesto (las mismas en que el detalle ya muestra el botón), y varias solicitudes por incidencia. Alternativa: exigir «En atención» antes de pedir.
 - D-6 · Buscar la pieza (RF-1104, RF-1105). **Aprobada el 2026-11-07:** búsqueda mientras se escribe, con lista de coincidencias para elegir, como el prototipo 8. Alternativa: un botón «Consultar» junto al campo.
 - D-7 · Entrega del último repuesto (RF-1124). **Aprobada el 2026-11-07:** vuelve a «En atención» con el movimiento `REPUESTO_RECIBIDO`, que ya existe en el modelo, cuando se entrega la última solicitud pendiente de la incidencia. Alternativa: que el técnico lo marque a mano.
 - D-8 · Reglas de Firestore (RF-1118). **Aprobada el 2026-11-07:** `solicitudesRepuesto` solo la crea el técnico asignado a su incidencia (hoy basta con ser técnico) y solo se actualizan el estado de entrega, el número de Logística y sus fechas. Toca `firebase/firestore.rules` (archivo compartido) y se publica a mano en la consola.
-- D-9 · Días de espera (RF-1122). **Aprobada el 2026-11-07:** «Estado de repuestos» cuenta los días desde la solicitud; la etiqueta de las listas («Esperando repuesto · N días») sigue contando desde el registro de la incidencia, como hoy, para no tocar `FilaIncidencia` en esta HU.
+- D-9 · Días de espera (RF-1122). **Aprobada el 2026-11-07:** «Estado de repuestos» cuenta los días desde la solicitud; la etiqueta de las listas («Esperando repuesto, N días») sigue contando desde el registro de la incidencia, como hoy, para no tocar `FilaIncidencia` en esta HU.
 - D-10 · Dónde vive el código (RF-1101 a RF-1124). **Aprobada el 2026-11-07:** en `feature/atencion` (`domain`, `data`, `di`, `presentation`), donde ya está la ruta `SolicitarRepuesto` y la bandeja; Retrofit y su `LogisticaApi` en `feature/atencion/data`. La subida a Firestore, en `core/sync`, como siempre.
 
 ## Dudas abiertas

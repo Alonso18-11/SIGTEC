@@ -231,7 +231,7 @@ private fun Contador(estado: ListaIncidenciasUiState) {
     }
     Column {
         Text(
-            "$cantidad · de la más reciente a la más antigua",
+            cantidad,
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(start = Espaciado.m, end = Espaciado.m, top = Espaciado.m, bottom = Espaciado.s)
@@ -281,7 +281,7 @@ private val listaDePrueba = listOf(
     incidenciaDePrueba(119, "PC-ADM-022", "Teclas del teclado que no responden", MarcaSeguimiento.CERRADA, "Luis Ramírez", 170)
 )
 
-@Preview(name = "Lista · claro", showBackground = true, heightDp = 900)
+@Preview(name = "Lista, claro", showBackground = true, heightDp = 900)
 @Composable
 private fun ListaConDatos() = SigtecTheme {
     Surface {
@@ -295,7 +295,7 @@ private fun ListaConDatos() = SigtecTheme {
     }
 }
 
-@Preview(name = "Filtrada · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Filtrada, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun ListaFiltrada() = SigtecTheme(darkTheme = true) {
     Surface {

@@ -252,7 +252,7 @@ private fun Encabezado(incidencia: Incidencia, ahora: Instant) {
 
 private fun clasificacion(incidencia: Incidencia): String? =
     listOfNotNull(incidencia.tipoFalla?.etiqueta(), incidencia.prioridad?.etiqueta())
-        .joinToString(" · ")
+        .joinToString(", ")
         .ifEmpty { null }
 
 @Composable
@@ -350,7 +350,7 @@ private fun SeccionRepuestos(solicitudes: List<SolicitudRepuesto>, ahora: Instan
                         EtiquetaEstado(textoEstadoSolicitud(estado), colorEstadoSolicitud(estado))
                     }
                     Text(
-                        "Pedida ${fechaCorta(solicitud.fechaSolicitud, ahora)} · confirmada con huella por " +
+                        "Pedida ${fechaCorta(solicitud.fechaSolicitud, ahora)}, confirmada con huella por " +
                             solicitud.solicitadoPorNombre,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -388,7 +388,7 @@ private fun SeccionInforme(informe: InformeTecnico, tecnicoNombre: String) {
                     )
                     Spacer(Modifier.width(Espaciado.s))
                     Text(
-                        "Confirmado por $tecnicoNombre · ${fechaCompleta(informe.confirmadoEn)}",
+                        "Confirmado por $tecnicoNombre, ${fechaCompleta(informe.confirmadoEn)}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -434,7 +434,7 @@ private fun LineaDeTiempo(movimientos: List<Movimiento>, ahora: Instant) {
                         fontWeight = if (i == 0) FontWeight.SemiBold else FontWeight.Medium
                     )
                     Text(
-                        "${movimiento.detalle ?: movimiento.autorNombre} · ${fechaCorta(movimiento.fecha, ahora)}",
+                        "${movimiento.detalle ?: movimiento.autorNombre}, ${fechaCorta(movimiento.fecha, ahora)}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -528,7 +528,7 @@ private val detalleDePrueba = DetalleIncidencia(
     )
 )
 
-@Preview(name = "Técnico · claro", showBackground = true, heightDp = 900)
+@Preview(name = "Técnico, claro", showBackground = true, heightDp = 900)
 @Composable
 private fun DetalleTecnico() = SigtecTheme {
     Surface {
@@ -542,7 +542,7 @@ private fun DetalleTecnico() = SigtecTheme {
     }
 }
 
-@Preview(name = "Jefe, por sincronizar · oscuro", showBackground = true, heightDp = 900,
+@Preview(name = "Jefe, por sincronizar, oscuro", showBackground = true, heightDp = 900,
     uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun DetalleJefe() = SigtecTheme(darkTheme = true) {
@@ -565,7 +565,7 @@ private fun DetalleJefe() = SigtecTheme(darkTheme = true) {
     }
 }
 
-@Preview(name = "Jefe, con técnico · claro", showBackground = true, heightDp = 900)
+@Preview(name = "Jefe, con técnico, claro", showBackground = true, heightDp = 900)
 @Composable
 private fun DetalleJefeReasignar() = SigtecTheme {
     Surface {
@@ -576,7 +576,7 @@ private fun DetalleJefeReasignar() = SigtecTheme {
     }
 }
 
-@Preview(name = "Jefe, con técnico · oscuro", showBackground = true, heightDp = 900,
+@Preview(name = "Jefe, con técnico, oscuro", showBackground = true, heightDp = 900,
     uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun DetalleJefeReasignarOscuro() = SigtecTheme(darkTheme = true) {
@@ -606,7 +606,7 @@ private val informeDePrueba = InformeTecnico(
     confirmadoEn = ahoraDePrueba
 )
 
-@Preview(name = "Técnico, puede iniciar atención · claro", showBackground = true, heightDp = 900)
+@Preview(name = "Técnico, puede iniciar atención, claro", showBackground = true, heightDp = 900)
 @Composable
 private fun DetalleIniciarAtencion() = SigtecTheme {
     Surface {
@@ -626,7 +626,7 @@ private fun DetalleIniciarAtencion() = SigtecTheme {
     }
 }
 
-@Preview(name = "Cerrada con informe · oscuro", showBackground = true, heightDp = 900,
+@Preview(name = "Cerrada con informe, oscuro", showBackground = true, heightDp = 900,
     uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun DetalleCerradaConInforme() = SigtecTheme(darkTheme = true) {
@@ -664,7 +664,7 @@ private val conRepuestos = detalleDePrueba.copy(
     )
 )
 
-@Preview(name = "Con repuestos · claro", showBackground = true, heightDp = 1100)
+@Preview(name = "Con repuestos, claro", showBackground = true, heightDp = 1100)
 @Composable
 private fun DetalleConRepuestosClaro() = SigtecTheme {
     Surface {
@@ -675,7 +675,7 @@ private fun DetalleConRepuestosClaro() = SigtecTheme {
     }
 }
 
-@Preview(name = "Con repuestos · oscuro", showBackground = true, heightDp = 1100, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Con repuestos, oscuro", showBackground = true, heightDp = 1100, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun DetalleConRepuestosOscuro() = SigtecTheme(darkTheme = true) {
     Surface {

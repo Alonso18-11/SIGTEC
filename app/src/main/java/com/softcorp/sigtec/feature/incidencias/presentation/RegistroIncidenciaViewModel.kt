@@ -48,10 +48,10 @@ data class RegistroIncidenciaUiState(
     private val colaborador: Colaborador?
         get() = (directorio as? EstadoDirectorio.Encontrado)?.colaborador
 
-    /** RF-1206: «Contabilidad · Anexo 2314» bajo el campo, solo mientras el nombre sea el del directorio. */
+    /** RF-1206: «Contabilidad, anexo 2314» bajo el campo, solo mientras el nombre sea el del directorio. */
     val areaYAnexo: String?
         get() = colaborador?.takeIf { responsableDelDirectorio }?.let { c ->
-            listOfNotNull(c.area.ifBlank { null }, c.anexo?.let { "Anexo $it" }).joinToString(" · ").ifEmpty { null }
+            listOfNotNull(c.area.ifBlank { null }, c.anexo?.let { "anexo $it" }).joinToString(", ").ifEmpty { null }
         }
 
     /** RF-1207: lo que trajo el directorio cuando el campo tiene otra cosa escrita a mano; se ofrece «Usar». */

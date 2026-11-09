@@ -17,14 +17,14 @@ class TextosRepuestoTest {
     @Test
     fun `con stock dice las unidades y el envio`() {
         val texto = textoDisponibilidad(Disponibilidad.ConStock(3, 1))!!
-        assertEquals("Disponible en almacén · 3 unidades", texto.titulo)
-        assertEquals("Consultado a Logística hace un momento · envío estimado en 1 día", texto.detalle)
-        assertEquals("Disponible en almacén · 1 unidad", textoDisponibilidad(Disponibilidad.ConStock(1, 2))!!.titulo)
+        assertEquals("Disponible en almacén: 3 unidades", texto.titulo)
+        assertEquals("Consultado a Logística hace un momento, envío estimado en 1 día", texto.detalle)
+        assertEquals("Disponible en almacén: 1 unidad", textoDisponibilidad(Disponibilidad.ConStock(1, 2))!!.titulo)
     }
 
     @Test
     fun `sin stock avisa que Logistica debera conseguirla`() {
-        assertEquals("Sin stock en almacén · Logística deberá conseguirla", textoDisponibilidad(Disponibilidad.SinStock(5))!!.titulo)
+        assertEquals("Sin stock en almacén, Logística deberá conseguirla", textoDisponibilidad(Disponibilidad.SinStock(5))!!.titulo)
     }
 
     @Test
@@ -46,7 +46,7 @@ class TextosRepuestoTest {
 
     @Test
     fun `los dias de espera se atribuyen a Logistica`() {
-        assertEquals("1 día de espera · la demora se atribuye a Logística", textoDiasEspera(1))   // RF-1122
-        assertEquals("4 días de espera · la demora se atribuye a Logística", textoDiasEspera(4))
+        assertEquals("1 día de espera", textoDiasEspera(1))   // RF-1122
+        assertEquals("4 días de espera", textoDiasEspera(4))
     }
 }

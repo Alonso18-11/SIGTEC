@@ -27,7 +27,7 @@ fun NavGraphBuilder.atencionGraph(navController: NavController) {
             // RF-1114: el detalle muestra el aviso al volver, como el registro (HU-03)
             alRegistrada = {
                 navController.previousBackStackEntry?.savedStateHandle
-                    ?.set(CLAVE_AVISO, "Solicitud registrada · Por enviar a Logística")
+                    ?.set(CLAVE_AVISO, "Solicitud registrada, por enviar a Logística")
                 navController.popBackStack()
             }
         )

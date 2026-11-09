@@ -10,7 +10,7 @@ data class ContenidoAviso(
 )
 
 /**
- * HU-07 (RF-702, RF-707): «Nueva incidencia asignada» con «INC-0127 · IMP-RRHH-002 · La impresora…».
+ * HU-07 (RF-702, RF-707): «Nueva incidencia asignada» con «INC-0127 - IMP-RRHH-002: La impresora…».
  * Una incidencia asignada siempre tiene número (RF-610 de la HU-06); si faltara, se dice «Incidencia».
  */
 fun contenidoAvisoAsignacion(incidencia: Incidencia): ContenidoAviso {
@@ -18,7 +18,7 @@ fun contenidoAvisoAsignacion(incidencia: Incidencia): ContenidoAviso {
     val codigo = incidencia.codigoVisible ?: "Incidencia"
     return ContenidoAviso(
         titulo = titulo,
-        texto = "$codigo · ${incidencia.codigoEquipo} · ${incidencia.descripcion}",
+        texto = "$codigo - ${incidencia.codigoEquipo}: ${incidencia.descripcion}",
         textoPublico = titulo
     )
 }

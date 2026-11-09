@@ -94,9 +94,9 @@ fun InformeTecnicoRoute(
             }
         },
         alAgregarFoto = alAgregarFoto,
-        // RF-1003: «Informe técnico · INC-0124» bajo el título de «Dictar»
+        // RF-1003: «Informe técnico - INC-0124» bajo el título de «Dictar»
         alDictar = { campo ->
-            alDictar(campo, estado.codigoIncidencia?.let { "Informe técnico · $it" } ?: "Informe técnico")
+            alDictar(campo, estado.codigoIncidencia?.let { "Informe técnico - $it" } ?: "Informe técnico")
         }
     )
 }
@@ -281,7 +281,7 @@ private val formularioCompleto = InformeTecnicoUiState(
     disponibilidadBiometrica = DisponibilidadBiometrica.HUELLA
 )
 
-@Preview(name = "Vacío · claro", showBackground = true)
+@Preview(name = "Vacío, claro", showBackground = true)
 @Composable
 private fun InformeVacioClaro() = SigtecTheme {
     Surface {
@@ -289,7 +289,7 @@ private fun InformeVacioClaro() = SigtecTheme {
     }
 }
 
-@Preview(name = "Vacío · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Vacío, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun InformeVacioOscuro() = SigtecTheme(darkTheme = true) {
     Surface {
@@ -297,7 +297,7 @@ private fun InformeVacioOscuro() = SigtecTheme(darkTheme = true) {
     }
 }
 
-@Preview(name = "Completo y listo · claro", showBackground = true)
+@Preview(name = "Completo y listo, claro", showBackground = true)
 @Composable
 private fun InformeCompletoClaro() = SigtecTheme {
     Surface {
@@ -305,7 +305,7 @@ private fun InformeCompletoClaro() = SigtecTheme {
     }
 }
 
-@Preview(name = "Completo y listo · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Completo y listo, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun InformeCompletoOscuro() = SigtecTheme(darkTheme = true) {
     Surface {
@@ -313,7 +313,7 @@ private fun InformeCompletoOscuro() = SigtecTheme(darkTheme = true) {
     }
 }
 
-@Preview(name = "Sin bloqueo de pantalla · claro", showBackground = true)
+@Preview(name = "Sin bloqueo de pantalla, claro", showBackground = true)
 @Composable
 private fun InformeSinSeguridadClaro() = SigtecTheme {
     Surface {
@@ -324,7 +324,7 @@ private fun InformeSinSeguridadClaro() = SigtecTheme {
     }
 }
 
-@Preview(name = "Sin bloqueo de pantalla · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Sin bloqueo de pantalla, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun InformeSinSeguridadOscuro() = SigtecTheme(darkTheme = true) {
     Surface {
@@ -354,7 +354,7 @@ private val formularioConFotos = formularioCompleto.copy(
     )
 )
 
-@Preview(name = "Con fotos · claro", showBackground = true, heightDp = 1100)
+@Preview(name = "Con fotos, claro", showBackground = true, heightDp = 1100)
 @Composable
 private fun InformeConFotosClaro() = SigtecTheme {
     Surface {
@@ -362,7 +362,7 @@ private fun InformeConFotosClaro() = SigtecTheme {
     }
 }
 
-@Preview(name = "Con fotos · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 1100)
+@Preview(name = "Con fotos, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 1100)
 @Composable
 private fun InformeConFotosOscuro() = SigtecTheme(darkTheme = true) {
     Surface {

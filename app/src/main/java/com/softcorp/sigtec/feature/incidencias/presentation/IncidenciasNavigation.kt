@@ -49,7 +49,7 @@ fun NavGraphBuilder.incidenciasGraph(navController: NavController) {
                     popUpTo<Ruta.RegistroIncidencia> { inclusive = true }
                 }
                 navController.currentBackStackEntry?.savedStateHandle
-                    ?.set(CLAVE_AVISO, "Incidencia registrada · $POR_SINCRONIZAR")
+                    ?.set(CLAVE_AVISO, "Incidencia registrada, ${POR_SINCRONIZAR.lowercase()}")
             }
         )
     }

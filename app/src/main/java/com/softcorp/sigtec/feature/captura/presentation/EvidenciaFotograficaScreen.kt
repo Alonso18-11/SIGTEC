@@ -134,7 +134,7 @@ fun EvidenciaFotograficaScreen(
             // BarraSuperior no tiene subtítulo: el código de la incidencia y el del equipo van debajo
             estado.incidencia?.let { incidencia ->
                 Text(
-                    "${incidencia.codigoVisible ?: POR_SINCRONIZAR} · ${incidencia.codigoEquipo}",
+                    "${incidencia.codigoVisible ?: POR_SINCRONIZAR} - ${incidencia.codigoEquipo}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -281,23 +281,23 @@ private fun fotosDePrueba(cantidad: Int) = List(cantidad) { i ->
     )
 }
 
-@Preview(name = "Evidencia · claro", showBackground = true, heightDp = 760)
+@Preview(name = "Evidencia, claro", showBackground = true, heightDp = 760)
 @Composable
 private fun EvidenciaClaro() = SigtecTheme { Surface { Previa(listaParaTomar) } }
 
-@Preview(name = "Evidencia · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 760)
+@Preview(name = "Evidencia, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 760)
 @Composable
 private fun EvidenciaOscuro() = SigtecTheme(darkTheme = true) {
     Surface { Previa(listaParaTomar.copy(tipo = TipoEvidencia.PIEZA_CAMBIADA)) }
 }
 
-@Preview(name = "Con fotos, guardando · claro", showBackground = true, heightDp = 760)
+@Preview(name = "Con fotos, guardando, claro", showBackground = true, heightDp = 760)
 @Composable
 private fun GuardandoClaro() = SigtecTheme {
     Surface { Previa(listaParaTomar.copy(fotos = fotosDePrueba(3), guardando = true)) }
 }
 
-@Preview(name = "Al máximo · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 760)
+@Preview(name = "Al máximo, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 760)
 @Composable
 private fun AlMaximoOscuro() = SigtecTheme(darkTheme = true) {
     Surface { Previa(listaParaTomar.copy(fotos = fotosDePrueba(10), bloqueo = ErrorDominio.LimiteFotosAlcanzado)) }

@@ -158,19 +158,19 @@ private fun Previa(puedeEliminar: Boolean, error: String? = null) = ContenidoFot
     Box(modifier, contentAlignment = Alignment.Center) { FotoNoDisponible() }
 }
 
-@Preview(name = "Técnico asignado · claro", showBackground = true, heightDp = 700)
+@Preview(name = "Técnico asignado, claro", showBackground = true, heightDp = 700)
 @Composable
 private fun AmpliadaConEliminarClaro() = SigtecTheme { Previa(puedeEliminar = true) }
 
-@Preview(name = "Técnico asignado · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 700)
+@Preview(name = "Técnico asignado, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 700)
 @Composable
 private fun AmpliadaConEliminarOscuro() = SigtecTheme(darkTheme = true) { Previa(puedeEliminar = true) }
 
-@Preview(name = "Otro perfil · claro", showBackground = true, heightDp = 700)
+@Preview(name = "Otro perfil, claro", showBackground = true, heightDp = 700)
 @Composable
 private fun AmpliadaSinEliminarClaro() = SigtecTheme { Previa(puedeEliminar = false) }
 
-@Preview(name = "Con error · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 700)
+@Preview(name = "Con error, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 700)
 @Composable
 private fun AmpliadaConErrorOscuro() = SigtecTheme(darkTheme = true) {
     Previa(puedeEliminar = true, error = "Ya no puedes eliminar fotos de esta incidencia.")

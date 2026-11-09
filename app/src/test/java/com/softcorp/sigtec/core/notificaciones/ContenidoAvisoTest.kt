@@ -22,7 +22,7 @@ class ContenidoAvisoTest {
     fun `el aviso dice codigo, equipo y descripcion`() {
         val contenido = contenidoAvisoAsignacion(incidencia)
         assertEquals("Nueva incidencia asignada", contenido.titulo)
-        assertEquals("INC-0127 · IMP-RRHH-002 · La impresora no aparece en la red", contenido.texto)
+        assertEquals("INC-0127 - IMP-RRHH-002: La impresora no aparece en la red", contenido.texto)
     }
 
     @Test
@@ -36,7 +36,7 @@ class ContenidoAvisoTest {
     @Test
     fun `sin numero dice incidencia en lugar del codigo`() {
         assertEquals(
-            "Incidencia · IMP-RRHH-002 · La impresora no aparece en la red",
+            "Incidencia - IMP-RRHH-002: La impresora no aparece en la red",
             contenidoAvisoAsignacion(incidencia.copy(numero = null)).texto
         )
     }

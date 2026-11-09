@@ -34,13 +34,13 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-private val formatoFecha = DateTimeFormatter.ofPattern("dd/MM/yyyy · HH:mm")
+private val formatoFecha = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
 
 private const val LINEAS_DESCRIPCION = 4
 
 /** HU-10 (RF-1003): «Nueva incidencia», con el código del equipo si ya está escrito. */
 private fun subtituloDictado(codigo: String): String =
-    codigo.trim().uppercase().let { if (it.isEmpty()) "Nueva incidencia" else "Nueva incidencia · $it" }
+    codigo.trim().uppercase().let { if (it.isEmpty()) "Nueva incidencia" else "Nueva incidencia - $it" }
 
 private val AnchoEtiquetaDato = 148.dp
 
@@ -142,13 +142,11 @@ fun RegistroIncidenciaScreen(
                         )
                     }
                 },
-                // HU-09 (RF-910, RF-911): dice de dónde salió el código mientras nadie lo edite a mano
-                supportingText = {
-                    Text(
-                        if (estado.codigoLeidoConCamara) "Leído desde la etiqueta con la cámara"
-                        else "Escríbelo o léelo de la etiqueta con la cámara"
-                    )
-                },
+                // HU-09 (RF-910, RF-911): dice de dónde salió el código mientras nadie lo edite a mano.
+                // Sin la ayuda «Escríbelo o léelo…»: el botón de cámara ya lo dice (reglas de redacción, regla 2)
+                supportingText = if (estado.codigoLeidoConCamara) {
+                    { Text("Leído desde la etiqueta con la cámara") }
+                } else null,
                 singleLine = true,
                 enabled = editable,
                 keyboardOptions = KeyboardOptions(
@@ -193,7 +191,6 @@ fun RegistroIncidenciaScreen(
                         )
                     }
                 },
-                supportingText = { Text("Puedes dictarla con el micrófono y corregirla antes de guardar") },
                 minLines = LINEAS_DESCRIPCION,
                 enabled = editable,
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
@@ -248,7 +245,7 @@ private fun AvisoDirectorio(
     val areaYAnexo = estado.areaYAnexo
     val margen = Modifier.padding(horizontal = Espaciado.m)
     when {
-        // RF-1206: prototipo 3, «Contabilidad · Anexo 2314»
+        // RF-1206: prototipo 3, «Contabilidad, anexo 2314»
         areaYAnexo != null -> Text(areaYAnexo, style = MaterialTheme.typography.bodyMedium, color = tenue, modifier = margen)
 
         // RF-1203
@@ -264,7 +261,7 @@ private fun AvisoDirectorio(
         // RF-1207: no se pisa lo escrito a mano
         sugerencia != null -> Row(verticalAlignment = Alignment.CenterVertically, modifier = margen) {
             Text(
-                "El directorio indica: ${sugerencia.nombre}" + sugerencia.area.takeIf { it.isNotBlank() }?.let { " · $it" }.orEmpty(),
+                "El directorio indica: ${sugerencia.nombre}" + sugerencia.area.takeIf { it.isNotBlank() }?.let { ", $it" }.orEmpty(),
                 style = MaterialTheme.typography.bodyMedium,
                 color = tenue,
                 modifier = Modifier.weight(1f)
@@ -326,11 +323,6 @@ private fun BarraGuardar(estado: RegistroIncidenciaUiState, alGuardar: () -> Uni
                         Text("Guardar incidencia")
                     }
                 }
-                Text(
-                    "La incidencia se guardará en estado Pendiente",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
         }
     }
@@ -340,7 +332,7 @@ private fun BarraGuardar(estado: RegistroIncidenciaUiState, alGuardar: () -> Uni
 
 private val fechaDePrueba = Instant.parse("2026-09-27T14:15:00Z")
 
-@Preview(name = "Lleno · claro", showBackground = true)
+@Preview(name = "Lleno, claro", showBackground = true)
 @Composable
 private fun RegistroLleno() = SigtecTheme {
     Surface {
@@ -358,7 +350,7 @@ private fun RegistroLleno() = SigtecTheme {
     }
 }
 
-@Preview(name = "Vacío · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Vacío, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun RegistroVacio() = SigtecTheme(darkTheme = true) {
     Surface {
@@ -369,11 +361,11 @@ private fun RegistroVacio() = SigtecTheme(darkTheme = true) {
     }
 }
 
-@Preview(name = "Código escaneado · claro", showBackground = true)
+@Preview(name = "Código escaneado, claro", showBackground = true)
 @Composable
 private fun RegistroEscaneadoClaro() = SigtecTheme { Surface { RegistroEscaneado() } }
 
-@Preview(name = "Código escaneado · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Código escaneado, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun RegistroEscaneadoOscuro() = SigtecTheme(darkTheme = true) { Surface { RegistroEscaneado() } }
 
@@ -424,7 +416,7 @@ private fun conDirectorio(
     registradoPor = "Luis Ramírez"
 )
 
-@Preview(name = "Completado desde el directorio · claro", showBackground = true)
+@Preview(name = "Completado desde el directorio, claro", showBackground = true)
 @Composable
 private fun RegistroDirectorioClaro() = SigtecTheme {
     Surface {
@@ -435,7 +427,7 @@ private fun RegistroDirectorioClaro() = SigtecTheme {
     }
 }
 
-@Preview(name = "Completado desde el directorio · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Completado desde el directorio, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun RegistroDirectorioOscuro() = SigtecTheme(darkTheme = true) {
     Surface {
@@ -446,13 +438,13 @@ private fun RegistroDirectorioOscuro() = SigtecTheme(darkTheme = true) {
     }
 }
 
-@Preview(name = "Buscando en el directorio · claro", showBackground = true)
+@Preview(name = "Buscando en el directorio, claro", showBackground = true)
 @Composable
 private fun RegistroBuscando() = SigtecTheme {
     Surface { RegistroIncidenciaScreen(conDirectorio(EstadoDirectorio.Buscando), {}, {}, {}, {}, {}, {}, {}) }
 }
 
-@Preview(name = "Sugerencia con «Usar» · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Sugerencia con «Usar», oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun RegistroSugerencia() = SigtecTheme(darkTheme = true) {
     Surface {
@@ -463,13 +455,13 @@ private fun RegistroSugerencia() = SigtecTheme(darkTheme = true) {
     }
 }
 
-@Preview(name = "Sin responsable en el directorio · claro", showBackground = true)
+@Preview(name = "Sin responsable en el directorio, claro", showBackground = true)
 @Composable
 private fun RegistroNoEncontrado() = SigtecTheme {
     Surface { RegistroIncidenciaScreen(conDirectorio(EstadoDirectorio.NoEncontrado), {}, {}, {}, {}, {}, {}, {}) }
 }
 
-@Preview(name = "Directorio sin respuesta · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Directorio sin respuesta, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun RegistroSinRespuesta() = SigtecTheme(darkTheme = true) {
     Surface { RegistroIncidenciaScreen(conDirectorio(EstadoDirectorio.SinRespuesta), {}, {}, {}, {}, {}, {}, {}) }

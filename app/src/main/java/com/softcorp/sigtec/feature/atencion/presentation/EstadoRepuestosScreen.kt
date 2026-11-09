@@ -179,7 +179,7 @@ private fun TarjetaSolicitud(item: SolicitudConIncidencia, ahora: Instant, alAbr
                 Column(Modifier.weight(1f)) {
                     Text(solicitud.pieza, style = MaterialTheme.typography.titleMedium)
                     Text(
-                        "${item.codigoIncidencia ?: POR_SINCRONIZAR} · ${item.codigoEquipo}",
+                        "${item.codigoIncidencia ?: POR_SINCRONIZAR} - ${item.codigoEquipo}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -315,19 +315,19 @@ private val estadoDePrueba = EstadoRepuestosUiState(
 @Composable
 private fun Previa(estado: EstadoRepuestosUiState) = EstadoRepuestosScreen(estado, {}, {}, {}, {})
 
-@Preview(name = "Estado de repuestos · claro", showBackground = true, heightDp = 900)
+@Preview(name = "Estado de repuestos, claro", showBackground = true, heightDp = 900)
 @Composable
 private fun EstadoClaro() = SigtecTheme { Surface { Previa(estadoDePrueba) } }
 
-@Preview(name = "Estado de repuestos · oscuro", showBackground = true, heightDp = 900, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Estado de repuestos, oscuro", showBackground = true, heightDp = 900, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun EstadoOscuro() = SigtecTheme(darkTheme = true) { Surface { Previa(estadoDePrueba.copy(sinRespuesta = true)) } }
 
-@Preview(name = "Sin repuestos · claro", showBackground = true, heightDp = 600)
+@Preview(name = "Sin repuestos, claro", showBackground = true, heightDp = 600)
 @Composable
 private fun VacioClaro() = SigtecTheme { Surface { Previa(EstadoRepuestosUiState(cargando = false, ahora = ahoraDePrueba)) } }
 
-@Preview(name = "Sin repuestos · oscuro", showBackground = true, heightDp = 600, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Sin repuestos, oscuro", showBackground = true, heightDp = 600, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun VacioOscuro() = SigtecTheme(darkTheme = true) {
     Surface { Previa(EstadoRepuestosUiState(cargando = false, ahora = ahoraDePrueba, filtro = FiltroRepuestos.PENDIENTES)) }

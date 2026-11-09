@@ -12,6 +12,6 @@ fun NavGraphBuilder.diccionarioGraph() {
     }
     composable<Ruta.Asistente> { entrada ->
         val ruta = entrada.toRoute<Ruta.Asistente>()
-        PantallaEnConstruccion(titulo = "Asistente · ${ruta.incidenciaId}", historia = "HU-13 · HU-14")
+        PantallaEnConstruccion(titulo = "Asistente - ${ruta.incidenciaId}", historia = "HU-13 y HU-14")
     }
 }

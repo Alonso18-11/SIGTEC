@@ -133,12 +133,12 @@ private class VistasSinPermiso : PreviewParameterProvider<VistaPermiso> {
     )
 }
 
-@Preview(name = "Permiso · claro", showBackground = true, heightDp = 600)
+@Preview(name = "Permiso, claro", showBackground = true, heightDp = 600)
 @Composable
 private fun ExplicacionClaro(@PreviewParameter(VistasSinPermiso::class) vista: VistaPermiso) =
     SigtecTheme { Surface { Previa(vista) } }
 
-@Preview(name = "Permiso · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 600)
+@Preview(name = "Permiso, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 600)
 @Composable
 private fun ExplicacionOscuro(@PreviewParameter(VistasSinPermiso::class) vista: VistaPermiso) =
     SigtecTheme(darkTheme = true) { Surface { Previa(vista) } }

@@ -26,7 +26,7 @@ class TextosIncidenciaTest {
     @Test
     fun `el responsable lleva su area solo si vino del directorio`() {
         // HU-12 (RF-1216)
-        assertEquals("María Quispe · Contabilidad", sinSincronizar.copy(areaResponsable = "Contabilidad").responsableConArea())
+        assertEquals("María Quispe, Contabilidad", sinSincronizar.copy(areaResponsable = "Contabilidad").responsableConArea())
         assertEquals("María Quispe", sinSincronizar.responsableConArea())
     }
 }

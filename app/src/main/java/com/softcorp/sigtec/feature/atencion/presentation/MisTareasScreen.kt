@@ -108,7 +108,7 @@ fun MisTareasScreen(
 private fun Resumen(cantidad: Int) {
     Column {
         Text(
-            "${if (cantidad == 1) "1 pendiente" else "$cantidad pendientes"} · de la más antigua a la más reciente",
+            if (cantidad == 1) "1 pendiente" else "$cantidad pendientes",
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(start = Espaciado.m, end = Espaciado.m, top = Espaciado.m, bottom = Espaciado.s)
@@ -160,7 +160,7 @@ private val bandejaDePrueba = listOf(
     incidenciaDePrueba(126, "PC-VENT-031", "Pantalla azul al iniciar Windows", MarcaSeguimiento.ESPERANDO_REPUESTO, 2)
 )
 
-@Preview(name = "Bandeja con tareas · claro", showBackground = true, heightDp = 700)
+@Preview(name = "Bandeja con tareas, claro", showBackground = true, heightDp = 700)
 @Composable
 private fun MisTareasConDatos() = SigtecTheme {
     Surface {
@@ -171,7 +171,7 @@ private fun MisTareasConDatos() = SigtecTheme {
     }
 }
 
-@Preview(name = "Bandeja con tareas · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 700)
+@Preview(name = "Bandeja con tareas, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES, heightDp = 700)
 @Composable
 private fun MisTareasConDatosOscuro() = SigtecTheme(darkTheme = true) {
     Surface {
@@ -182,7 +182,7 @@ private fun MisTareasConDatosOscuro() = SigtecTheme(darkTheme = true) {
     }
 }
 
-@Preview(name = "Bandeja vacía · claro", showBackground = true)
+@Preview(name = "Bandeja vacía, claro", showBackground = true)
 @Composable
 private fun MisTareasVacia() = SigtecTheme {
     Surface {
@@ -190,7 +190,7 @@ private fun MisTareasVacia() = SigtecTheme {
     }
 }
 
-@Preview(name = "Bandeja vacía · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Bandeja vacía, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun MisTareasVaciaOscuro() = SigtecTheme(darkTheme = true) {
     Surface {

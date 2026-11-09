@@ -21,7 +21,7 @@ fun NavGraphBuilder.indicadoresGraph(navController: NavController) {
     composable<Ruta.HistorialEquipo> { entrada ->
         val ruta = entrada.toRoute<Ruta.HistorialEquipo>()
         PantallaEnConstruccion(
-            titulo = "Historial · ${ruta.codigoEquipo ?: "buscar equipo"}",
+            titulo = "Historial - ${ruta.codigoEquipo ?: "buscar equipo"}",
             historia = "HU-16"
         )
     }

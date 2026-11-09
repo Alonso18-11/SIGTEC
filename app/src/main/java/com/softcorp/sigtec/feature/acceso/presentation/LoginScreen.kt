@@ -136,7 +136,7 @@ fun LoginScreen(
         }
         Spacer(Modifier.height(Espaciado.xs))
         Text(
-            "Soporte y Sistemas · Soft Corporation",
+            "Soporte y Sistemas, Soft Corporation",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -156,7 +156,7 @@ fun LoginScreen(
             ) {
                 Text(
                     estado.usuarioBloqueado?.let { "Hola de nuevo, ${it.nombre.substringBefore(' ')}" }
-                        ?: "Inicia sesión para continuar",
+                        ?: "Iniciar sesión",
                     style = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center
                 )
@@ -347,7 +347,7 @@ private fun LoginVacio() = SigtecTheme {
     }
 }
 
-@Preview(name = "Error · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Error, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun LoginConError() = SigtecTheme(darkTheme = true) {
     Surface {
@@ -370,7 +370,7 @@ private fun LoginBloqueada() = SigtecTheme {
     }
 }
 
-@Preview(name = "Diálogo de ingreso · claro", showBackground = true)
+@Preview(name = "Diálogo de ingreso, claro", showBackground = true)
 @Composable
 private fun LoginDialogoIngresoClaro() = SigtecTheme(darkTheme = false) {
     Surface {
@@ -381,7 +381,7 @@ private fun LoginDialogoIngresoClaro() = SigtecTheme(darkTheme = false) {
     }
 }
 
-@Preview(name = "Diálogo de ingreso · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Diálogo de ingreso, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun LoginDialogoIngresoOscuro() = SigtecTheme(darkTheme = true) {
     Surface {
@@ -392,7 +392,7 @@ private fun LoginDialogoIngresoOscuro() = SigtecTheme(darkTheme = true) {
     }
 }
 
-@Preview(name = "Diálogo de ingreso solo con fotos · claro", showBackground = true)
+@Preview(name = "Diálogo de ingreso solo con fotos, claro", showBackground = true)
 @Composable
 private fun LoginDialogoIngresoFotosClaro() = SigtecTheme(darkTheme = false) {
     Surface {
@@ -403,7 +403,7 @@ private fun LoginDialogoIngresoFotosClaro() = SigtecTheme(darkTheme = false) {
     }
 }
 
-@Preview(name = "Diálogo de ingreso solo con fotos · oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Diálogo de ingreso solo con fotos, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun LoginDialogoIngresoFotosOscuro() = SigtecTheme(darkTheme = true) {
     Surface {
