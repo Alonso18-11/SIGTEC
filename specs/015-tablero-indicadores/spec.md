@@ -1,6 +1,6 @@
 # Spec 015 — Tablero de indicadores del área (HU-15)
 
-> Estado: aprobada (2026-11-09), RF-1501 a RF-1524. Decisiones D-1 a D-4 respondidas por Alonso el 2026-11-09 (ver «Decisiones»).
+> Estado: completa (2026-11-09), RF-1501 a RF-1524, en #148 a #150 (más #151). Probada por Alonso en un celular real (Xiaomi, Android 14) con `cmendoza`, en claro y oscuro: métricas, gráfico de 7 días (sin cierres en esos días, todas las columnas en 0), tiempo de atención, estados, carga y la tarjeta del equipo que abre el historial. Falta ver el gráfico con columnas mayores que 0. Decisiones D-1 a D-4 respondidas por Alonso el 2026-11-09 (ver «Decisiones»).
 
 > Spec escrita antes del código (principio 2 de la constitución). Los requisitos usan el bloque propio de la HU-15 (RF-1501…). Sale de la planificación (`SIGTEC_Planificación (1).xlsx`, Sprint 4, semana 12). Sigue el prototipo 10 «Indicadores del área» y cubre el criterio 9 del curso, «Dashboards», con Vico.
 
@@ -100,3 +100,8 @@ Con esta HU, la pestaña «Indicadores» muestra un tablero con esos datos, calc
 
 ## Dudas abiertas
 - Ninguna.
+
+## Hallazgos de la prueba en el celular (2026-11-09)
+- «Actualizado…» decía «Sin datos del servidor todavía» con datos ya descargados: tras iniciar sesión, Firestore entregaba su caché y no avisaba al confirmar con el servidor, así que la descarga no se anotaba (error de la HU-05, también en el aviso de conexión). Se corrigió en #151 con `MetadataChanges.INCLUDE`.
+- Inicio del jefe contaba como críticas solo las de `critica` (0) y el tablero las de más de 5 días (11). Se unificó en #150 con `esCritica` (`feature/incidencias/domain/ReglaCritica.kt`), y RF-I5 de `specs/inicio-panel` dice lo mismo que D-1.
+- El tiempo de atención salía con punto decimal (la configuración de Perú usa punto) y partía el título de la tarjeta; se corrigió en #150.
