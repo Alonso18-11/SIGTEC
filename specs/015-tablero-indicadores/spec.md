@@ -1,6 +1,6 @@
 # Spec 015 — Tablero de indicadores del área (HU-15)
 
-> Estado: borrador (2026-11-09), RF-1501 a RF-1524. Decisiones D-1 a D-4 respondidas por Alonso el 2026-11-09 (ver «Decisiones»). Falta el visto bueno de la spec antes del código.
+> Estado: aprobada (2026-11-09), RF-1501 a RF-1524. Decisiones D-1 a D-4 respondidas por Alonso el 2026-11-09 (ver «Decisiones»).
 
 > Spec escrita antes del código (principio 2 de la constitución). Los requisitos usan el bloque propio de la HU-15 (RF-1501…). Sale de la planificación (`SIGTEC_Planificación (1).xlsx`, Sprint 4, semana 12). Sigue el prototipo 10 «Indicadores del área» y cubre el criterio 9 del curso, «Dashboards», con Vico.
 

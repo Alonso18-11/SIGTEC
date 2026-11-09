@@ -1,6 +1,6 @@
 # Plan 015 — Tablero de indicadores del área (HU-15)
 
-> Basado en `spec.md` (borrador del 2026-11-09, con D-1 a D-4 respondidas) y en `docs/constitution.md`.
+> Basado en `spec.md` (aprobada el 2026-11-09, con D-1 a D-4 respondidas) y en `docs/constitution.md`.
 > El código vive en `feature/indicadores` (dominio, datos y pantalla). Toca estos archivos compartidos:
 > - `core/database/dao/MovimientoDao.kt` (consulta nueva, sin cambiar la entidad ni `version`);
 > - `core/navigation/DatosDemo.kt` (se borra: `EQUIPO_DEMO` solo existía para esta pantalla);
