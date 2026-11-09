@@ -23,6 +23,10 @@ interface CatalogoDao {
     @Query("DELETE FROM tecnicos WHERE id IN (:ids)")
     suspend fun borrarTecnicos(ids: List<String>)
 
+    // HU-15 (RF-1521): la oficina del equipo a evaluar
+    @Query("SELECT * FROM equipos")
+    fun observarEquipos(): Flow<List<EquipoEntity>>
+
     @Query("SELECT * FROM equipos WHERE codigo = :codigo")
     suspend fun equipoPorCodigo(codigo: String): EquipoEntity?
 
