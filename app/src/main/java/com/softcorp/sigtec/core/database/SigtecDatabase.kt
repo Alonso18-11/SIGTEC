@@ -13,7 +13,7 @@ import com.softcorp.sigtec.core.database.entity.*
         SugerenciaIAEntity::class, TecnicoEntity::class, EquipoEntity::class,
         SincronizacionEntity::class
     ],
-    version = 5,   // HU-12: área del responsable en incidencias
+    version = 6,   // HU-13: autor, origen y fecha de las fallas del diccionario
     exportSchema = false
 )
 @TypeConverters(Convertidores::class)
