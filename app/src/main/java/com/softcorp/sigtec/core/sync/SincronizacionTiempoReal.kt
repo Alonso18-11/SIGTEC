@@ -172,13 +172,15 @@ class SincronizacionTiempoReal @Inject constructor(
     }
 
     private fun vigilarPendientes(): Flow<Unit> =
-        // HU-11: también las solicitudes, que quedan pendientes solas cuando llega el número de Logística
+        // HU-11: también las solicitudes, que quedan pendientes solas cuando llega el número de Logística.
+        // HU-13 (RF-1321): y las fallas del diccionario; sin esto, una falla nueva no programaba la subida
         combine(
             incidenciaDao.observarPendientes(),
             movimientoDao.observarPendientes(),
-            solicitudRepuestoDao.observarPendientes()
-        ) { i, m, s ->
-            i + m + s > 0
+            solicitudRepuestoDao.observarPendientes(),
+            fallaDiccionarioDao.observarCantidadPendientes()
+        ) { i, m, s, f ->
+            i + m + s + f > 0
         }
             .distinctUntilChanged()
             .filter { it }
