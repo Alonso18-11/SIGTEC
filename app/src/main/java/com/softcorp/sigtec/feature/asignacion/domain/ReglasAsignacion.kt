@@ -64,3 +64,13 @@ fun armarOpciones(
             esActual = tecnico.id == incidencia.tecnicoAsignadoId
         )
     }
+
+/**
+ * Pantallas v2 (prototipo 07): «Recomendado» va en quien tiene menos incidencias activas entre los que se pueden
+ * elegir (con cupo y que no sean el actual). Solo sugiere: el jefe sigue eligiendo. Con empate gana el primero de la
+ * lista, que ya va por nombre. Null si nadie se puede elegir.
+ */
+fun recomendado(opciones: List<OpcionTecnico>): String? =
+    opciones.filter { it.disponible && !it.esActual }
+        .minByOrNull { it.tecnico.incidenciasActivas }
+        ?.tecnico?.id

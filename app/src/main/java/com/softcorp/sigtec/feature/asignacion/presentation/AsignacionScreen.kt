@@ -1,48 +1,30 @@
 package com.softcorp.sigtec.feature.asignacion.presentation
 
+import com.softcorp.sigtec.core.ui.components.Tarjeta
+import com.softcorp.sigtec.core.ui.components.FilaCargaTecnico
+import com.softcorp.sigtec.core.ui.components.BarraAccionInferior
 import android.content.res.Configuration
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.softcorp.sigtec.core.domain.ErrorDominio
@@ -51,7 +33,6 @@ import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
 import com.softcorp.sigtec.core.domain.model.Prioridad
 import com.softcorp.sigtec.core.domain.model.Tecnico
 import com.softcorp.sigtec.core.domain.model.TipoFalla
-import com.softcorp.sigtec.core.theme.AreaTactilMinima
 import com.softcorp.sigtec.core.theme.Espaciado
 import com.softcorp.sigtec.core.theme.SigtecTheme
 import com.softcorp.sigtec.core.ui.components.BarraSuperior
@@ -65,10 +46,6 @@ import com.softcorp.sigtec.feature.incidencias.domain.codigoParaMostrar
 import com.softcorp.sigtec.feature.incidencias.presentation.diasPendiente
 import com.softcorp.sigtec.feature.incidencias.presentation.etiqueta
 import java.time.Instant
-
-private val TamanoAvatar = 40.dp
-private val GrosorBorde = 1.dp
-private val GrosorBordeElegido = 2.dp
 
 // RF-606
 private const val SIN_TECNICOS = "Aún no se descargaron los técnicos. Conéctate a internet para verlos."
@@ -104,7 +81,7 @@ fun AsignacionScreen(
     alElegir: (String) -> Unit,
     alAsignar: () -> Unit
 ) {
-    // La raíz ya aplica los márgenes de la barra de estado; BarraSuperior ya los trae en cero
+    // BarraSuperior aplica el margen de la barra de estado
     Scaffold(
         contentWindowInsets = WindowInsets(0),
         topBar = { BarraSuperior("Asignar incidencia", alVolver = alVolver) },
@@ -155,12 +132,18 @@ private fun Contenido(opciones: OpcionesAsignacion, estado: AsignacionUiState, a
                 )
             }
         }
+        // RF-601 a RF-604 con FilaCargaTecnico (prototipo 07): en el límite queda bloqueada con candado y su motivo
         items(opciones.tecnicos, key = { it.tecnico.id }) { opcion ->
-            TarjetaTecnico(
-                opcion = opcion,
-                elegida = estado.elegido?.tecnico?.id == opcion.tecnico.id,
-                habilitada = opciones.bloqueo == null && opcion.disponible && !opcion.esActual,
-                alElegir = { alElegir(opcion.tecnico.id) }
+            val tecnico = opcion.tecnico
+            FilaCargaTecnico(
+                nombre = tecnico.nombre,
+                activas = tecnico.incidenciasActivas,
+                limite = tecnico.limiteAtencion,
+                seleccionada = estado.elegido?.tecnico?.id == tecnico.id,
+                alElegir = { alElegir(tecnico.id) },
+                recomendado = estado.recomendadoId == tecnico.id,
+                habilitada = opciones.bloqueo == null && !opcion.esActual,
+                nota = if (opcion.esActual) "Asignado ahora" else null
             )
         }
     }
@@ -169,12 +152,8 @@ private fun Contenido(opciones: OpcionesAsignacion, estado: AsignacionUiState, a
 @Composable
 private fun TarjetaResumen(opciones: OpcionesAsignacion, ahora: Instant) {
     val incidencia = opciones.incidencia
-    OutlinedCard(
-        shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(Modifier.padding(Espaciado.m), verticalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
+    Tarjeta(Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
             // «INC-0127 - IMP-RRHH-002, Recursos Humanos»; la oficina se omite si el equipo no está en el catálogo
             Text(
                 "${incidencia.codigoParaMostrar()} - ${incidencia.codigoEquipo}" + opciones.oficina?.let { ", $it" }.orEmpty(),
@@ -215,118 +194,27 @@ private fun Encabezado() {
     }
 }
 
-/** RF-601 a RF-604: carga y límite con su barra; si no se puede elegir, va atenuada y dice por qué. */
-@Composable
-private fun TarjetaTecnico(opcion: OpcionTecnico, elegida: Boolean, habilitada: Boolean, alElegir: () -> Unit) {
-    val colores = MaterialTheme.colorScheme
-    val tecnico = opcion.tecnico
-    Surface(
-        shape = MaterialTheme.shapes.medium,
-        color = when {
-            elegida -> colores.primaryContainer
-            habilitada -> colores.surface
-            else -> colores.surfaceVariant
-        },
-        contentColor = when {
-            elegida -> colores.onPrimaryContainer
-            habilitada -> colores.onSurface
-            else -> colores.onSurfaceVariant
-        },
-        border = BorderStroke(
-            if (elegida) GrosorBordeElegido else GrosorBorde,
-            if (elegida) colores.primary else colores.outlineVariant
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-            .selectable(selected = elegida, enabled = habilitada, role = Role.RadioButton, onClick = alElegir)
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(Espaciado.m)
-                .heightIn(min = AreaTactilMinima),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(TamanoAvatar)
-                    .clip(CircleShape)
-                    // Elegida, la tarjeta ya es azul claro: el avatar pasa a blanco para no perderse
-                    .background(if (elegida) colores.surface else colores.primaryContainer),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    iniciales(tecnico.nombre),
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    color = colores.onPrimaryContainer
-                )
-            }
-            Spacer(Modifier.width(Espaciado.m))
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        tecnico.nombre,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text("${tecnico.incidenciasActivas} / ${tecnico.limiteAtencion}", style = MaterialTheme.typography.labelLarge)
-                }
-                LinearProgressIndicator(
-                    progress = { tecnico.cargaRelativa },
-                    color = if (opcion.disponible) colores.primary else colores.error,
-                    trackColor = colores.surfaceVariant,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                EstadoTecnico(opcion)
-            }
-            Spacer(Modifier.width(Espaciado.s))
-            RadioButton(selected = elegida, onClick = null, enabled = habilitada)
-        }
-    }
-}
-
-/** Nunca solo color: siempre texto, y el candado cuando alcanzó su límite (RF-603). */
-@Composable
-private fun EstadoTecnico(opcion: OpcionTecnico) {
-    val colores = MaterialTheme.colorScheme
-    when {
-        opcion.esActual -> Text("Asignado ahora", style = MaterialTheme.typography.bodySmall, color = colores.onSurfaceVariant)
-        !opcion.disponible -> Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Outlined.Lock, contentDescription = null, tint = colores.error, modifier = Modifier.size(16.dp))
-            Spacer(Modifier.width(Espaciado.xs))
-            Text("Alcanzó su límite de atención", style = MaterialTheme.typography.bodySmall, color = colores.error)
-        }
-        else -> Text("Disponible", style = MaterialTheme.typography.bodySmall, color = SigtecTheme.estados.solucionado.contenido)
-    }
-}
-
 @Composable
 private fun BarraAsignar(estado: AsignacionUiState, alAsignar: () -> Unit) {
     val nombre = estado.elegido?.tecnico?.nombre
-    Surface(color = MaterialTheme.colorScheme.surface) {
-        Column {
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            Column(
-                modifier = Modifier.padding(horizontal = Espaciado.m, vertical = Espaciado.sm),
-                verticalArrangement = Arrangement.spacedBy(Espaciado.xs),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // Deshabilitado mientras guarda: un segundo toque no repite la asignación
-                BotonPrincipal(
-                    onClick = alAsignar,
-                    enabled = estado.puedeAsignar,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(textoBotonAsignar(nombre, estado.esReasignacion))
-                }
-                nombre?.let {
-                    Text(textoBandeja(it), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                estado.error?.let {
-                    Text(it.mensaje(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
-                }
-            }
+    // Pantallas v2 (prototipo 07): hoja blanca abajo; el error o la bandeja van encima del botón
+    val aviso: (@Composable () -> Unit)? = when {
+        estado.error != null -> {
+            { Text(estado.error.mensaje(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error) }
+        }
+        nombre != null -> {
+            { Text(textoBandeja(nombre), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        }
+        else -> null
+    }
+    BarraAccionInferior(aviso = aviso) {
+        // Deshabilitado mientras guarda: un segundo toque no repite la asignación
+        BotonPrincipal(
+            onClick = alAsignar,
+            enabled = estado.puedeAsignar,
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(textoBotonAsignar(nombre, estado.esReasignacion))
         }
     }
 }

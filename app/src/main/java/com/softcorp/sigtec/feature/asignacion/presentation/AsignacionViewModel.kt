@@ -1,5 +1,6 @@
 package com.softcorp.sigtec.feature.asignacion.presentation
 
+import com.softcorp.sigtec.feature.asignacion.domain.recomendado
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -38,6 +39,9 @@ data class AsignacionUiState(
         get() = opciones?.tecnicos?.firstOrNull { it.tecnico.id == elegidoId && it.disponible && !it.esActual }
 
     val esReasignacion: Boolean get() = opciones?.incidencia?.tecnicoAsignadoId != null
+
+    // Pantallas v2 (prototipo 07): solo con la asignación permitida tiene sentido recomendar
+    val recomendadoId: String? get() = opciones?.takeIf { it.bloqueo == null }?.let { recomendado(it.tecnicos) }
 
     // RF-605, RF-607: con técnico elegido, sin bloqueo y sin otra asignación en curso
     val puedeAsignar: Boolean get() = elegido != null && opciones?.bloqueo == null && !guardando

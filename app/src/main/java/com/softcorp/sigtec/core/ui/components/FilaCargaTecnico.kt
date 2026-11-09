@@ -41,7 +41,8 @@ internal fun alcanzoLimite(activas: Int, limite: Int) = activas >= limite
 /**
  * Técnico con su carga (DESIGN.md 4, prototipo 07): un segmento por cada unidad del límite de atención. En el límite
  * la fila queda bloqueada, en rojo, con candado y «Alcanzó su límite de atención» (RF-06). [recomendado] pone la
- * etiqueta «Recomendado» (la usa quien tiene menos carga). Elegirla es como un botón de opción.
+ * etiqueta «Recomendado» (la usa quien tiene menos carga). Elegirla es como un botón de opción. Con [habilitada] en
+ * false no se puede elegir aunque tenga cupo, y [nota] dice por qué (por ejemplo «Asignado ahora», RF-604).
  */
 @Composable
 fun FilaCargaTecnico(
@@ -51,7 +52,9 @@ fun FilaCargaTecnico(
     seleccionada: Boolean,
     alElegir: () -> Unit,
     modifier: Modifier = Modifier,
-    recomendado: Boolean = false
+    recomendado: Boolean = false,
+    habilitada: Boolean = true,
+    nota: String? = null
 ) {
     val c = MaterialTheme.colorScheme
     val bloqueada = alcanzoLimite(activas, limite)
@@ -60,6 +63,7 @@ fun FilaCargaTecnico(
         append("$nombre, $activas de $limite activas")
         if (bloqueada) append(". Alcanzó su límite de atención")
         if (recomendado) append(". Recomendado")
+        nota?.let { append(". $it") }
     }
     Surface(
         color = if (bloqueada) c.errorContainer else c.surface,
@@ -71,7 +75,7 @@ fun FilaCargaTecnico(
         },
         modifier = modifier
             .fillMaxWidth()
-            .selectable(selected = seleccionada, enabled = !bloqueada, role = Role.RadioButton, onClick = alElegir)
+            .selectable(selected = seleccionada, enabled = !bloqueada && habilitada, role = Role.RadioButton, onClick = alElegir)
             .semantics(mergeDescendants = true) { contentDescription = descripcion }
     ) {
         Row(
@@ -90,7 +94,7 @@ fun FilaCargaTecnico(
                         color = if (bloqueada) c.onErrorContainer else c.onSurface,
                         modifier = Modifier.weight(1f)
                     )
-                    if (recomendado && !bloqueada) EtiquetaEstado("Recomendado", SigtecTheme.estados.solucionado)
+                    if (recomendado && !bloqueada && habilitada) EtiquetaEstado("Recomendado", SigtecTheme.estados.solucionado)
                     Text("$activas / $limite", style = MaterialTheme.typography.labelLarge, color = if (bloqueada) c.onErrorContainer else c.onSurface)
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
@@ -104,6 +108,9 @@ fun FilaCargaTecnico(
                         )
                     }
                 }
+                if (nota != null && !bloqueada) {
+                    Text(nota, style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant)
+                }
                 if (bloqueada) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
                         Icon(Icons.Outlined.Lock, contentDescription = null, tint = c.onErrorContainer)
@@ -111,7 +118,7 @@ fun FilaCargaTecnico(
                     }
                 }
             }
-            if (!bloqueada) RadioButton(selected = seleccionada, onClick = null)
+            if (!bloqueada) RadioButton(selected = seleccionada, onClick = null, enabled = habilitada)
         }
     }
 }
@@ -123,6 +130,7 @@ private fun FilasCargaDePrueba() {
             FilaCargaTecnico("Jorge Salas", activas = 1, limite = 4, seleccionada = true, alElegir = {}, recomendado = true)
             FilaCargaTecnico("Ana Torres", activas = 3, limite = 5, seleccionada = false, alElegir = {})
             FilaCargaTecnico("Rosa Vilca", activas = 4, limite = 4, seleccionada = false, alElegir = {})
+            FilaCargaTecnico("Luis Ramírez", activas = 2, limite = 5, seleccionada = false, alElegir = {}, habilitada = false, nota = "Asignado ahora")
         }
     }
 }
