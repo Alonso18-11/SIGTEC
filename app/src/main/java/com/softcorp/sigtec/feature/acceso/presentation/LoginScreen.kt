@@ -4,6 +4,7 @@ import com.softcorp.sigtec.core.ui.components.IconosBarraEstadoClaros
 import com.softcorp.sigtec.core.ui.components.CampoTexto
 import com.softcorp.sigtec.core.ui.components.CabeceraHero
 import androidx.compose.ui.semantics.heading
+import androidx.compose.foundation.layout.statusBarsPadding
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -110,6 +111,7 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .statusBarsPadding()               // pantallas v2: la raíz ya no aplica el margen superior
             .imePadding()                      // el teclado no tapa el botón
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
