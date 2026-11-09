@@ -49,7 +49,7 @@ fun AvanceIncidencia(
     modifier: Modifier = Modifier,
     pasos: List<String> = PasosIncidencia
 ) {
-    val descripcion = "Paso ${actual + 1} de ${pasos.size}: ${pasos.getOrElse(actual) { "" }}"
+    val descripcion = if (actual >= pasos.size) "Atención completada" else "Paso ${actual + 1} de ${pasos.size}: ${pasos[actual]}"
     Tarjeta(modifier.semantics(mergeDescendants = true) { contentDescription = descripcion }) {
         Row(Modifier.fillMaxWidth().clearAndSetSemantics {}, horizontalArrangement = Arrangement.SpaceBetween) {
             pasos.forEachIndexed { i, paso ->
