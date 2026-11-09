@@ -1,5 +1,6 @@
 package com.softcorp.sigtec.feature.incidencias.presentation
 
+import com.softcorp.sigtec.core.ui.components.IconosBarraEstadoClaros
 import com.softcorp.sigtec.core.ui.components.Tarjeta
 import com.softcorp.sigtec.core.ui.components.PuntoLinea
 import com.softcorp.sigtec.core.ui.components.PasosIncidencia
@@ -262,6 +263,7 @@ private fun Cabecera(
     alMenu: (Boolean) -> Unit
 ) {
     val marca = SigtecTheme.marca
+    IconosBarraEstadoClaros()   // la cabecera oscura queda detrás de la barra de estado
     CabeceraHero {
         Row(Modifier.statusBarsPadding(), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = acciones.alVolver) {
