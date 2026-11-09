@@ -1,5 +1,9 @@
 package com.softcorp.sigtec.core.navigation
 
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -98,7 +102,10 @@ fun SigtecRaiz(vm: RaizViewModel = hiltViewModel()) {
         )
     }
 
+    // Pantallas v2: la raíz deja el margen superior a cada pantalla (BarraSuperior lo aplica, y las cabeceras oscuras
+    // se dibujan detrás de la barra de estado); abajo y a los lados sigue aplicándolo aquí
     Scaffold(
+        contentWindowInsets = WindowInsets.systemBars.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal),
         bottomBar = {
             if (mostrarBarra) {
                 // Retema v2 (P-9): estilo de DESIGN.md con los mismos destinos por permiso de siempre
