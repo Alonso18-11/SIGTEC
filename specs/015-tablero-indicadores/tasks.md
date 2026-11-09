@@ -9,28 +9,30 @@
 > Las rutas son relativas a `app/src/main/java/com/softcorp/sigtec/` y `app/src/test/java/com/softcorp/sigtec/`.
 > ⚠️ = compartido de `CLAUDE.md`; 🔶 = sensible fuera de esa lista.
 
+> **Estado (2026-11-09).** PR-01 y PR-02 fusionados en #149 y #150 (#148 es la spec; #151 corrige la descarga de la HU-05). T10 lo probó Alonso salvo el gráfico con cierres en los últimos 7 días. T11 es este cierre.
+
 ## PR-01: dominio (base `main`)
-- [ ] **T01 · `observarCierres` en `MovimientoDao` 🔶.** RF-1511.
+- [x] **T01 · `observarCierres` en `MovimientoDao` 🔶.** RF-1511.
   - Hecho cuando: compila.
-- [ ] **T02 · Modelos y `calcularIndicadores` con `CalcularIndicadoresTest`.** RF-1505 a RF-1508, RF-1511, RF-1514 a RF-1518, RF-1521, RF-1523.
+- [x] **T02 · Modelos y `calcularIndicadores` con `CalcularIndicadoresTest`.** RF-1505 a RF-1508, RF-1511, RF-1514 a RF-1518, RF-1521, RF-1523.
   - Hecho cuando: pasan todos los casos de la spec, incluida la de 2 000 incidencias.
-- [ ] **T03 · `IndicadoresRepository`, su `Impl` y el `@Binds`**, con el doble. RF-1504, RF-1524.
+- [x] **T03 · `IndicadoresRepository`, su `Impl` y el `@Binds`**, con el doble. RF-1504, RF-1524.
   - Hecho cuando: compila.
-- [ ] **T04 · `ObservarIndicadores` con su prueba.** RF-1503, RF-1504.
+- [x] **T04 · `ObservarIndicadores` con su prueba.** RF-1503, RF-1504.
   - Hecho cuando: pasa (sin sesión, técnico y jefe).
 
 ## PR-02: tablero (base PR-01)
-- [ ] **T05 · `TextosIndicadores` con su prueba.** RF-1502, RF-1512, RF-1514.
+- [x] **T05 · `TextosIndicadores` con su prueba.** RF-1502, RF-1512, RF-1514.
   - Hecho cuando: pasa.
-- [ ] **T06 · `IndicadoresViewModel` con su prueba.** RF-1501 a RF-1504.
+- [x] **T06 · `IndicadoresViewModel` con su prueba.** RF-1501 a RF-1504.
   - Hecho cuando: pasa.
-- [ ] **T07 · `GraficoReparados` con Vico.** RF-1509, RF-1510, RF-1513.
+- [x] **T07 · `GraficoReparados` con Vico.** RF-1509, RF-1510, RF-1513.
   - Hecho cuando: se ve en las vistas previas.
-- [ ] **T08 · `IndicadoresScreen` según el prototipo 10**, con vistas previas en claro y oscuro. RF-1501, RF-1505, RF-1515 a RF-1522.
+- [x] **T08 · `IndicadoresScreen` según el prototipo 10**, con vistas previas en claro y oscuro. RF-1501, RF-1505, RF-1515 a RF-1522.
   - Hecho cuando: compila y se ve en las vistas previas.
-- [ ] **T09 · `IndicadoresNavigation` sin `PantallaEnConstruccion` y borrar `DatosDemo.kt` ⚠️.** RF-1522.
+- [x] **T09 · `IndicadoresNavigation` sin `PantallaEnConstruccion` y borrar `DatosDemo.kt` ⚠️.** RF-1522.
   - Hecho cuando: en el celular, con el jefe, se ve el tablero y la tarjeta del equipo abre el historial.
 
 ## PR-03: cierre (base `main` al día)
-- [ ] **T10 · Prueba manual en el celular** (spec, «Criterios de finalización»), con capturas en claro y oscuro.
-- [ ] **T11 · Spec «completa» y `MEMORY.md`.**
+- [x] **T10 · Prueba manual en el celular** (spec, «Criterios de finalización»), con capturas en claro y oscuro.
+- [x] **T11 · Spec «completa» y `MEMORY.md`.**
