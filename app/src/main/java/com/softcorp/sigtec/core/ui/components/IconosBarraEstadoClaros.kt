@@ -34,10 +34,12 @@ fun IconosBarraEstadoClaros() {
 
 /**
  * Franja del color de la cabecera detrás de la barra de estado. Va encima del contenido que se desplaza, así los íconos
- * claros siguen visibles cuando la cabecera ya pasó.
+ * claros siguen visibles cuando la cabecera ya pasó. Con [visible] en false no se dibuja (con la cabecera arriba no hace
+ * falta y taparía sus círculos).
  */
 @Composable
-fun FondoBarraEstado(modifier: Modifier = Modifier) {
+fun FondoBarraEstado(visible: Boolean, modifier: Modifier = Modifier) {
+    if (!visible) return
     Box(
         modifier
             .fillMaxWidth()

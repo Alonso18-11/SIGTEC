@@ -105,11 +105,12 @@ fun InicioScreen(
 ) {
     val resumen = estado.resumen
     IconosBarraEstadoClaros()   // la cabecera oscura queda detrás de la barra de estado
+    val desplazamiento = rememberScrollState()
     Box(Modifier.fillMaxSize()) {
     Column(
         Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(desplazamiento)
     ) {
         Cabecera(estado, alAbrirAjustes, alTocarMetrica)
         if (resumen != null) {
@@ -123,7 +124,7 @@ fun InicioScreen(
             }
         }
     }
-    FondoBarraEstado()
+    FondoBarraEstado(visible = desplazamiento.value > 0)
     }
 }
 
