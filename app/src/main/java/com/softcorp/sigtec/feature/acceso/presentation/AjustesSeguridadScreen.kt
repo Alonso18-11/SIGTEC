@@ -40,8 +40,10 @@ import com.softcorp.sigtec.core.ui.components.BotonPeligro
 import com.softcorp.sigtec.core.ui.components.BotonSecundario
 import com.softcorp.sigtec.core.ui.components.BotonTexto
 import com.softcorp.sigtec.core.ui.components.Seccion
+import com.softcorp.sigtec.core.ui.components.Tarjeta
 
-private val TamanoAvatar = 48.dp
+private val TamanoAvatar = 56.dp
+private val TamanoCajaIcono = 44.dp
 
 @Composable
 fun AjustesSeguridadRoute(alVolver: () -> Unit, vm: AjustesSeguridadViewModel = hiltViewModel()) {
@@ -89,7 +91,7 @@ fun AjustesSeguridadScreen(
     alConfirmarSalida: () -> Unit,
     alCancelarSalida: () -> Unit
 ) {
-    // La raíz ya aplica los márgenes de la barra de estado; BarraSuperior ya los trae en cero
+    // BarraSuperior aplica el margen de la barra de estado
     Scaffold(
         contentWindowInsets = WindowInsets(0),
         topBar = { BarraSuperior("Ajustes de seguridad", alVolver = alVolver) }
@@ -116,7 +118,7 @@ fun AjustesSeguridadScreen(
                         )
                     } else {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Outlined.Fingerprint, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                            IconoEnCaja(Icons.Outlined.Fingerprint)
                             Column(Modifier.weight(1f).padding(horizontal = Espaciado.m)) {
                                 Text("Ingresar con huella", style = MaterialTheme.typography.titleSmall)
                                 Text(
@@ -216,47 +218,55 @@ private fun DialogoConfirmarSalida(
     )
 }
 
+/** Pantallas v2 (prototipo 18): tarjeta oscura con el avatar propio en acento, como la cabecera de Inicio. */
 @Composable
 private fun TarjetaUsuario(usuario: Usuario) {
-    Panel {
+    val marca = SigtecTheme.marca
+    Surface(
+        color = marca.hero,
+        contentColor = marca.sobreHero,
+        shape = MaterialTheme.shapes.large,
+        modifier = Modifier.fillMaxWidth()
+    ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.padding(Espaciado.m),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Avatar(usuario.nombre, tamano = TamanoAvatar)
+            Avatar(usuario.nombre, tamano = TamanoAvatar, esUsuarioActual = true)
             Column(Modifier.padding(start = Espaciado.m)) {
-                Text(usuario.nombre, style = MaterialTheme.typography.titleMedium)
-                Text(usuario.cargo, style = MaterialTheme.typography.bodyMedium)
-                Text(
-                    usuario.correo,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Text(usuario.nombre, style = MaterialTheme.typography.titleMedium, color = marca.sobreHero)
+                Text(usuario.cargo, style = MaterialTheme.typography.bodyMedium, color = marca.sobreHeroTenue)
+                Text(usuario.correo, style = MaterialTheme.typography.bodyMedium, color = marca.sobreHero)
             }
         }
     }
 }
 
-/** Grupo de ajustes en un panel blanco con borde fino, como la configuración de Jira. */
+/** Grupo de ajustes en una tarjeta blanca (pantallas v2). */
 @Composable
 private fun Panel(contenido: @Composable ColumnScope.() -> Unit) {
-    OutlinedCard(
-        shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface),
-        modifier = Modifier.fillMaxWidth()
+    Tarjeta(Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(Espaciado.sm), content = contenido)
+    }
+}
+
+/** Ícono del ajuste dentro de un cuadro de color suave (prototipo 18). Solo decora: el texto ya dice qué es. */
+@Composable
+private fun IconoEnCaja(icono: ImageVector) {
+    Surface(
+        color = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        shape = MaterialTheme.shapes.small,
+        modifier = Modifier.size(TamanoCajaIcono)
     ) {
-        Column(
-            Modifier.padding(Espaciado.m),
-            verticalArrangement = Arrangement.spacedBy(Espaciado.sm),
-            content = contenido
-        )
+        Box(contentAlignment = Alignment.Center) { Icon(icono, contentDescription = null) }
     }
 }
 
 @Composable
 private fun FilaInformativa(icono: ImageVector, titulo: String?, texto: String) {
     Row {
-        Icon(icono, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        IconoEnCaja(icono)
         Column(Modifier.padding(start = Espaciado.m)) {
             titulo?.let { Text(it, style = MaterialTheme.typography.titleSmall) }
             Text(

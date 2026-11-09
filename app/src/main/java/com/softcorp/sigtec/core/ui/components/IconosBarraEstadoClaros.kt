@@ -18,6 +18,8 @@ import androidx.core.view.WindowCompat
 /**
  * Pantallas con `CabeceraHero` (Inicio, Detalle): mientras se ven, los íconos de la barra de estado van en blanco, porque
  * la cabecera oscura queda detrás de ellos. Al salir vuelven a lo que pide el tema (oscuros en modo claro).
+ * Cuenta las pantallas con cabecera que están montadas: en una transición (por ejemplo del Login a Inicio) la que
+ * sale se desmonta después de que entra la otra, y sin el conteo dejaría los íconos oscuros sobre la cabecera.
  */
 @Composable
 fun IconosBarraEstadoClaros() {
@@ -27,10 +29,17 @@ fun IconosBarraEstadoClaros() {
     DisposableEffect(vista, temaOscuro) {
         val ventana = (vista.context as? Activity)?.window
         val controlador = ventana?.let { WindowCompat.getInsetsController(it, vista) }
+        pantallasConCabecera++
         controlador?.isAppearanceLightStatusBars = false
-        onDispose { controlador?.isAppearanceLightStatusBars = !temaOscuro }
+        onDispose {
+            pantallasConCabecera--
+            if (pantallasConCabecera == 0) controlador?.isAppearanceLightStatusBars = !temaOscuro
+        }
     }
 }
+
+// Solo se toca desde el hilo principal (efectos de Compose)
+private var pantallasConCabecera = 0
 
 /**
  * Franja del color de la cabecera detrás de la barra de estado. Va encima del contenido que se desplaza, así los íconos

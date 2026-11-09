@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Mail
@@ -28,7 +29,7 @@ import com.softcorp.sigtec.core.theme.SigtecTheme
  * Campo de texto v2 (plan del retema, P-11 y P-12): fondo `surface` sobre el teal claro, esquinas de 16 dp y borde
  * `outline`, que llega a 3:1 (con `outlineVariant` no llegaba). La etiqueta siempre es visible (DESIGN.md 7).
  * [ayuda] va debajo; con [error] el borde y la ayuda pasan a `error`. [final] es, por ejemplo, el botón de cámara o
- * de micrófono.
+ * de micrófono. [acciones] responde a la tecla del teclado, por ejemplo «Listo» para enviar el formulario.
  */
 @Composable
 fun CampoTexto(
@@ -44,6 +45,7 @@ fun CampoTexto(
     unaLinea: Boolean = true,
     lineasMinimas: Int = 1,
     teclado: KeyboardOptions = KeyboardOptions.Default,
+    acciones: KeyboardActions = KeyboardActions.Default,
     transformacion: VisualTransformation = VisualTransformation.None
 ) {
     val c = MaterialTheme.colorScheme
@@ -59,6 +61,7 @@ fun CampoTexto(
         singleLine = unaLinea,
         minLines = lineasMinimas,
         keyboardOptions = teclado,
+        keyboardActions = acciones,
         visualTransformation = transformacion,
         shape = MaterialTheme.shapes.extraSmall,
         colors = OutlinedTextFieldDefaults.colors(
