@@ -73,6 +73,17 @@ class FallaDiccionarioDaoTest {
         assertEquals(false, dao.porId("a")?.pendienteSincronizar)
     }
 
+    @Test
+    fun borrar_sincronizada_no_toca_una_falla_sin_subir() = runTest {
+        dao.guardar(falla("a", "Fuente de poder dañada", pendiente = false))
+        dao.guardar(falla("b", "Pantalla azul al iniciar", pendiente = true))
+
+        dao.borrarSincronizada("a")
+        dao.borrarSincronizada("b")
+
+        assertEquals(listOf("b"), dao.observarTodas().first().map { it.id })
+    }
+
     private fun falla(id: String, titulo: String, origen: String? = null, pendiente: Boolean = true) =
         FallaDiccionarioEntity(
             id = id, titulo = titulo, sintomas = "No enciende", componente = "Fuente de poder",

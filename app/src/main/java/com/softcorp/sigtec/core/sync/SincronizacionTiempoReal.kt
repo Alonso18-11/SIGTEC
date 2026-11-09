@@ -147,7 +147,12 @@ class SincronizacionTiempoReal @Inject constructor(
 
     private suspend fun guardarFallas(snap: QuerySnapshot) {
         for (cambio in snap.documentChanges) {
-            if (cambio.type == DocumentChange.Type.REMOVED) continue
+            // La app no borra fallas (D-4), pero el equipo puede corregir una desde la consola de Firebase: se quita
+            // también del celular, salvo que tenga algo sin subir
+            if (cambio.type == DocumentChange.Type.REMOVED) {
+                fallaDiccionarioDao.borrarSincronizada(cambio.document.id)
+                continue
+            }
             val documento = cambio.document
             if (documento.metadata.hasPendingWrites()) continue   // falla propia aún sin confirmar
             val remota = documento.aFallaEntity() ?: continue
