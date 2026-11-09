@@ -9,6 +9,7 @@ import com.google.firebase.firestore.QuerySnapshot
 import com.softcorp.sigtec.core.data.AlmacenFotos
 import com.softcorp.sigtec.core.database.SigtecDatabase
 import com.softcorp.sigtec.core.database.dao.CatalogoDao
+import com.softcorp.sigtec.core.database.dao.FallaDiccionarioDao
 import com.softcorp.sigtec.core.database.dao.IncidenciaDao
 import com.softcorp.sigtec.core.database.dao.MovimientoDao
 import com.softcorp.sigtec.core.database.dao.SincronizacionDao
@@ -40,6 +41,7 @@ class SincronizacionTiempoReal @Inject constructor(
     private val catalogoDao: CatalogoDao,
     private val sincronizacionDao: SincronizacionDao,
     private val solicitudRepuestoDao: SolicitudRepuestoDao,
+    private val fallaDiccionarioDao: FallaDiccionarioDao,
     private val programador: ProgramadorSincronizacion,
     private val reloj: Reloj,
     private val notificador: NotificadorAsignaciones,
@@ -72,6 +74,8 @@ class SincronizacionTiempoReal @Inject constructor(
                                 escuchar("equipos", ::guardarEquipos),
                                 // HU-11 (RF-1120): el detalle muestra las solicitudes de repuesto a todos los perfiles
                                 escuchar("solicitudesRepuesto", ::guardarSolicitudes),
+                                // HU-13 (RF-1322): el diccionario lo leen el técnico y el personal de sistemas
+                                escuchar("fallas", ::guardarFallas),
                                 // RF-619 (HU-06): solo los técnicos; quien deja de serlo llega como REMOVED
                                 escuchar(
                                     "usuarios", ::guardarTecnicos,
@@ -138,6 +142,16 @@ class SincronizacionTiempoReal @Inject constructor(
             if (documento.metadata.hasPendingWrites()) continue   // cambio propio aún sin confirmar
             val remota = documento.aSolicitudEntity() ?: continue
             if (debeReemplazarSolicitud(solicitudRepuestoDao.porId(remota.id), remota)) solicitudRepuestoDao.guardar(remota)
+        }
+    }
+
+    private suspend fun guardarFallas(snap: QuerySnapshot) {
+        for (cambio in snap.documentChanges) {
+            if (cambio.type == DocumentChange.Type.REMOVED) continue
+            val documento = cambio.document
+            if (documento.metadata.hasPendingWrites()) continue   // falla propia aún sin confirmar
+            val remota = documento.aFallaEntity() ?: continue
+            if (debeReemplazarFalla(fallaDiccionarioDao.porId(remota.id), remota)) fallaDiccionarioDao.guardar(remota)
         }
     }
 

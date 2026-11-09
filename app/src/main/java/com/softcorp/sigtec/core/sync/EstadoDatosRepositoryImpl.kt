@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.room.withTransaction
 import com.softcorp.sigtec.core.database.SigtecDatabase
 import com.softcorp.sigtec.core.database.dao.EvidenciaDao
+import com.softcorp.sigtec.core.database.dao.FallaDiccionarioDao
 import com.softcorp.sigtec.core.database.dao.IncidenciaDao
 import com.softcorp.sigtec.core.database.dao.InformeTecnicoDao
 import com.softcorp.sigtec.core.database.dao.MovimientoDao
@@ -26,6 +27,7 @@ class EstadoDatosRepositoryImpl @Inject constructor(
     monitor: MonitorConexion,
     sincronizacionDao: SincronizacionDao,
     evidenciaDao: EvidenciaDao,
+    fallaDiccionarioDao: FallaDiccionarioDao,
     private val baseLocal: SigtecDatabase,
     private val incidenciaDao: IncidenciaDao,
     private val movimientoDao: MovimientoDao,
@@ -38,7 +40,8 @@ class EstadoDatosRepositoryImpl @Inject constructor(
     override val estado: Flow<EstadoDatos> = combine(
         monitor.hayConexion,
         sincronizacionDao.observarUltimaExitosa(TAREA_BAJAR),
-        incidenciaDao.observarPendientes(),
+        // HU-13 (RF-1331, D-5): las fallas sin subir también son registros sin enviar
+        combine(incidenciaDao.observarPendientes(), fallaDiccionarioDao.observarCantidadPendientes()) { i, f -> i + f },
         // RF-76 (D-8 de la spec 005): por incidencia afectada, igual que los cambios sin enviar
         incidenciaDao.observarAfectadasPorRechazo(),
         evidenciaDao.contar()   // RF-943 (HU-09)
