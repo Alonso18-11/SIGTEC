@@ -13,6 +13,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
@@ -44,6 +45,11 @@ class DiccionarioViewModel @Inject constructor(
 
     private val filtros = MutableStateFlow(Filtros())
 
+    // El buscador lee este texto directo: si esperara al filtro (que corre en otro hilo), al escribir rápido el estado
+    // viejo volvería al campo y se perderían letras
+    private val _texto = MutableStateFlow("")
+    val texto: StateFlow<String> = _texto.asStateFlow()
+
     val estado: StateFlow<DiccionarioUiState> = when (val acceso = observarDiccionario()) {
         is Resultado.Error -> flowOf(DiccionarioUiState(cargando = false, sinPermiso = true))
         is Resultado.Exito -> combine(acceso.valor.fallas, filtros) { todas, f ->
@@ -60,7 +66,10 @@ class DiccionarioViewModel @Inject constructor(
         }.flowOn(calculo)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DiccionarioUiState())
 
-    fun alBuscar(texto: String) = filtros.update { it.copy(texto = texto) }
+    fun alBuscar(texto: String) {
+        _texto.value = texto
+        filtros.update { it.copy(texto = texto) }
+    }
 
     fun alFiltrarTipo(tipo: TipoFalla?) = filtros.update { it.copy(tipo = tipo) }
 

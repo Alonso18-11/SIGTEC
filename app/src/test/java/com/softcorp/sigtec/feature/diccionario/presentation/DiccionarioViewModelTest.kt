@@ -93,4 +93,11 @@ class DiccionarioViewModelTest {
         vm.alTocarFalla("f2")
         assertNull(vm.estado.value.desplegadaId)
     }
+
+    @Test
+    fun `el texto del buscador se actualiza al instante sin esperar al filtro`() = runTest {
+        val vm = crear("lramirez@softcorp.pe")
+        "IMPRESION".forEachIndexed { i, _ -> vm.alBuscar("IMPRESION".take(i + 1)) }
+        assertEquals("IMPRESION", vm.texto.value)
+    }
 }
