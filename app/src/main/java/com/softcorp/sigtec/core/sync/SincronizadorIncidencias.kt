@@ -6,11 +6,13 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.Source
 import com.softcorp.sigtec.core.database.SigtecDatabase
+import com.softcorp.sigtec.core.database.dao.FallaDiccionarioDao
 import com.softcorp.sigtec.core.database.dao.IncidenciaDao
 import com.softcorp.sigtec.core.database.dao.InformeTecnicoDao
 import com.softcorp.sigtec.core.database.dao.SolicitudRepuestoDao
 import com.softcorp.sigtec.core.database.dao.MovimientoDao
 import com.softcorp.sigtec.core.database.dao.SincronizacionDao
+import com.softcorp.sigtec.core.database.entity.FallaDiccionarioEntity
 import com.softcorp.sigtec.core.database.entity.IncidenciaEntity
 import com.softcorp.sigtec.core.database.entity.InformeTecnicoEntity
 import com.softcorp.sigtec.core.database.entity.SolicitudRepuestoEntity
@@ -31,12 +33,14 @@ class SincronizadorIncidencias @Inject constructor(
     private val movimientoDao: MovimientoDao,
     private val informeTecnicoDao: InformeTecnicoDao,
     private val solicitudRepuestoDao: SolicitudRepuestoDao,
+    private val fallaDiccionarioDao: FallaDiccionarioDao,
     private val sincronizacionDao: SincronizacionDao
 ) {
     private val incidencias get() = firestore.collection("incidencias")
     private val movimientos get() = firestore.collection("movimientos")
     private val informes get() = firestore.collection("informes")
     private val solicitudes get() = firestore.collection("solicitudesRepuesto")
+    private val fallas get() = firestore.collection("fallas")
     private val contador get() = firestore.collection("contadores").document("incidencias")
     private val usuarios get() = firestore.collection("usuarios")
 
@@ -59,6 +63,11 @@ class SincronizadorIncidencias @Inject constructor(
         for (solicitud in solicitudRepuestoDao.listosParaSubir()) {
             todoBien = subir(solicitud) && todoBien
         }
+
+        // HU-13 (RF-1321): las fallas del diccionario no dependen de ninguna incidencia
+        for (falla in fallaDiccionarioDao.pendientesDeSincronizar()) {
+            todoBien = subir(falla) && todoBien
+        }
         sincronizacionDao.registrar(
             SincronizacionEntity(tipoTarea = TAREA_SUBIR, ejecutadaEn = ahora, exitosa = todoBien)
         )
@@ -70,7 +79,8 @@ class SincronizadorIncidencias @Inject constructor(
         incidenciaDao.pendientesDeSincronizar().isNotEmpty() ||
             movimientoDao.pendientesDeSincronizar().isNotEmpty() ||
             informeTecnicoDao.pendientesDeSincronizar().isNotEmpty() ||
-            solicitudRepuestoDao.listosParaSubir().isNotEmpty()
+            solicitudRepuestoDao.listosParaSubir().isNotEmpty() ||
+            fallaDiccionarioDao.pendientesDeSincronizar().isNotEmpty()
 
     private suspend fun subir(local: IncidenciaEntity): Boolean {
         try {
@@ -238,6 +248,22 @@ class SincronizadorIncidencias @Inject constructor(
         } else {
             false
         }
+    }
+
+    /**
+     * HU-13 (RF-1320, RF-1321): un `set` completo, porque la falla no se edita (D-4). Si la regla del servidor la rechaza
+     * (error permanente), queda pendiente y se registra en Logcat sin frenar al resto; el aviso de cerrar sesión la
+     * sigue contando (RF-1331).
+     */
+    private suspend fun subir(falla: FallaDiccionarioEntity): Boolean = try {
+        fallas.document(falla.id).set(falla.aFirestore()).await()
+        fallaDiccionarioDao.marcarSincronizada(falla.id)
+        true
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Log.w(TAG, "No se pudo subir la falla ${falla.id}", e)
+        esErrorPermanente(e)
     }
 
     private companion object {
