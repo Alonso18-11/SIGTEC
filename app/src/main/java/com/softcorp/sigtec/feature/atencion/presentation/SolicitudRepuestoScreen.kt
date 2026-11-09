@@ -1,5 +1,8 @@
 package com.softcorp.sigtec.feature.atencion.presentation
 
+import com.softcorp.sigtec.core.ui.components.Tarjeta
+import com.softcorp.sigtec.core.ui.components.CampoTexto
+import com.softcorp.sigtec.core.ui.components.BarraAccionInferior
 import android.content.res.Configuration
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -127,18 +130,14 @@ fun SolicitudRepuestoScreen(
         ) {
             estado.incidencia?.let { ParaLaIncidencia(it) }
 
-            OutlinedTextField(
-                value = estado.pieza,
-                onValueChange = alCambiarPieza,
-                label = { Text("Pieza requerida *") },
-                supportingText = { Text("Escribe al menos 3 letras para consultar a Logística") },
-                singleLine = true,
-                enabled = editable,
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Sentences,
-                    imeAction = ImeAction.Next
-                ),
-                modifier = Modifier.fillMaxWidth()
+            CampoTexto(
+                valor = estado.pieza,
+                alCambiar = alCambiarPieza,
+                etiqueta = "Pieza requerida *",
+                icono = Icons.Outlined.Inventory2,
+                ayuda = "Escribe al menos 3 letras para consultar a Logística",
+                habilitado = editable,
+                teclado = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Next)
             )
 
             if (estado.coincidencias.isNotEmpty()) {
@@ -146,15 +145,15 @@ fun SolicitudRepuestoScreen(
             }
             estado.disponibilidad?.let { TarjetaDisponibilidad(it, alReintentar) }
 
-            OutlinedTextField(
-                value = estado.motivo,
-                onValueChange = alCambiarMotivo,
-                label = { Text("Motivo *") },
-                supportingText = { Text("Qué le pasa al equipo y por qué hace falta la pieza") },
-                minLines = 3,
-                enabled = editable,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                modifier = Modifier.fillMaxWidth()
+            CampoTexto(
+                valor = estado.motivo,
+                alCambiar = alCambiarMotivo,
+                etiqueta = "Motivo *",
+                ayuda = "Qué le pasa al equipo y por qué hace falta la pieza",
+                habilitado = editable,
+                unaLinea = false,
+                lineasMinimas = 3,
+                teclado = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
             )
 
             Row(horizontalArrangement = Arrangement.spacedBy(Espaciado.s)) {
@@ -177,12 +176,8 @@ fun SolicitudRepuestoScreen(
 
 @Composable
 private fun ParaLaIncidencia(incidencia: Incidencia) {
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        shape = MaterialTheme.shapes.medium,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(Modifier.padding(Espaciado.m), verticalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
+    Tarjeta(Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
             Text(
                 "Para la incidencia",
                 style = MaterialTheme.typography.labelMedium,
@@ -286,11 +281,10 @@ private fun Tarjeta(
 /** RF-1110 y RF-1111: «Enviar con huella», con lo que le falta al celular si no tiene seguridad. */
 @Composable
 private fun PieEnviar(estado: SolicitudRepuestoUiState, alEnviar: () -> Unit) {
-    Surface(color = MaterialTheme.colorScheme.surface) {
-        Column {
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+    // Pantallas v2 (prototipo 12): hoja blanca pegada abajo
+    BarraAccionInferior {
             Column(
-                modifier = Modifier.padding(horizontal = Espaciado.m, vertical = Espaciado.sm),
+                modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(Espaciado.s)
             ) {
                 BotonPrincipal(onClick = alEnviar, enabled = estado.puedeEnviar, modifier = Modifier.fillMaxWidth()) {
@@ -324,7 +318,6 @@ private fun PieEnviar(estado: SolicitudRepuestoUiState, alEnviar: () -> Unit) {
                     )
                 }
             }
-        }
     }
 }
 

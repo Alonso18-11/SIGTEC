@@ -1,5 +1,9 @@
 package com.softcorp.sigtec.feature.atencion.presentation
 
+import com.softcorp.sigtec.core.ui.components.CampoTexto
+import com.softcorp.sigtec.core.ui.components.BarraAccionInferior
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.FilledIconButton
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -104,12 +108,16 @@ fun InformeTecnicoRoute(
 /** HU-10 (RF-1001, RF-1002): el micrófono al final de un campo; se deshabilita junto con el campo. */
 @Composable
 private fun MicrofonoCampo(descripcion: String, habilitado: Boolean, alDictar: () -> Unit) {
-    IconButton(onClick = alDictar, enabled = habilitado) {
-        Icon(
-            Icons.Outlined.Mic,
-            contentDescription = descripcion,
-            tint = if (habilitado) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+    // Pantallas v2: el micrófono es uno de los usos permitidos del acento (DESIGN.md 3)
+    FilledIconButton(
+        onClick = alDictar,
+        enabled = habilitado,
+        colors = IconButtonDefaults.filledIconButtonColors(
+            containerColor = SigtecTheme.marca.acento,
+            contentColor = SigtecTheme.marca.sobreAcento
         )
+    ) {
+        Icon(Icons.Outlined.Mic, contentDescription = descripcion)
     }
 }
 
@@ -133,7 +141,14 @@ fun InformeTecnicoScreen(
     Scaffold(
         modifier = Modifier.imePadding(),
         contentWindowInsets = WindowInsets(0),
-        topBar = { BarraSuperior("Informe técnico", alVolver = alVolver) }
+        topBar = { BarraSuperior("Informe técnico", alVolver = alVolver) },
+        // Pantallas v2 (prototipo 08): la confirmación va en la hoja inferior
+        bottomBar = {
+            BarraConfirmar(estado) {
+                intentoConfirmar = true
+                alConfirmar()
+            }
+        }
     ) { padding ->
         Column(
             modifier = Modifier
@@ -148,54 +163,50 @@ fun InformeTecnicoScreen(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            OutlinedTextField(
-                value = estado.diagnostico,
-                onValueChange = alCambiarDiagnostico,
-                label = { Text("Diagnóstico *") },
-                trailingIcon = { MicrofonoCampo("Dictar diagnóstico", editable) { alDictar(CampoDictado.DIAGNOSTICO) } },
-                supportingText = { Text("La causa del problema") },
-                isError = intentoConfirmar && estado.diagnostico.isBlank(),
-                enabled = editable,
-                minLines = 2,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                modifier = Modifier.fillMaxWidth()
+            CampoTexto(
+                valor = estado.diagnostico,
+                alCambiar = alCambiarDiagnostico,
+                etiqueta = "Diagnóstico *",
+                final = { MicrofonoCampo("Dictar diagnóstico", editable) { alDictar(CampoDictado.DIAGNOSTICO) } },
+                ayuda = "La causa del problema",
+                error = intentoConfirmar && estado.diagnostico.isBlank(),
+                habilitado = editable,
+                unaLinea = false,
+                lineasMinimas = 2,
+                teclado = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
             )
 
-            OutlinedTextField(
-                value = estado.trabajoRealizado,
-                onValueChange = alCambiarTrabajo,
-                label = { Text("Solución aplicada *") },
-                trailingIcon = {
-                    MicrofonoCampo("Dictar solución aplicada", editable) { alDictar(CampoDictado.SOLUCION) }
-                },
-                supportingText = { Text("Qué se hizo para resolverlo") },
-                isError = intentoConfirmar && estado.trabajoRealizado.isBlank(),
-                enabled = editable,
-                minLines = 2,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                modifier = Modifier.fillMaxWidth()
+            CampoTexto(
+                valor = estado.trabajoRealizado,
+                alCambiar = alCambiarTrabajo,
+                etiqueta = "Solución aplicada *",
+                final = { MicrofonoCampo("Dictar solución aplicada", editable) { alDictar(CampoDictado.SOLUCION) } },
+                ayuda = "Qué se hizo para resolverlo",
+                error = intentoConfirmar && estado.trabajoRealizado.isBlank(),
+                habilitado = editable,
+                unaLinea = false,
+                lineasMinimas = 2,
+                teclado = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
             )
 
-            OutlinedTextField(
-                value = estado.piezasCambiadas,
-                onValueChange = alCambiarPiezas,
-                label = { Text("Piezas cambiadas") },
-                enabled = editable,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                modifier = Modifier.fillMaxWidth()
+            CampoTexto(
+                valor = estado.piezasCambiadas,
+                alCambiar = alCambiarPiezas,
+                etiqueta = "Piezas cambiadas",
+                habilitado = editable,
+                unaLinea = false,
+                teclado = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
             )
 
-            OutlinedTextField(
-                value = estado.observaciones,
-                onValueChange = alCambiarObservaciones,
-                label = { Text("Observaciones") },
-                trailingIcon = {
-                    MicrofonoCampo("Dictar observaciones", editable) { alDictar(CampoDictado.OBSERVACIONES) }
-                },
-                enabled = editable,
-                minLines = 2,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                modifier = Modifier.fillMaxWidth()
+            CampoTexto(
+                valor = estado.observaciones,
+                alCambiar = alCambiarObservaciones,
+                etiqueta = "Observaciones",
+                final = { MicrofonoCampo("Dictar observaciones", editable) { alDictar(CampoDictado.OBSERVACIONES) } },
+                habilitado = editable,
+                unaLinea = false,
+                lineasMinimas = 2,
+                teclado = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
             )
 
             // HU-09 (RF-938, D-6): fotografiar la pieza cambiada sin salir del cierre
@@ -206,13 +217,6 @@ fun InformeTecnicoScreen(
                 alAbrirFoto = { fotoAbiertaId = it.id }
             )
 
-            BotonConfirmar(
-                estado = estado,
-                onClick = {
-                    intentoConfirmar = true
-                    alConfirmar()
-                }
-            )
         }
     }
 
@@ -222,11 +226,18 @@ fun InformeTecnicoScreen(
 }
 
 @Composable
-private fun BotonConfirmar(estado: InformeTecnicoUiState, onClick: () -> Unit) {
+private fun BarraConfirmar(estado: InformeTecnicoUiState, onClick: () -> Unit) {
+    BarraAccionInferior(aviso = { AvisosConfirmar(estado) }) {
+        BotonConfirmar(estado, onClick, Modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun BotonConfirmar(estado: InformeTecnicoUiState, onClick: () -> Unit, modifier: Modifier) {
     BotonPrincipal(
         onClick = onClick,
         enabled = estado.puedeConfirmar,
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier
     ) {
         if (estado.guardando) {
             CircularProgressIndicator(
@@ -240,7 +251,10 @@ private fun BotonConfirmar(estado: InformeTecnicoUiState, onClick: () -> Unit) {
             Text("Confirmar cierre")
         }
     }
+}
 
+@Composable
+private fun AvisosConfirmar(estado: InformeTecnicoUiState) {
     if (estado.disponibilidadBiometrica != DisponibilidadBiometrica.SIN_SEGURIDAD) {
         Text(
             "Se te pedirá tu huella o el bloqueo de pantalla para confirmar.",

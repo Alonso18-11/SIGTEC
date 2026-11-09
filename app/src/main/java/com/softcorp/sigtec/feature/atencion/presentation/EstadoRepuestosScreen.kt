@@ -1,5 +1,8 @@
 package com.softcorp.sigtec.feature.atencion.presentation
 
+import com.softcorp.sigtec.core.ui.components.Tarjeta
+import com.softcorp.sigtec.core.ui.components.SeguimientoRepuesto
+import com.softcorp.sigtec.core.ui.components.PestanasSegmentadas
 import android.content.res.Configuration
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -126,18 +129,14 @@ fun EstadoRepuestosScreen(
 
 @Composable
 private fun Filtros(actual: FiltroRepuestos, alCambiar: (FiltroRepuestos) -> Unit) {
-    Row(
-        modifier = Modifier.padding(horizontal = Espaciado.m),
-        horizontalArrangement = Arrangement.spacedBy(Espaciado.s)
-    ) {
-        FiltroRepuestos.entries.forEach { filtro ->
-            FilterChip(
-                selected = filtro == actual,
-                onClick = { alCambiar(filtro) },
-                label = { Text(textoFiltro(filtro)) }
-            )
-        }
-    }
+    // Pantallas v2 (prototipo 13): pestañas segmentadas
+    PestanasSegmentadas(
+        opciones = FiltroRepuestos.entries,
+        seleccionada = actual,
+        texto = ::textoFiltro,
+        alElegir = alCambiar,
+        modifier = Modifier.padding(horizontal = Espaciado.m)
+    )
 }
 
 private fun textoFiltro(filtro: FiltroRepuestos) = when (filtro) {
@@ -167,14 +166,8 @@ private fun AvisoSinRespuesta() {
 private fun TarjetaSolicitud(item: SolicitudConIncidencia, ahora: Instant, alAbrir: () -> Unit) {
     val solicitud = item.solicitud
     val estado = estadoVisible(solicitud)
-    OutlinedCard(
-        shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surface),
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = alAbrir)
-    ) {
-        Column(Modifier.padding(Espaciado.m), verticalArrangement = Arrangement.spacedBy(Espaciado.sm)) {
+    Tarjeta(Modifier.fillMaxWidth(), onClick = alAbrir) {
+        Column(verticalArrangement = Arrangement.spacedBy(Espaciado.sm)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text(solicitud.pieza, style = MaterialTheme.typography.titleMedium)
@@ -197,45 +190,23 @@ private fun TarjetaSolicitud(item: SolicitudConIncidencia, ahora: Instant, alAbr
     }
 }
 
-/** Solicitado → Despachado → Entregado; cada paso dice si ya pasó con el ícono y el texto, no solo con el color. */
+/** RF-1122 con `SeguimientoRepuesto`: violeta mientras llega y verde al entregarse; cada paso lleva su fecha. */
 @Composable
 private fun Pasos(solicitud: SolicitudRepuesto, ahora: Instant) {
     val despachada = solicitud.estadoEntrega != EstadoEntrega.POR_DESPACHAR || solicitud.despachadaEn != null
     val entregada = solicitud.estadoEntrega == EstadoEntrega.ENTREGADO
-    Row(horizontalArrangement = Arrangement.spacedBy(Espaciado.s)) {
-        Paso("Solicitado", fechaCorta(solicitud.fechaSolicitud, ahora), hecho = true, Modifier.weight(1f))
-        Paso(
-            "Despachado",
-            solicitud.despachadaEn?.let { fechaCorta(it, ahora) }
-                ?: solicitud.diasEnvio?.takeIf { !despachada }?.let { "Estimado: ${if (it == 1) "1 día" else "$it días"}" }
-                ?: "—",
-            hecho = despachada,
-            Modifier.weight(1f)
+    val despacho = solicitud.despachadaEn?.let { fechaCorta(it, ahora) }
+        ?: solicitud.diasEnvio?.takeIf { !despachada }?.let { "Estimado: ${if (it == 1) "1 día" else "$it días"}" }
+    val entrega = solicitud.entregadaEn?.let { fechaCorta(it, ahora) }
+        ?: solicitud.llegadaEstimada?.let { "Llega ${fechaCorta(it, ahora)}" }
+    SeguimientoRepuesto(
+        hechos = 1 + (if (despachada) 1 else 0) + (if (entregada) 1 else 0),
+        pasos = listOf(
+            "Solicitado\n${fechaCorta(solicitud.fechaSolicitud, ahora)}",
+            listOfNotNull("Despachado", despacho).joinToString("\n"),
+            listOfNotNull("Entregado", entrega).joinToString("\n")
         )
-        Paso(
-            "Entregado",
-            solicitud.entregadaEn?.let { fechaCorta(it, ahora) }
-                ?: solicitud.llegadaEstimada?.let { "Llega ${fechaCorta(it, ahora)}" }
-                ?: "—",
-            hecho = entregada,
-            Modifier.weight(1f)
-        )
-    }
-}
-
-@Composable
-private fun Paso(titulo: String, detalle: String, hecho: Boolean, modifier: Modifier = Modifier) {
-    val color: Color = if (hecho) SigtecTheme.estados.solucionado.contenido else MaterialTheme.colorScheme.outline
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
-        Icon(
-            if (hecho) Icons.Filled.CheckCircle else Icons.Outlined.RadioButtonUnchecked,
-            contentDescription = if (hecho) "$titulo: hecho" else "$titulo: pendiente",
-            tint = color,
-            modifier = Modifier.size(TamanoIcono)
-        )
-        Text(titulo, style = MaterialTheme.typography.labelMedium)
-        Text(detalle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
+    )
 }
 
 private fun pie(solicitud: SolicitudRepuesto, estado: EstadoSolicitudVisible, ahora: Instant): String = when (estado) {
