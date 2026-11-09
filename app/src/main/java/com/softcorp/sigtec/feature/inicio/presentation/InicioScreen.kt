@@ -1,5 +1,6 @@
 package com.softcorp.sigtec.feature.inicio.presentation
 
+import com.softcorp.sigtec.core.ui.components.IconosBarraEstadoClaros
 import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -99,6 +100,7 @@ fun InicioScreen(
     alAbrirRepuestos: () -> Unit
 ) {
     val resumen = estado.resumen
+    IconosBarraEstadoClaros()   // la cabecera oscura queda detrás de la barra de estado
     Column(
         Modifier
             .fillMaxSize()
