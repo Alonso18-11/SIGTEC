@@ -1,5 +1,6 @@
 package com.softcorp.sigtec.feature.captura.presentation
 
+import com.softcorp.sigtec.core.ui.components.PestanasSegmentadas
 import android.content.res.Configuration
 import androidx.camera.core.UseCase
 import androidx.compose.foundation.BorderStroke
@@ -17,9 +18,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -202,16 +200,20 @@ private fun FilaMiniaturas(fotos: List<Evidencia>) {
     }
 }
 
-/** P-11: el disparador es circular, la forma que todos reconocen; deshabilitado cambia de color (RF-927). */
+/**
+ * P-11: el disparador es circular, la forma que todos reconocen; deshabilitado cambia de color (RF-927). Pantallas v2
+ * (prototipo 16): centro en acento con el anillo en el color principal.
+ */
 @Composable
 private fun Disparador(habilitado: Boolean, alDisparar: () -> Unit, modifier: Modifier = Modifier) {
-    val color = if (habilitado) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+    val anillo = if (habilitado) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+    val color = if (habilitado) SigtecTheme.marca.acento else MaterialTheme.colorScheme.outlineVariant
     Surface(
         onClick = alDisparar,
         enabled = habilitado,
         shape = CircleShape,
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(GrosorDisparador, color),
+        border = BorderStroke(GrosorDisparador, anillo),
         modifier = modifier
             .size(TamanoDisparador)
             .semantics { contentDescription = "Tomar foto" }
@@ -246,16 +248,13 @@ private val GrosorDisparador = 4.dp
 /** RF-924: «Falla» o «Pieza cambiada», con las esquinas del tema en vez de la píldora de Material 3. */
 @Composable
 private fun SelectorTipo(tipo: TipoEvidencia, alCambiarTipo: (TipoEvidencia) -> Unit) {
-    val opciones = listOf(TipoEvidencia.FALLA to "Falla", TipoEvidencia.PIEZA_CAMBIADA to "Pieza cambiada")
-    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-        opciones.forEachIndexed { indice, (opcion, texto) ->
-            SegmentedButton(
-                selected = tipo == opcion,
-                onClick = { alCambiarTipo(opcion) },
-                shape = SegmentedButtonDefaults.itemShape(indice, opciones.size, MaterialTheme.shapes.small)
-            ) { Text(texto) }
-        }
-    }
+    // Pantallas v2 (prototipo 16): las mismas pestañas en píldora que «Estado de repuestos»
+    PestanasSegmentadas(
+        opciones = listOf(TipoEvidencia.FALLA, TipoEvidencia.PIEZA_CAMBIADA),
+        seleccionada = tipo,
+        texto = { if (it == TipoEvidencia.FALLA) "Falla" else "Pieza cambiada" },
+        alElegir = alCambiarTipo
+    )
 }
 
 internal fun nombreDelTipo(tipo: TipoEvidencia): String = when (tipo) {

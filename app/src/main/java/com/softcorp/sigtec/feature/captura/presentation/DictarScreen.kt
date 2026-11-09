@@ -1,5 +1,7 @@
 package com.softcorp.sigtec.feature.captura.presentation
 
+import com.softcorp.sigtec.core.ui.components.Tarjeta
+import com.softcorp.sigtec.core.ui.components.BarraAccionInferior
 import android.Manifest
 import android.content.pm.PackageManager
 import android.content.res.Configuration
@@ -30,7 +32,6 @@ import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material.icons.outlined.MicOff
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Stop
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -196,13 +197,8 @@ private fun Contenido(
                 textAlign = TextAlign.Center
             )
         }
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(Espaciado.m),
-            horizontalArrangement = Arrangement.spacedBy(Espaciado.sm)
-        ) {
+        // Pantallas v2 (prototipo 17): las acciones en la hoja blanca de abajo
+        BarraAccionInferior {
             if (estado.escuchando) {
                 BotonPeligro(onClick = alDetener, modifier = Modifier.weight(1f)) {   // RF-1007
                     Icon(Icons.Outlined.Stop, contentDescription = null)
@@ -249,7 +245,7 @@ private fun Microfono(escuchando: Boolean, alSeguirDictando: () -> Unit) {
             Modifier
                 .size(TamanoMicrofono * 0.5f)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary)
+                .background(SigtecTheme.marca.acento)   // prototipo 17: el micrófono es un uso del acento
                 .clickable(enabled = !escuchando, role = Role.Button, onClick = alSeguirDictando)
                 .semantics { contentDescription = if (escuchando) "Escuchando" else "Seguir dictando" },
             contentAlignment = Alignment.Center
@@ -257,7 +253,7 @@ private fun Microfono(escuchando: Boolean, alSeguirDictando: () -> Unit) {
             Icon(
                 Icons.Outlined.Mic,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimary,
+                tint = SigtecTheme.marca.sobreAcento,
                 modifier = Modifier.size(TamanoIcono)
             )
         }
@@ -277,12 +273,8 @@ private fun Estado(estado: DictadoUiState) {
 /** RF-1005: lo ya reconocido en negro y lo que se está reconociendo en gris, hasta que se confirma. */
 @Composable
 private fun TextoTranscrito(estado: DictadoUiState) {
-    Surface(
-        shape = MaterialTheme.shapes.medium,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(Modifier.padding(Espaciado.m), verticalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
+    Tarjeta(Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
             Text(
                 "Texto transcrito",
                 style = MaterialTheme.typography.labelMedium,

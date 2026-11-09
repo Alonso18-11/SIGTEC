@@ -1,5 +1,6 @@
 package com.softcorp.sigtec.feature.captura.presentation
 
+import com.softcorp.sigtec.core.ui.components.BarraAccionInferior
 import android.content.res.Configuration
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.UseCase
@@ -21,7 +22,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material.icons.outlined.WarningAmber
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -174,7 +174,7 @@ fun EscanearEtiquetaScreen(
 @Composable
 private fun MarcoEtiqueta(modifier: Modifier = Modifier) {
     val fuera = MaterialTheme.colorScheme.scrim.copy(alpha = OPACIDAD_FUERA_DEL_MARCO)
-    val esquinas = MaterialTheme.colorScheme.primary
+    val esquinas = SigtecTheme.marca.acento   // pantallas v2 (prototipo 15): el marco es uno de los usos del acento
     Canvas(modifier) {
         val ancho = size.width * ANCHO_MARCO
         val alto = ancho / PROPORCION_MARCO
@@ -205,13 +205,10 @@ private fun MarcoEtiqueta(modifier: Modifier = Modifier) {
 @Composable
 private fun PanelCodigoReconocido(lectura: LecturaCodigo, alVolverAEscanear: () -> Unit, alUsar: () -> Unit) {
     val solucionado = SigtecTheme.estados.solucionado
-    Surface(color = MaterialTheme.colorScheme.surface) {
-        Column {
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            Column(
-                modifier = Modifier.padding(Espaciado.m),
-                verticalArrangement = Arrangement.spacedBy(Espaciado.sm)
-            ) {
+    // Pantallas v2 (prototipo 15): hoja blanca abajo con el código y las dos salidas
+    BarraAccionInferior(
+        aviso = {
+            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Espaciado.sm)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espaciado.sm)) {
                     Surface(color = solucionado.contenedor, contentColor = solucionado.contenido, shape = CircleShape) {
                         Icon(Icons.Outlined.Check, contentDescription = null, modifier = Modifier.padding(Espaciado.s).size(TamanoIconoCheck))
@@ -226,15 +223,14 @@ private fun PanelCodigoReconocido(lectura: LecturaCodigo, alVolverAEscanear: () 
                     }
                 }
                 if (!lectura.enCatalogo) AvisoFueraDeCatalogo()
-                Row(horizontalArrangement = Arrangement.spacedBy(Espaciado.s)) {
-                    BotonSecundario(onClick = alVolverAEscanear, modifier = Modifier.weight(1f)) {
-                        Text("Volver a escanear", maxLines = 1)
-                    }
-                    BotonPrincipal(onClick = alUsar, modifier = Modifier.weight(1f)) {
-                        Text("Usar este código", maxLines = 1)
-                    }
-                }
             }
+        }
+    ) {
+        BotonSecundario(onClick = alVolverAEscanear, modifier = Modifier.weight(1f)) {
+            Text("Volver a escanear", maxLines = 1)
+        }
+        BotonPrincipal(onClick = alUsar, modifier = Modifier.weight(1f)) {
+            Text("Usar este código", maxLines = 1)
         }
     }
 }
