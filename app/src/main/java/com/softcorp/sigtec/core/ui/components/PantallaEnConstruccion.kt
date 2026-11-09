@@ -20,7 +20,7 @@ fun PantallaEnConstruccion(
     acciones: List<Pair<String, () -> Unit>> = emptyList()
 ) {
     Column(
-        modifier = modifier.fillMaxSize().padding(Espaciado.m),
+        modifier = modifier.fillMaxSize().statusBarsPadding().padding(Espaciado.m),
         verticalArrangement = Arrangement.spacedBy(Espaciado.s)
     ) {
         Text(titulo, style = MaterialTheme.typography.headlineSmall)

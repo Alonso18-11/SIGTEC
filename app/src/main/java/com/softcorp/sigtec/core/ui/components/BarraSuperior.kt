@@ -1,5 +1,6 @@
 package com.softcorp.sigtec.core.ui.components
 
+import androidx.compose.foundation.layout.statusBars
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
@@ -22,8 +23,8 @@ import com.softcorp.sigtec.core.theme.SigtecTheme
 /**
  * Barra superior de formularios y listas secundarias (DESIGN.md, sección 4). En la v2 va sobre el color de
  * fondo de la pantalla y sin línea inferior (plan del retema, P-6), así el título se ve como en los prototipos.
- * Ya trae `WindowInsets(0)`, porque la raíz aplica el margen de la barra de estado; la pantalla solo debe
- * usar `Scaffold(contentWindowInsets = WindowInsets(0))`.
+ * Aplica el margen de la barra de estado (la raíz ya no lo hace, para que las cabeceras oscuras lleguen arriba); la
+ * pantalla solo debe usar `Scaffold(contentWindowInsets = WindowInsets(0))`.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,7 +54,7 @@ fun BarraSuperior(
             containerColor = MaterialTheme.colorScheme.background,
             scrolledContainerColor = MaterialTheme.colorScheme.background
         ),
-        windowInsets = WindowInsets(0)
+        windowInsets = WindowInsets.statusBars
     )
 }
 

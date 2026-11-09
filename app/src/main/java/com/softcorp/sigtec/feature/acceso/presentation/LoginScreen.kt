@@ -1,5 +1,6 @@
 package com.softcorp.sigtec.feature.acceso.presentation
 
+import androidx.compose.foundation.layout.statusBarsPadding
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -104,6 +105,7 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .statusBarsPadding()               // pantallas v2: la raíz ya no aplica el margen superior
             .imePadding()                      // el teclado no tapa el botón
             .verticalScroll(rememberScrollState())
             .padding(horizontal = Espaciado.m),
