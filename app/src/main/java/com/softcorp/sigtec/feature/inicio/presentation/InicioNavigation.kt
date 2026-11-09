@@ -4,26 +4,28 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.softcorp.sigtec.core.navigation.Ruta
-import com.softcorp.sigtec.core.ui.components.PantallaEnConstruccion
-import androidx.compose.runtime.getValue
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 fun NavGraphBuilder.inicioGraph(navController: NavController) {
     composable<Ruta.Inicio> {
-        val vm: InicioViewModel = hiltViewModel()
-        val usuario by vm.usuario.collectAsStateWithLifecycle()
-        val primerNombre = usuario?.nombre?.substringBefore(' ').orEmpty()
-
-        PantallaEnConstruccion(
-            titulo = "Hola, $primerNombre",
-            historia = "panel del perfil",
-            acciones = listOf(
-                "Registrar incidencia" to { navController.navigate(Ruta.RegistroIncidencia) },
-                "Historial de equipo" to { navController.navigate(Ruta.HistorialEquipo()) },
-                "Estado de repuestos" to { navController.navigate(Ruta.EstadoRepuestos) },
-                "Ajustes de seguridad" to { navController.navigate(Ruta.AjustesSeguridad) }
-            )
+        InicioRoute(
+            alAbrirAjustes = { navController.navigate(Ruta.AjustesSeguridad) },
+            alAbrirMisTareas = { navController.comoPestana(Ruta.MisTareas) },
+            alAbrirLista = { navController.comoPestana(Ruta.ListaIncidencias) },
+            alAbrirDetalle = { id -> navController.navigate(Ruta.DetalleIncidencia(id)) },
+            alRegistrar = { navController.navigate(Ruta.RegistroIncidencia) },
+            // RF-I9: la cámara se abre encima de «Nueva incidencia», así el código leído vuelve al formulario
+            alEscanear = {
+                navController.navigate(Ruta.RegistroIncidencia)
+                navController.navigate(Ruta.EscanearEtiqueta)
+            },
+            alAbrirRepuestos = { navController.navigate(Ruta.EstadoRepuestos) }
         )
     }
+}
+
+/** Igual que el menú inferior: «Mis tareas» y la lista son pestañas, no pantallas que se apilan sobre Inicio. */
+private fun NavController.comoPestana(ruta: Ruta) = navigate(ruta) {
+    popUpTo<Ruta.Inicio> { saveState = true }
+    launchSingleTop = true
+    restoreState = true
 }
