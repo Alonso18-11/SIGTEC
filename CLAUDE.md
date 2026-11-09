@@ -22,7 +22,7 @@ Paquete raíz `com.softcorp.sigtec`. Los paquetes técnicos van en inglés y los
 - `core/data/`: `SesionRepositoryFirebase` y `PreferenciasSeguridadDataStore`.
 - `core/sync/`: el **único** lugar que habla con Firestore. Contiene `SubirCambiosWorker`, `SincronizacionTiempoReal`, `ReglasSincronizacion.kt` (la regla de conflictos), `MapeoFirestore.kt` y `MonitorConexion`.
 - `core/biometric/Biometria.kt`: `rememberVerificadorBiometrico()`, `ResultadoBiometrico` y `DisponibilidadBiometrica`.
-- `core/navigation/`: `Rutas.kt` (las 18 rutas), `SigtecRaiz.kt`, `RaizViewModel.kt`, `DestinoPrincipal.kt` (menú por permisos) y `DatosDemo.kt` (temporal).
+- `core/navigation/`: `Rutas.kt` (las 19 rutas), `SigtecRaiz.kt`, `RaizViewModel.kt`, `DestinoPrincipal.kt` (menú por permisos) y `DatosDemo.kt` (temporal).
 - `core/theme/`: paleta v2 (ver `DESIGN.md`), `ColoresEstado.kt` (`SigtecTheme.estados.*`), tipografía Inter (`res/font`), `Shapes.kt`, `Dimens.kt` (`Espaciado`, `AreaTactilMinima`) y `TemaPreview`.
 - `core/ui/`: `MensajesError.kt` y `components/` (v2, ver `DESIGN.md` 4): `BarraSuperior`, `BotonPrincipal`/`BotonSecundario`/`BotonTexto`/`BotonPeligro`, `EncabezadoSeccion`/`Seccion`, `Tarjeta`, `FilaIncidencia`, `Avatar`, `EtiquetaEstado`, `EtiquetaIncidencia`, `AvisoConexion`, `CabeceraHero`, `TarjetaMetrica`, `AvanceIncidencia`, `SeguimientoRepuesto`, `LineaTiempo`, `FiltrosChips`, `PestanasSegmentadas`, `CampoTexto`, `FabExtendido`, `BarraAccionInferior`, `BarraNavegacion`, `TarjetaSugerenciaIA`/`EtiquetaIA`, `FilaCargaTecnico` y `PantallaEnConstruccion`, esta última temporal.
 - `core/di/`: módulos de Dispatchers, Firebase, Database, Sesion, DataStore y Sincronizacion.
