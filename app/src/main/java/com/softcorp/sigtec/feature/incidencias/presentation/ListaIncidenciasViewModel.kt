@@ -1,5 +1,6 @@
 package com.softcorp.sigtec.feature.incidencias.presentation
 
+import com.softcorp.sigtec.core.domain.usecase.ObservarUsuarioActual
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.softcorp.sigtec.core.domain.model.Incidencia
@@ -21,12 +22,14 @@ data class ListaIncidenciasUiState(
     val filtros: FiltrosIncidencias = FiltrosIncidencias(),
     val opcionesTecnico: List<String> = emptyList(),
     val opcionesEquipo: List<String> = emptyList(),
-    val ahora: Instant = Instant.now()
+    val ahora: Instant = Instant.now(),
+    val usuarioId: String? = null   // pantallas v2: el avatar propio va en acento
 )
 
 @HiltViewModel
 class ListaIncidenciasViewModel @Inject constructor(
-    observarIncidencias: ObservarIncidencias
+    observarIncidencias: ObservarIncidencias,
+    observarUsuarioActual: ObservarUsuarioActual
 ) : ViewModel() {
 
     private val filtros = MutableStateFlow(FiltrosIncidencias())
@@ -41,7 +44,7 @@ class ListaIncidenciasViewModel @Inject constructor(
 
     // Room ya las entrega de la más reciente a la más antigua; filtrar conserva ese orden
     val estado: StateFlow<ListaIncidenciasUiState> =
-        combine(observarIncidencias(), filtros, reloj) { todas, f, ahora ->
+        combine(observarIncidencias(), filtros, reloj, observarUsuarioActual()) { todas, f, ahora, usuario ->
             ListaIncidenciasUiState(
                 cargando = false,
                 incidencias = todas.filtrar(f),
@@ -49,7 +52,8 @@ class ListaIncidenciasViewModel @Inject constructor(
                 filtros = f,
                 opcionesTecnico = opcionesTecnico(todas),
                 opcionesEquipo = todas.map { it.codigoEquipo }.distinct().sorted(),
-                ahora = ahora
+                ahora = ahora,
+                usuarioId = usuario?.id
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ListaIncidenciasUiState())
 
