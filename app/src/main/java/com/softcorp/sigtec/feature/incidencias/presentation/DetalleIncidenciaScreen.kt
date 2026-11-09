@@ -1,5 +1,8 @@
 package com.softcorp.sigtec.feature.incidencias.presentation
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.foundation.ScrollState
 import com.softcorp.sigtec.core.ui.components.FondoBarraEstado
 import com.softcorp.sigtec.core.ui.components.IconosBarraEstadoClaros
@@ -141,6 +144,8 @@ fun DetalleIncidenciaScreen(
     // RF-934: guarda el id, no la foto: al eliminarla deja de estar en la lista y la vista ampliada se cierra sola
     var fotoAbiertaId by rememberSaveable { mutableStateOf<String?>(null) }
     val desplazamiento = rememberScrollState()
+    // Solo cambia al cruzar el cero, no en cada píxel del desplazamiento
+    val desplazado by remember { derivedStateOf { desplazamiento.value > 0 } }
 
     // Pantallas v2 (prototipo 05): con la incidencia cargada, la cabecera oscura va dentro del contenido y llega detrás
     // de la barra de estado; mientras carga o si no existe, la barra superior de siempre
@@ -178,7 +183,7 @@ fun DetalleIncidenciaScreen(
                 )
             }
             // Con la cabecera oscura, la barra de estado queda oscura también al desplazar
-            if (estado.detalle != null) FondoBarraEstado(visible = desplazamiento.value > 0)
+            if (estado.detalle != null) FondoBarraEstado(visible = desplazado)
         }
     }
 
