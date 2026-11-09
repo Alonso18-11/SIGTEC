@@ -1,5 +1,6 @@
 package com.softcorp.sigtec.feature.incidencias.presentation
 
+import com.softcorp.sigtec.core.ui.components.FondoBarraEstado
 import com.softcorp.sigtec.core.ui.components.IconosBarraEstadoClaros
 import com.softcorp.sigtec.core.ui.components.Tarjeta
 import com.softcorp.sigtec.core.ui.components.PuntoLinea
@@ -173,6 +174,8 @@ fun DetalleIncidenciaScreen(
                     }
                 )
             }
+            // Con la cabecera oscura, la barra de estado queda oscura también al desplazar
+            if (estado.detalle != null) FondoBarraEstado()
         }
     }
 
