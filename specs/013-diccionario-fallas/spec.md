@@ -1,6 +1,6 @@
 # Spec 013 — Diccionario de fallas con sugerencias (HU-13)
 
-> Estado: aprobada (2026-11-09), RF-1301 a RF-1331. Decisiones D-1 a D-5 respondidas por Alonso el 2026-11-09 (ver «Decisiones»).
+> Estado: completa (2026-11-09), RF-1301 a RF-1331, en #139 a #145. Probada por Alonso en un celular real (Xiaomi, Android 14) el 2026-11-09 con `lramirez`, en claro y oscuro: diccionario vacío, registrar fallas, aviso al guardar, búsqueda sin tildes, filtro por tipo, falla desplegada, subida a Firestore y «Fallas parecidas» en INC-0013. No se probaron en el celular «Guardar en el diccionario» (requiere cerrar una incidencia con huella) ni las vistas del personal de sistemas y del jefe; los cubren las pruebas unitarias. Decisiones D-1 a D-5 respondidas por Alonso el 2026-11-09 (ver «Decisiones»).
 
 > Spec escrita antes del código (principio 2 de la constitución). Los requisitos usan el bloque propio de la HU-13 (RF-1301…). Sale de la planificación (`SIGTEC_Planificación (1).xlsx`, épica EP-06 «Gestión del conocimiento e inteligencia artificial»). Sigue el prototipo 14 «Diccionario de fallas».
 
@@ -50,7 +50,8 @@ Con esta HU, el técnico registra una falla con su solución (desde el diccionar
 - RF-1321: CUANDO hay fallas con `pendienteSincronizar = true` y hay conexión, EL SISTEMA las sube con el mismo trabajo de WorkManager que las incidencias y, al confirmarse la subida, las marca como sincronizadas.
 - RF-1322: EL SISTEMA baja en tiempo real las fallas de Firestore a Room, como las demás colecciones. Las fallas no se editan (D-4): una falla que ya está en Room se reemplaza con la de Firestore solo si no tiene cambios sin subir (`debeReemplazarLocal`).
 - RF-1331: EL SISTEMA suma las fallas sin subir a los «registros sin enviar» que cuenta el aviso de cerrar sesión o de ingresar con otra cuenta (HU-01, RF-13) y el aviso de conexión (HU-05), para que no se pierdan sin señal (D-5).
-- RF-1323: Las reglas de Firestore solo dejan crear una falla a un técnico cuyo id sea el autor, con todos los campos obligatorios no vacíos, el tipo válido y sin campos extra; nadie la edita ni la borra.
+- RF-1323: Las reglas de Firestore solo dejan crear una falla a un técnico cuyo id sea el autor, con todos los campos obligatorios no vacíos, el tipo válido y sin campos extra; nadie la edita ni la borra desde la app. Volver a subir exactamente los mismos datos se acepta, para que un reintento de la subida no falle.
+- RF-1322b: SI una falla se borra a mano en la consola de Firebase (corrección del equipo), ENTONCES EL SISTEMA la quita también de Room, aunque el borrado haya ocurrido mientras la app no escuchaba; las fallas sin subir no se tocan.
 
 ### Sugerir fallas parecidas (D-1, D-2)
 - RF-1324: MIENTRAS una incidencia está Pendiente y quien la ve tiene `CONSULTAR_DICCIONARIO`, EL SISTEMA muestra en su detalle la sección «Fallas parecidas» con hasta 3 fallas del diccionario, de la más parecida a la menos.
@@ -119,3 +120,10 @@ Con esta HU, el técnico registra una falla con su solución (desde el diccionar
 
 ## Dudas abiertas
 - Ninguna.
+
+## Hallazgos de la prueba en el celular (2026-11-09)
+- El buscador perdía letras al escribir rápido, porque el campo esperaba la vuelta del filtro desde otro hilo. Se corrigió en #144: el texto del campo es un estado síncrono aparte.
+- Una falla pendiente no programaba la subida (`vigilarPendientes` no miraba las fallas), así que las fallas se quedaban solo en el celular. Se corrigió en #142.
+- Una falla borrada en la consola no se quitaba del celular. Se corrigió en #142 (RF-1322b): con el aviso de borrado y, si ese aviso no llega, comparando con la lista completa de Firestore.
+- Después de girar el celular, los íconos de la barra de estado quedaban blancos sobre pantallas claras (error de #136). Se corrigió en #146 contando las pantallas con cabecera por ventana.
+- Para escribir en el celular por `adb` no se pueden usar tildes, y el teclado autocorrige: la automatización registró una falla con datos mezclados, que se borró en la consola.
