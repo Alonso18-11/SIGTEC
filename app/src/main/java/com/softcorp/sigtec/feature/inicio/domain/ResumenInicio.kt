@@ -1,5 +1,7 @@
 package com.softcorp.sigtec.feature.inicio.domain
 
+import com.softcorp.sigtec.feature.incidencias.domain.esCritica
+import java.time.Instant
 import com.softcorp.sigtec.core.domain.model.Incidencia
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
 import com.softcorp.sigtec.core.domain.model.Permiso
@@ -40,7 +42,8 @@ fun vistaPara(usuario: Usuario): VistaInicio = when {
 fun calcularResumen(
     usuario: Usuario,
     incidencias: List<Incidencia>,
-    solicitudes: List<SolicitudConIncidencia> = emptyList()
+    solicitudes: List<SolicitudConIncidencia> = emptyList(),
+    ahora: Instant = Instant.now()   // para las críticas por días (HU-15, D-1)
 ): ResumenInicio {
     val vista = vistaPara(usuario)
     val puedeRegistrar = usuario.perfil.puede(Permiso.REGISTRAR_INCIDENCIA)
@@ -68,7 +71,8 @@ fun calcularResumen(
             metricas = listOf(
                 Metrica(TipoMetrica.SIN_ASIGNAR, cuenta(incidencias) { it.marca == MarcaSeguimiento.SIN_ASIGNAR }),
                 Metrica(TipoMetrica.EN_ATENCION, cuenta(incidencias) { it.marca == MarcaSeguimiento.EN_ATENCION }),
-                Metrica(TipoMetrica.CRITICAS, cuenta(incidencias) { it.critica && it.marca != MarcaSeguimiento.CERRADA })
+                // HU-15 (D-1): la misma regla que el tablero de indicadores, para que los números coincidan
+                Metrica(TipoMetrica.CRITICAS, cuenta(incidencias) { esCritica(it, ahora) })
             ),
             puedeRegistrar = puedeRegistrar
         )

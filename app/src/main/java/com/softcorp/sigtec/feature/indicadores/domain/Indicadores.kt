@@ -8,6 +8,7 @@ import com.softcorp.sigtec.core.domain.model.Movimiento
 import com.softcorp.sigtec.core.domain.model.Tecnico
 import com.softcorp.sigtec.core.domain.model.TipoMovimiento
 import com.softcorp.sigtec.feature.asignacion.domain.cargaEfectiva
+import com.softcorp.sigtec.feature.incidencias.domain.esCritica
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
@@ -78,8 +79,7 @@ fun calcularIndicadores(
 
     // RF-1507, RF-1508 (D-1): pendientes, y críticas si llevan más de 5 días o las marcó la HU-18
     val pendientes = incidencias.filter { it.estado == EstadoIncidencia.PENDIENTE }
-    val limiteCritica = ahora.minus(Duration.ofDays(DIAS_CRITICA))
-    val criticos = pendientes.count { it.critica || it.fechaRegistro.isBefore(limiteCritica) }
+    val criticos = pendientes.count { esCritica(it, ahora) }
 
     // RF-1514: promedio de registro a cierre, de los cierres de los últimos 30 días
     val desde30 = ahora.minus(Duration.ofDays(DIAS_PROMEDIO))
