@@ -1,7 +1,8 @@
 package com.softcorp.sigtec.feature.captura.domain
 
 /** HU-10 (RF-1001, D-2): los campos con micrófono. «Piezas cambiadas» no se dicta. */
-enum class CampoDictado { DESCRIPCION, DIAGNOSTICO, SOLUCION, OBSERVACIONES }
+// SINTOMAS: «Registrar falla» del diccionario (HU-13, RF-1311); SOLUCION la usan el informe y esa pantalla
+enum class CampoDictado { DESCRIPCION, DIAGNOSTICO, SOLUCION, OBSERVACIONES, SINTOMAS }
 
 /**
  * Agrega [nuevo] al final de [actual], separado por un espacio (RF-1008, RF-1011, D-3). No toca lo que ya había,

@@ -20,4 +20,5 @@ fun tituloDictado(campo: CampoDictado): String = when (campo) {
     CampoDictado.DIAGNOSTICO -> "Dictar diagnóstico"
     CampoDictado.SOLUCION -> "Dictar solución aplicada"
     CampoDictado.OBSERVACIONES -> "Dictar observaciones"
+    CampoDictado.SINTOMAS -> "Dictar síntomas"
 }

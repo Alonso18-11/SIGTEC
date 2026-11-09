@@ -27,6 +27,8 @@ sealed interface Ruta {
     @Serializable data class DictarTexto(val campo: String, val subtitulo: String) : Ruta
     // Conocimiento e IA
     @Serializable data object Diccionario : Ruta
+    // HU-13 (RF-1310, RF-1317): con incidenciaOrigenId, el formulario se llena desde esa incidencia cerrada
+    @Serializable data class RegistrarFalla(val incidenciaOrigenId: String? = null) : Ruta
     @Serializable data class Asistente(val incidenciaId: String) : Ruta
     // Control del área
     @Serializable data object Indicadores : Ruta

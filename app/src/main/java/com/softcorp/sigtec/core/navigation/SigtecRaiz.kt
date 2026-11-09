@@ -133,7 +133,7 @@ fun SigtecRaiz(vm: RaizViewModel = hiltViewModel()) {
             asignacionGraph(navController)
             atencionGraph(navController)
             capturaGraph(navController)
-            diccionarioGraph()
+            diccionarioGraph(navController)
             indicadoresGraph(navController)
         }
     }

@@ -100,7 +100,7 @@ class InformeTecnicoViewModel : ViewModel {
             CampoDictado.DIAGNOSTICO -> it.copy(diagnostico = unirTexto(it.diagnostico, texto), error = null)
             CampoDictado.SOLUCION -> it.copy(trabajoRealizado = unirTexto(it.trabajoRealizado, texto), error = null)
             CampoDictado.OBSERVACIONES -> it.copy(observaciones = unirTexto(it.observaciones, texto), error = null)
-            CampoDictado.DESCRIPCION -> it   // no es un campo del informe
+            CampoDictado.DESCRIPCION, CampoDictado.SINTOMAS -> it   // no son campos del informe
         }
     }
 
