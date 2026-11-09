@@ -1,6 +1,6 @@
 # Spec 013 — Diccionario de fallas con sugerencias (HU-13)
 
-> Estado: borrador (2026-11-09), RF-1301 a RF-1330. Decisiones D-1 a D-4 respondidas por Alonso el 2026-11-09 (ver «Decisiones»). Falta el visto bueno de la spec antes del código.
+> Estado: aprobada (2026-11-09), RF-1301 a RF-1331. Decisiones D-1 a D-5 respondidas por Alonso el 2026-11-09 (ver «Decisiones»).
 
 > Spec escrita antes del código (principio 2 de la constitución). Los requisitos usan el bloque propio de la HU-13 (RF-1301…). Sale de la planificación (`SIGTEC_Planificación (1).xlsx`, épica EP-06 «Gestión del conocimiento e inteligencia artificial»). Sigue el prototipo 14 «Diccionario de fallas».
 
@@ -49,6 +49,7 @@ Con esta HU, el técnico registra una falla con su solución (desde el diccionar
 - RF-1320: EL SISTEMA guarda cada falla en Firestore, en `fallas/{id}`, con título, síntomas, componente, tipo, solución, autor (id y nombre), `incidenciaOrigenId` (o nulo) y fecha de registro.
 - RF-1321: CUANDO hay fallas con `pendienteSincronizar = true` y hay conexión, EL SISTEMA las sube con el mismo trabajo de WorkManager que las incidencias y, al confirmarse la subida, las marca como sincronizadas.
 - RF-1322: EL SISTEMA baja en tiempo real las fallas de Firestore a Room, como las demás colecciones. Las fallas no se editan (D-4): una falla que ya está en Room se reemplaza con la de Firestore solo si no tiene cambios sin subir (`debeReemplazarLocal`).
+- RF-1331: EL SISTEMA suma las fallas sin subir a los «registros sin enviar» que cuenta el aviso de cerrar sesión o de ingresar con otra cuenta (HU-01, RF-13) y el aviso de conexión (HU-05), para que no se pierdan sin señal (D-5).
 - RF-1323: Las reglas de Firestore solo dejan crear una falla a un técnico cuyo id sea el autor, con todos los campos obligatorios no vacíos, el tipo válido y sin campos extra; nadie la edita ni la borra.
 
 ### Sugerir fallas parecidas (D-1, D-2)
@@ -80,7 +81,7 @@ Con esta HU, el técnico registra una falla con su solución (desde el diccionar
 - Dos técnicos registran la misma falla: quedan dos fallas (no se detectan duplicados).
 - «Guardar en el diccionario» en una incidencia cerrada en otro celular: el informe no está en este celular (la HU-08 no baja informes), así que el botón no aparece.
 - Se registra una falla desde una incidencia y luego se abre ese detalle sin conexión: ya muestra «Ya está en el diccionario» porque la falla está en Room (RF-1319).
-- Cerrar sesión con fallas sin subir: se borran con los datos locales, como hoy pasa con las incidencias; el aviso «tienes N registros sin enviar» de la HU-01 cuenta incidencias, no fallas (ver Dudas abiertas).
+- Cerrar sesión con fallas sin subir: el aviso «tienes N registros sin enviar» de la HU-01 las cuenta (RF-1331); si se confirma, se borran con los datos locales, como las incidencias.
 - Palabras con «ñ» o tildes («bateria» y «batería»): coinciden porque se normalizan (RF-1325).
 - Una falla muy larga: la tarjeta de la lista muestra la solución completa; el detalle se despliega sin límite de líneas.
 
@@ -94,7 +95,7 @@ Con esta HU, el técnico registra una falla con su solución (desde el diccionar
 - Cargar fallas de ejemplo: se registran desde la app al probar.
 
 ## Criterios de finalización
-- RF-1301 a RF-1330 implementados.
+- RF-1301 a RF-1331 implementados.
 - Pruebas unitarias (JVM): `fallasParecidas` (normalización, palabras vacías, plurales, pesos, palabras comunes, empate, máximo 3, sin coincidencias, 500 fallas en menos de 3 s); `filtrarFallas` (palabras en campos distintos, tildes, tipo, combinados); `RegistrarFalla` (sin sesión, sin permiso, personal de sistemas, campos vacíos, camino feliz con origen); `ObservarDiccionario` (sin permiso, jefe); los ViewModels del diccionario, del registro y las sugerencias del detalle, con dobles y `MainDispatcherRule`.
 - `FallaDiccionarioDaoTest` (nuevo) pasa en un celular y `version` subió a 6.
 - `firestore.rules` revisada en el PR y publicada a mano; probada en el Rules Playground (técnico autor: permite; personal de sistemas, autor distinto, campo vacío o campo extra: rechaza).
@@ -114,5 +115,7 @@ Con esta HU, el técnico registra una falla con su solución (desde el diccionar
 - D-3 · Desde dónde se registra (RF-1309 a RF-1319). **Aprobada el 2026-11-09:** el botón «Registrar falla» del diccionario y «Guardar en el diccionario» en el detalle de una incidencia cerrada, con el formulario lleno desde el informe. Alternativa descartada: solo el botón.
 - D-4 · Editar o borrar (RF-1322, RF-1323). **Aprobada el 2026-11-09:** no; las fallas solo se crean, como ya dicen las reglas. Así no hay conflictos al sincronizar. Alternativa descartada: que el autor pueda editar (cambiaría las reglas y la regla de conflictos).
 
+- D-5 · Fallas sin subir al cerrar sesión (RF-1331). **Aprobada el 2026-11-09:** se suman al mismo número de «registros sin enviar». Se hace en `EstadoDatosRepositoryImpl` (`core/sync`), que ya calcula ese número, así que no cambian `feature/acceso` ni los casos de uso de sesión. Alternativa descartada: no contarlas.
+
 ## Dudas abiertas
-- El aviso de cerrar sesión con registros sin enviar (HU-01, RF-13) cuenta incidencias. ¿Debe contar también las fallas sin subir? Propuesta: sí, en esta HU, sumándolas al mismo número («tienes N registros sin enviar»). Toca `feature/acceso` y los casos de uso de sesión, así que necesita coordinarse.
+- Ninguna.

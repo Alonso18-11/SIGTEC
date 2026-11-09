@@ -34,6 +34,8 @@
   - Hecho cuando: compila.
 - [ ] **T07 · Escuchar `fallas` en `SincronizacionTiempoReal` 🔶** con `debeReemplazarLocal`. RF-1322.
   - Hecho cuando: compila.
+- [ ] **T08a · Sumar las fallas sin subir en `EstadoDatosRepositoryImpl` 🔶.** RF-1331.
+  - Hecho cuando: compila.
 - [ ] **T08 · `MapeoFallaTest`.** RF-1320.
   - Hecho cuando: pasa.
 

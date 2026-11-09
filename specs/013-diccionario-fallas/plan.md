@@ -1,6 +1,6 @@
 # Plan 013 — Diccionario de fallas con sugerencias (HU-13)
 
-> Basado en `spec.md` (borrador del 2026-11-09, con D-1 a D-4 respondidas) y en `docs/constitution.md`.
+> Basado en `spec.md` (aprobada el 2026-11-09, con D-1 a D-5 respondidas) y en `docs/constitution.md`.
 > El código vive en `feature/diccionario` (dominio, datos y pantallas) y en el detalle de `feature/incidencias`. Toca estos archivos compartidos:
 > - el modelo `FallaDiccionario` y su entidad (sube `version` a 6);
 > - `core/sync` (mapeo, subida y escucha);
@@ -34,7 +34,7 @@
 |---|---|---|---|---|
 | PR-01 | `feat/hu13-modelo-falla` | `feat(core): la falla guarda su autor, su origen y su fecha (HU-13)` | `main` | RF-1313, RF-1318, RF-1320 |
 | PR-02 | `feat/hu13-reglas-fallas` | `feat(firebase): reglas de creación de fallas (HU-13)` | `main` | RF-1323 |
-| PR-03 | `feat/hu13-sync-fallas` | `feat(core): subir y bajar las fallas del diccionario (HU-13)` | PR-01 | RF-1315, RF-1320 a RF-1322 |
+| PR-03 | `feat/hu13-sync-fallas` | `feat(core): subir y bajar las fallas del diccionario (HU-13)` | PR-01 | RF-1315, RF-1320 a RF-1322, RF-1331 |
 | PR-04 | `feat/hu13-dominio-diccionario` | `feat(diccionario): buscar, registrar y sugerir fallas en el dominio (HU-13)` | PR-01 | RF-1304 a RF-1306, RF-1313, RF-1314, RF-1318, RF-1325, RF-1326 |
 | PR-05 | `feat/hu13-pantallas-diccionario` | `feat(diccionario): pantallas del diccionario y de registrar falla (HU-13)` | PR-04 | RF-1301 a RF-1315 |
 | PR-06 | `feat/hu13-sugerencias-detalle` | `feat(incidencias): fallas parecidas y guardar en el diccionario desde el detalle (HU-13)` | PR-05 | RF-1316 a RF-1319, RF-1324 a RF-1330 |
@@ -68,6 +68,7 @@ Leyenda: 🆕 nuevo, ✏️ modificado, ⚠️ compartido de `CLAUDE.md`, 🔶 s
 ### PR-03 — sincronización
 - ✏️🔶 `core/sync/SincronizadorIncidencias.kt`: inyecta `FallaDiccionarioDao`; `subir(falla)` con `set` en `fallas/{id}` y, al confirmarse, `pendienteSincronizar = false`; lo suma a `subirPendientes` y a `hayPendientes`.
 - ✏️🔶 `core/sync/SincronizacionTiempoReal.kt`: `escuchar("fallas", ::guardarFallas)`; `guardarFallas` guarda cada documento salvo si la local tiene cambios sin subir y no es más antigua (`debeReemplazarLocal`).
+- ✏️🔶 `core/sync/EstadoDatosRepositoryImpl.kt` y `FallaDiccionarioDao.observarCantidadPendientes()`: suma las fallas sin subir a `pendientesPorEnviar` (RF-1331, D-5).
 - 🆕 `test/.../core/sync/MapeoFallaTest.kt`: ida y vuelta del mapeo, con y sin origen. (Con `Timestamp` en la JVM: si la clase de Firebase no se inicializa, se prueba solo el mapa de subida, como en las demás pruebas de mapeo.)
 
 ### PR-04 — dominio
