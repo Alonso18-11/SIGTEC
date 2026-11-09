@@ -15,6 +15,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 
 private const val DIAS_GRAFICO = 7
+private const val DIAS_CRITICA = 5L
 private const val DIAS_PROMEDIO = 30L
 private const val DIAS_EQUIPO = 90L
 private const val MINIMO_EQUIPO = 3
