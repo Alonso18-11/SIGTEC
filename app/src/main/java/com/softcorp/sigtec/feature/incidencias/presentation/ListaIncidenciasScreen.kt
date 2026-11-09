@@ -1,5 +1,13 @@
 package com.softcorp.sigtec.feature.incidencias.presentation
 
+import com.softcorp.sigtec.core.ui.components.FabExtendido
+import com.softcorp.sigtec.core.theme.FormaCompleta
+import com.softcorp.sigtec.core.theme.Elevacion
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.draw.shadow
+import androidx.compose.foundation.layout.statusBarsPadding
 import android.content.res.Configuration
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -37,7 +45,7 @@ import com.softcorp.sigtec.feature.incidencias.domain.codigoParaMostrar
 import java.time.Duration
 import java.time.Instant
 
-// Deja la última fila por encima del botón «Registrar»
+// Deja la última fila por encima del botón «Nueva»
 private val EspacioBotonFlotante = 88.dp
 
 @Composable
@@ -74,22 +82,21 @@ fun ListaIncidenciasScreen(
     // HU-05: aviso de conexión. En las vistas previas queda vacío (AvisoConexion usa hiltViewModel)
     aviso: @Composable () -> Unit = {}
 ) {
-    // La raíz ya aplica los márgenes de la barra de estado: aquí van en cero para no duplicarlos
+    // Pantallas v2 (prototipo 03): título grande sobre el fondo, sin barra superior, y el FAB «Nueva» en acento
     Scaffold(
         contentWindowInsets = WindowInsets(0),
-        topBar = { BarraSuperior("Incidencias") },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = alRegistrar,
-                icon = { Icon(Icons.Outlined.Add, contentDescription = null) },
-                text = { Text("Registrar") },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = MaterialTheme.shapes.small
+        topBar = {
+            Text(
+                "Incidencias",
+                style = MaterialTheme.typography.headlineLarge,
+                modifier = Modifier
+                    .statusBarsPadding()
+                    .padding(start = Espaciado.m, end = Espaciado.m, top = Espaciado.l, bottom = Espaciado.xs)
+                    .semantics { heading() }
             )
-        }
+        },
+        floatingActionButton = { FabExtendido("Nueva", onClick = alRegistrar) }
     ) { padding ->
-        // Cabecera con margen a los lados y filas de borde a borde, como la lista de issues de Jira
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -126,7 +133,9 @@ fun ListaIncidenciasScreen(
                             onClick = { alAbrir(incidencia.id) },
                             fecha = fechaCorta(incidencia.fechaRegistro, estado.ahora),
                             tecnico = incidencia.tecnicoAsignadoNombre,
-                            sinTecnico = SIN_TECNICO
+                            sinTecnico = SIN_TECNICO,
+                            tecnicoEsUsuarioActual = incidencia.tecnicoAsignadoId != null &&
+                                incidencia.tecnicoAsignadoId == estado.usuarioId
                         )
                     }
                 }
@@ -150,17 +159,19 @@ private fun Buscador(texto: String, alBuscar: (String) -> Unit) {
             }
         },
         singleLine = true,
-        shape = MaterialTheme.shapes.small,
-        // Barra de búsqueda gris y sin la línea inferior del campo de texto, como la de Jira
+        shape = FormaCompleta,
+        // Pantallas v2 (prototipo 03): píldora blanca sobre el fondo, sin la línea inferior del campo
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            focusedContainerColor = MaterialTheme.colorScheme.surface,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
             focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
             unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant
         ),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(Elevacion.tarjeta, FormaCompleta)
     )
 }
 
@@ -204,7 +215,14 @@ private fun <T> FiltroDesplegable(
             selected = seleccion != null,
             onClick = { abierto = true },
             label = { Text(seleccion?.let(texto) ?: titulo) },
-            trailingIcon = { Icon(Icons.Outlined.ArrowDropDown, contentDescription = null) }
+            trailingIcon = { Icon(Icons.Outlined.ArrowDropDown, contentDescription = null) },
+            shape = FormaCompleta,
+            colors = FilterChipDefaults.filterChipColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                selectedTrailingIconColor = MaterialTheme.colorScheme.onPrimary
+            )
         )
         DropdownMenu(expanded = abierto, onDismissRequest = { abierto = false }) {
             DropdownMenuItem(
@@ -229,15 +247,12 @@ private fun Contador(estado: ListaIncidenciasUiState) {
         n == 1 -> "1 incidencia"
         else -> "$n incidencias"
     }
-    Column {
-        Text(
-            cantidad,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(start = Espaciado.m, end = Espaciado.m, top = Espaciado.m, bottom = Espaciado.s)
-        )
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-    }
+    Text(
+        cantidad,
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(start = Espaciado.m, end = Espaciado.m, top = Espaciado.m, bottom = Espaciado.xs)
+    )
 }
 
 @Composable
@@ -250,7 +265,7 @@ private fun SinResultados(hayDatos: Boolean, alLimpiar: () -> Unit) {
     ) {
         Text(
             if (hayDatos) "Ninguna incidencia coincide con la búsqueda."
-            else "Aún no hay incidencias. Registra la primera con el botón «Registrar».",
+            else "Aún no hay incidencias. Registra la primera con el botón «Nueva».",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center

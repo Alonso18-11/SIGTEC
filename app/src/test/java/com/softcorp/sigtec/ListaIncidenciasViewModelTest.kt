@@ -1,5 +1,7 @@
 package com.softcorp.sigtec
 
+import com.softcorp.sigtec.core.domain.usecase.ObservarUsuarioActual
+import com.softcorp.sigtec.core.data.SesionRepositoryDemo
 import com.softcorp.sigtec.core.domain.model.Incidencia
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
 import com.softcorp.sigtec.feature.incidencias.data.IncidenciaRepositoryFalso
@@ -22,6 +24,8 @@ import java.time.Instant
 
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class ListaIncidenciasViewModelTest {
+
+    private val sesion = SesionRepositoryDemo()
 
     @get:Rule
     val main = MainDispatcherRule()
@@ -49,7 +53,7 @@ class ListaIncidenciasViewModelTest {
 
     private fun TestScope.nuevoVm(): ListaIncidenciasViewModel {
         val repo = IncidenciaRepositoryFalso().apply { cargar(datos) }
-        val vm = ListaIncidenciasViewModel(ObservarIncidencias(repo))
+        val vm = ListaIncidenciasViewModel(ObservarIncidencias(repo), ObservarUsuarioActual(sesion))
         // WhileSubscribed necesita a alguien mirando; Unconfined lo pone a mirar de inmediato
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.estado.collect {} }
         return vm
@@ -118,7 +122,7 @@ class ListaIncidenciasViewModelTest {
     fun `la lista se actualiza sola cuando cambia Room`() = runTest {
         // RF-701 (HU-07): la sincronización escribe en Room y la lista abierta lo refleja sin que nadie la refresque
         val repo = IncidenciaRepositoryFalso().apply { cargar(datos) }
-        val vm = ListaIncidenciasViewModel(ObservarIncidencias(repo))
+        val vm = ListaIncidenciasViewModel(ObservarIncidencias(repo), ObservarUsuarioActual(sesion))
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.estado.collect {} }
         assertEquals(MarcaSeguimiento.EN_ATENCION, vm.ui.incidencias.first { it.id == "c" }.marca)
 
@@ -126,5 +130,16 @@ class ListaIncidenciasViewModelTest {
         repo.cargar(datos.map { if (it.id == "c") it.copy(marca = MarcaSeguimiento.CERRADA) else it })
 
         assertEquals(MarcaSeguimiento.CERRADA, vm.ui.incidencias.first { it.id == "c" }.marca)
+    }
+
+    // Pantallas v2: la lista sabe quién tiene la sesión, para mostrar su avatar en acento
+    @Test
+    fun `el estado lleva el id de quien tiene la sesion`() = runTest {
+        val vm = nuevoVm()
+        assertEquals(null, vm.estado.value.usuarioId)
+
+        sesion.iniciarSesion("lramirez@softcorp.pe", "")
+
+        assertEquals("demo-lramirez", vm.estado.value.usuarioId)
     }
 }

@@ -1,5 +1,7 @@
 package com.softcorp.sigtec.feature.captura.presentation
 
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.FilledIconButton
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
@@ -19,7 +21,28 @@ import com.softcorp.sigtec.core.theme.SigtecTheme
  * en el color, y el lector de pantalla dice qué hará al tocarlo.
  */
 @Composable
-fun BotonLinterna(encendida: Boolean, alAlternar: () -> Unit, modifier: Modifier = Modifier) {
+fun BotonLinterna(
+    encendida: Boolean,
+    alAlternar: () -> Unit,
+    modifier: Modifier = Modifier,
+    enCabecera: Boolean = false   // pantallas v2: sobre la cabecera oscura va en acento (prototipo 05)
+) {
+    if (enCabecera) {
+        FilledIconButton(
+            onClick = alAlternar,
+            modifier = modifier,
+            colors = IconButtonDefaults.filledIconButtonColors(
+                containerColor = SigtecTheme.marca.acento,
+                contentColor = SigtecTheme.marca.sobreAcento
+            )
+        ) {
+            Icon(
+                if (encendida) Icons.Filled.FlashlightOn else Icons.Outlined.FlashlightOff,
+                contentDescription = if (encendida) "Apagar linterna" else "Encender linterna"
+            )
+        }
+        return
+    }
     IconButton(onClick = alAlternar, modifier = modifier) {
         if (encendida) {
             Icon(

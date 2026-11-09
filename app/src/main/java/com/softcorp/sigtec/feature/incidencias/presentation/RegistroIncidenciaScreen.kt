@@ -1,5 +1,8 @@
 package com.softcorp.sigtec.feature.incidencias.presentation
 
+import com.softcorp.sigtec.core.ui.components.BarraAccionInferior
+import com.softcorp.sigtec.core.ui.components.Tarjeta
+import com.softcorp.sigtec.core.ui.components.CampoTexto
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -110,7 +113,7 @@ fun RegistroIncidenciaScreen(
 ) {
     val editable = !estado.guardando
 
-    // La raíz ya aplica los márgenes de la barra de estado; BarraSuperior ya los trae en cero.
+    // BarraSuperior aplica el margen de la barra de estado.
     // imePadding en el Scaffold: con el teclado abierto, la barra de "Guardar" queda sobre él.
     Scaffold(
         modifier = Modifier.imePadding(),
@@ -128,86 +131,63 @@ fun RegistroIncidenciaScreen(
         ) {
             EncabezadoSeccion("Datos del problema")
             // ---------- Equipo (el escaneo es la HU-09) ----------
-            OutlinedTextField(
-                value = estado.codigoEquipo,
-                onValueChange = alCambiarCodigo,
-                label = { Text("Código del equipo *") },
-                placeholder = { Text("PC-CONT-014") },
-                trailingIcon = {
+            CampoTexto(
+                valor = estado.codigoEquipo,
+                alCambiar = alCambiarCodigo,
+                etiqueta = "Código del equipo *",
+                final = {
                     IconButton(onClick = alEscanear, enabled = editable) {
-                        Icon(
-                            Icons.Outlined.PhotoCamera,
-                            contentDescription = "Escanear etiqueta",
-                            tint = if (editable) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Icon(Icons.Outlined.PhotoCamera, contentDescription = "Escanear etiqueta")
                     }
                 },
-                // HU-09 (RF-910, RF-911): dice de dónde salió el código mientras nadie lo edite a mano.
-                // Sin la ayuda «Escríbelo o léelo…»: el botón de cámara ya lo dice (reglas de redacción, regla 2)
-                supportingText = if (estado.codigoLeidoConCamara) {
-                    { Text("Leído desde la etiqueta con la cámara") }
-                } else null,
-                singleLine = true,
-                enabled = editable,
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Characters,
-                    imeAction = ImeAction.Next
-                ),
-                modifier = Modifier.fillMaxWidth()
+                // HU-09 (RF-910, RF-911): dice de dónde salió el código mientras nadie lo edite a mano
+                ayuda = if (estado.codigoLeidoConCamara) "Leído desde la etiqueta con la cámara" else null,
+                habilitado = editable,
+                teclado = KeyboardOptions(capitalization = KeyboardCapitalization.Characters, imeAction = ImeAction.Next)
             )
 
             // ---------- Responsable: lo completa el directorio (HU-12) y se puede corregir ----------
             Column(verticalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
-                OutlinedTextField(
-                    value = estado.responsable,
-                    onValueChange = alCambiarResponsable,
-                    label = { Text("Usuario responsable *") },
+                CampoTexto(
+                    valor = estado.responsable,
+                    alCambiar = alCambiarResponsable,
+                    etiqueta = "Usuario responsable *",
                     // RF-1206 y RF-1208: dice de dónde salió el nombre mientras nadie lo edite
-                    supportingText = {
-                        Text(if (estado.responsableDelDirectorio) "Completado desde el directorio" else "Quien usa el equipo")
-                    },
-                    singleLine = true,
-                    enabled = editable,
-                    keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.Words,
-                        imeAction = ImeAction.Next
-                    ),
-                    modifier = Modifier.fillMaxWidth()
+                    ayuda = if (estado.responsableDelDirectorio) "Completado desde el directorio" else "Quien usa el equipo",
+                    habilitado = editable,
+                    teclado = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Next)
                 )
                 AvisoDirectorio(estado, editable, alUsarDelDirectorio, alReintentarDirectorio)
             }
 
             // ---------- Descripción (el dictado es la HU-10) ----------
-            OutlinedTextField(
-                value = estado.descripcion,
-                onValueChange = alCambiarDescripcion,
-                label = { Text("Descripción del problema *") },
-                trailingIcon = {
-                    IconButton(onClick = alDictar, enabled = editable) {
-                        Icon(
-                            Icons.Outlined.Mic,
-                            contentDescription = "Dictar descripción",
-                            tint = if (editable) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+            CampoTexto(
+                valor = estado.descripcion,
+                alCambiar = alCambiarDescripcion,
+                etiqueta = "Descripción del problema *",
+                // Prototipo 04: el micrófono es uno de los usos permitidos del acento (DESIGN.md 3)
+                final = {
+                    FilledIconButton(
+                        onClick = alDictar,
+                        enabled = editable,
+                        colors = IconButtonDefaults.filledIconButtonColors(
+                            containerColor = SigtecTheme.marca.acento,
+                            contentColor = SigtecTheme.marca.sobreAcento
                         )
+                    ) {
+                        Icon(Icons.Outlined.Mic, contentDescription = "Dictar descripción")
                     }
                 },
-                minLines = LINEAS_DESCRIPCION,
-                enabled = editable,
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                modifier = Modifier.fillMaxWidth()
+                unaLinea = false,
+                lineasMinimas = LINEAS_DESCRIPCION,
+                habilitado = editable,
+                teclado = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
             )
 
             // ---------- Datos automáticos: no se editan ----------
             EncabezadoSeccion("Datos automáticos", Modifier.padding(top = Espaciado.s))
-            OutlinedCard(
-                shape = MaterialTheme.shapes.medium,
-                colors = CardDefaults.outlinedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    Modifier.padding(horizontal = Espaciado.m, vertical = Espaciado.sm),
-                    verticalArrangement = Arrangement.spacedBy(Espaciado.s)
-                ) {
+            Tarjeta(Modifier.fillMaxWidth()) {
+                Column(verticalArrangement = Arrangement.spacedBy(Espaciado.s)) {
                     DatoAutomatico(
                         etiqueta = "Fecha y hora",
                         valor = formatoFecha.format(estado.fechaHora.atZone(ZoneId.systemDefault()))
@@ -292,37 +272,32 @@ private fun AvisoDirectorio(
 
 @Composable
 private fun BarraGuardar(estado: RegistroIncidenciaUiState, alGuardar: () -> Unit) {
-    Surface(color = MaterialTheme.colorScheme.surface) {
-        Column {
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            Column(
-                modifier = Modifier.padding(horizontal = Espaciado.m, vertical = Espaciado.sm),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(Espaciado.s)
-            ) {
-                estado.error?.let { error ->
-                    Text(
-                        error.mensaje(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error,
-                        textAlign = TextAlign.Center
-                    )
-                }
-                BotonPrincipal(
-                    onClick = alGuardar,
-                    enabled = estado.puedeGuardar,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    if (estado.guardando) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(Espaciado.l),
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                    } else {
-                        Text("Guardar incidencia")
-                    }
-                }
+    // Pantallas v2 (prototipo 04): hoja blanca pegada abajo con la acción principal
+    BarraAccionInferior(
+        aviso = estado.error?.let { error ->
+            {
+                Text(
+                    error.mensaje(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    ) {
+        BotonPrincipal(
+            onClick = alGuardar,
+            enabled = estado.puedeGuardar,
+            modifier = Modifier.weight(1f)
+        ) {
+            if (estado.guardando) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(Espaciado.l),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            } else {
+                Text("Guardar incidencia")
             }
         }
     }
