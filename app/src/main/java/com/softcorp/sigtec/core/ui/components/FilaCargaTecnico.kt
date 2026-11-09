@@ -94,7 +94,6 @@ fun FilaCargaTecnico(
                         color = if (bloqueada) c.onErrorContainer else c.onSurface,
                         modifier = Modifier.weight(1f)
                     )
-                    if (recomendado && !bloqueada && habilitada) EtiquetaEstado("Recomendado", SigtecTheme.estados.solucionado)
                     Text("$activas / $limite", style = MaterialTheme.typography.labelLarge, color = if (bloqueada) c.onErrorContainer else c.onSurface)
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(Espaciado.xs)) {
@@ -108,6 +107,8 @@ fun FilaCargaTecnico(
                         )
                     }
                 }
+                // Debajo de la barra y no junto al nombre, para que el nombre no se parta en dos líneas
+                if (recomendado && !bloqueada && habilitada) EtiquetaEstado("Recomendado", SigtecTheme.estados.solucionado)
                 if (nota != null && !bloqueada) {
                     Text(nota, style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant)
                 }

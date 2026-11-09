@@ -126,6 +126,13 @@ class ReglasAsignacionTest {
     }
 
     @Test
+    fun `con las mismas activas gana quien tiene mas cupo libre`() {
+        val jorge = Tecnico("u-jorge", "Jorge Salas", limiteAtencion = 4, incidenciasActivas = 2)
+        val luis2de5 = luis.copy(incidenciasActivas = 2)
+        assertEquals("u-luis", recomendado(listOf(opcion(jorge), opcion(luis2de5))))
+    }
+
+    @Test
     fun `con empate gana el primero de la lista y sin opciones no hay recomendado`() {
         val luis2 = luis.copy(id = "u-luis2", nombre = "Luisa Ramos")
         assertEquals("u-luis", recomendado(listOf(opcion(luis), opcion(luis2))))
