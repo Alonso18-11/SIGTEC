@@ -1,5 +1,7 @@
 package com.softcorp.sigtec.core.sync
 
+import com.softcorp.sigtec.core.domain.model.TipoFalla
+import com.softcorp.sigtec.core.database.entity.FallaDiccionarioEntity
 import com.softcorp.sigtec.core.database.entity.IncidenciaEntity
 import com.softcorp.sigtec.core.database.entity.MovimientoEntity
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
@@ -272,5 +274,24 @@ class ReglasSincronizacionTest {
         val local = solicitudEntity(pendiente = true, actualizadoEn = Instant.ofEpochSecond(100))
         val remota = solicitudEntity(pendiente = false, actualizadoEn = Instant.ofEpochSecond(200), numero = "17")
         assertTrue(debeReemplazarSolicitud(local, remota))
+    }
+
+    // ---------- HU-13 (RF-1322) ----------
+
+    private fun falla(pendiente: Boolean, segundos: Long) = FallaDiccionarioEntity(
+        id = "f1", titulo = "Fuente de poder dañada", sintomas = "No enciende", componente = "Fuente de poder",
+        tipo = TipoFalla.HARDWARE, solucion = "Reemplazar la fuente", autorId = "t1", autorNombre = "Luis Ramírez",
+        incidenciaOrigenId = null, pendienteSincronizar = pendiente, actualizadoEn = Instant.ofEpochSecond(segundos)
+    )
+
+    @Test
+    fun `una falla nueva o ya sincronizada se guarda al bajar`() {
+        assertTrue(debeReemplazarFalla(null, falla(false, 100)))
+        assertTrue(debeReemplazarFalla(falla(false, 100), falla(false, 100)))
+    }
+
+    @Test
+    fun `una falla propia sin subir no se pisa con la misma version del servidor`() {
+        assertFalse(debeReemplazarFalla(falla(true, 100), falla(false, 100)))
     }
 }

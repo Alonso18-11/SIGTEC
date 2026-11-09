@@ -9,6 +9,7 @@ import com.google.firebase.firestore.QuerySnapshot
 import com.softcorp.sigtec.core.data.AlmacenFotos
 import com.softcorp.sigtec.core.database.SigtecDatabase
 import com.softcorp.sigtec.core.database.dao.CatalogoDao
+import com.softcorp.sigtec.core.database.dao.FallaDiccionarioDao
 import com.softcorp.sigtec.core.database.dao.IncidenciaDao
 import com.softcorp.sigtec.core.database.dao.MovimientoDao
 import com.softcorp.sigtec.core.database.dao.SincronizacionDao
@@ -40,6 +41,7 @@ class SincronizacionTiempoReal @Inject constructor(
     private val catalogoDao: CatalogoDao,
     private val sincronizacionDao: SincronizacionDao,
     private val solicitudRepuestoDao: SolicitudRepuestoDao,
+    private val fallaDiccionarioDao: FallaDiccionarioDao,
     private val programador: ProgramadorSincronizacion,
     private val reloj: Reloj,
     private val notificador: NotificadorAsignaciones,
@@ -72,6 +74,8 @@ class SincronizacionTiempoReal @Inject constructor(
                                 escuchar("equipos", ::guardarEquipos),
                                 // HU-11 (RF-1120): el detalle muestra las solicitudes de repuesto a todos los perfiles
                                 escuchar("solicitudesRepuesto", ::guardarSolicitudes),
+                                // HU-13 (RF-1322): el diccionario lo leen el técnico y el personal de sistemas
+                                escuchar("fallas", ::guardarFallas),
                                 // RF-619 (HU-06): solo los técnicos; quien deja de serlo llega como REMOVED
                                 escuchar(
                                     "usuarios", ::guardarTecnicos,
@@ -141,6 +145,27 @@ class SincronizacionTiempoReal @Inject constructor(
         }
     }
 
+    private suspend fun guardarFallas(snap: QuerySnapshot) {
+        for (cambio in snap.documentChanges) {
+            // La app no borra fallas (D-4), pero el equipo puede corregir una desde la consola de Firebase: se quita
+            // también del celular, salvo que tenga algo sin subir
+            if (cambio.type == DocumentChange.Type.REMOVED) {
+                fallaDiccionarioDao.borrarSincronizada(cambio.document.id)
+                continue
+            }
+            val documento = cambio.document
+            if (documento.metadata.hasPendingWrites()) continue   // falla propia aún sin confirmar
+            val remota = documento.aFallaEntity() ?: continue
+            if (debeReemplazarFalla(fallaDiccionarioDao.porId(remota.id), remota)) fallaDiccionarioDao.guardar(remota)
+        }
+        // Si el borrado no llegó como REMOVED (la app no escuchaba, o lo ignoró una versión anterior), se quitan las
+        // fallas ya sincronizadas que no están en la lista. Esa lista puede venir de la caché de Firestore, que es de
+        // donde salieron las de Room; vacía y desde la caché no se usa, por si la caché se perdió
+        if (!snap.isEmpty || !snap.metadata.isFromCache) {
+            fallaDiccionarioDao.borrarSincronizadasFueraDe(snap.documents.map { it.id })
+        }
+    }
+
     // RF-41: /equipos es de solo lectura, sin lógica de conflictos ni pendientes de sincronizar.
     private suspend fun guardarEquipos(snap: QuerySnapshot) {
         val nuevos = snap.documentChanges
@@ -158,13 +183,15 @@ class SincronizacionTiempoReal @Inject constructor(
     }
 
     private fun vigilarPendientes(): Flow<Unit> =
-        // HU-11: también las solicitudes, que quedan pendientes solas cuando llega el número de Logística
+        // HU-11: también las solicitudes, que quedan pendientes solas cuando llega el número de Logística.
+        // HU-13 (RF-1321): y las fallas del diccionario; sin esto, una falla nueva no programaba la subida
         combine(
             incidenciaDao.observarPendientes(),
             movimientoDao.observarPendientes(),
-            solicitudRepuestoDao.observarPendientes()
-        ) { i, m, s ->
-            i + m + s > 0
+            solicitudRepuestoDao.observarPendientes(),
+            fallaDiccionarioDao.observarCantidadPendientes()
+        ) { i, m, s, f ->
+            i + m + s + f > 0
         }
             .distinctUntilChanged()
             .filter { it }

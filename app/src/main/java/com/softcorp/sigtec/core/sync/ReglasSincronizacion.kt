@@ -1,5 +1,6 @@
 package com.softcorp.sigtec.core.sync
 
+import com.softcorp.sigtec.core.database.entity.FallaDiccionarioEntity
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.softcorp.sigtec.core.database.entity.IncidenciaEntity
 import com.softcorp.sigtec.core.database.entity.MovimientoEntity
@@ -19,6 +20,15 @@ internal fun debeReemplazarLocal(local: IncidenciaEntity?, remota: IncidenciaEnt
  * o un estado nuevo) no se pisa con una versión remota más antigua.
  */
 internal fun debeReemplazarSolicitud(local: SolicitudRepuestoEntity?, remota: SolicitudRepuestoEntity): Boolean =
+    local == null ||
+        !local.pendienteSincronizar ||
+        remota.actualizadoEn.isAfter(local.actualizadoEn)
+
+/**
+ * HU-13 (RF-1322): la misma regla que las incidencias. Las fallas no se editan (D-4), así que en la práctica solo
+ * evita que la escucha pise una falla propia que todavía no terminó de subir.
+ */
+internal fun debeReemplazarFalla(local: FallaDiccionarioEntity?, remota: FallaDiccionarioEntity): Boolean =
     local == null ||
         !local.pendienteSincronizar ||
         remota.actualizadoEn.isAfter(local.actualizadoEn)
