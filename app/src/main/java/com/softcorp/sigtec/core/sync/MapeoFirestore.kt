@@ -3,6 +3,7 @@ package com.softcorp.sigtec.core.sync
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentSnapshot
 import com.softcorp.sigtec.core.database.entity.EquipoEntity
+import com.softcorp.sigtec.core.database.entity.FallaDiccionarioEntity
 import com.softcorp.sigtec.core.database.entity.IncidenciaEntity
 import com.softcorp.sigtec.core.database.entity.InformeTecnicoEntity
 import com.softcorp.sigtec.core.database.entity.MovimientoEntity
@@ -136,6 +137,36 @@ internal fun DocumentSnapshot.aSolicitudEntity(): SolicitudRepuestoEntity? = run
 }.getOrNull()
 
 // ---------- Catálogo ----------
+
+// ---------- Diccionario (HU-13, RF-1320) ----------
+
+internal fun FallaDiccionarioEntity.aFirestore(): Map<String, Any?> = mapOf(
+    "titulo" to titulo,
+    "sintomas" to sintomas,
+    "componente" to componente,
+    "tipo" to tipo.name,
+    "solucion" to solucion,
+    "autorId" to autorId,
+    "autorNombre" to autorNombre,
+    "incidenciaOrigenId" to incidenciaOrigenId,
+    "registradaEn" to actualizadoEn.aTimestamp()
+)
+
+internal fun DocumentSnapshot.aFallaEntity(): FallaDiccionarioEntity? = runCatching {
+    FallaDiccionarioEntity(
+        id = id,
+        titulo = getString("titulo")!!,
+        sintomas = getString("sintomas")!!,
+        componente = getString("componente")!!,
+        tipo = TipoFalla.valueOf(getString("tipo")!!),
+        solucion = getString("solucion")!!,
+        autorId = getString("autorId")!!,
+        autorNombre = getString("autorNombre")!!,
+        incidenciaOrigenId = getString("incidenciaOrigenId"),
+        pendienteSincronizar = false,
+        actualizadoEn = getTimestamp("registradaEn")?.toInstant() ?: Instant.EPOCH
+    )
+}.getOrNull()
 
 internal fun DocumentSnapshot.aEquipoEntity(): EquipoEntity? = runCatching {
     EquipoEntity(
