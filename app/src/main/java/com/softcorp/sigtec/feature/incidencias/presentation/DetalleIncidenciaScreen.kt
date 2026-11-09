@@ -1,5 +1,6 @@
 package com.softcorp.sigtec.feature.incidencias.presentation
 
+import androidx.compose.foundation.ScrollState
 import com.softcorp.sigtec.core.ui.components.FondoBarraEstado
 import com.softcorp.sigtec.core.ui.components.IconosBarraEstadoClaros
 import com.softcorp.sigtec.core.ui.components.Tarjeta
@@ -139,6 +140,7 @@ fun DetalleIncidenciaScreen(
     var menuAbierto by remember { mutableStateOf(false) }
     // RF-934: guarda el id, no la foto: al eliminarla deja de estar en la lista y la vista ampliada se cierra sola
     var fotoAbiertaId by rememberSaveable { mutableStateOf<String?>(null) }
+    val desplazamiento = rememberScrollState()
 
     // Pantallas v2 (prototipo 05): con la incidencia cargada, la cabecera oscura va dentro del contenido y llega detrás
     // de la barra de estado; mientras carga o si no existe, la barra superior de siempre
@@ -169,13 +171,14 @@ fun DetalleIncidenciaScreen(
                     puedeAgregarFoto = estado.puedeAtender,
                     acciones,
                     alAbrirFoto = { fotoAbiertaId = it.id },
+                    desplazamiento = desplazamiento,
                     cabecera = {
                         Cabecera(estado.detalle.incidencia, estado, acciones, menuAbierto, alMenu = { menuAbierto = it })
                     }
                 )
             }
             // Con la cabecera oscura, la barra de estado queda oscura también al desplazar
-            if (estado.detalle != null) FondoBarraEstado()
+            if (estado.detalle != null) FondoBarraEstado(visible = desplazamiento.value > 0)
         }
     }
 
@@ -200,13 +203,14 @@ private fun Contenido(
     puedeAgregarFoto: Boolean,
     acciones: AccionesDetalle,
     alAbrirFoto: (Evidencia) -> Unit,
+    desplazamiento: ScrollState,
     cabecera: @Composable () -> Unit
 ) {
     val incidencia = detalle.incidencia
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(desplazamiento)
     ) {
         cabecera()
         Column(
