@@ -1,5 +1,9 @@
 package com.softcorp.sigtec.feature.inicio.presentation
 
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.IntrinsicSize
+import com.softcorp.sigtec.core.ui.components.FondoBarraEstado
 import com.softcorp.sigtec.core.ui.components.IconosBarraEstadoClaros
 import android.content.res.Configuration
 import androidx.compose.foundation.background
@@ -101,6 +105,7 @@ fun InicioScreen(
 ) {
     val resumen = estado.resumen
     IconosBarraEstadoClaros()   // la cabecera oscura queda detrás de la barra de estado
+    Box(Modifier.fillMaxSize()) {
     Column(
         Modifier
             .fillMaxSize()
@@ -117,6 +122,8 @@ fun InicioScreen(
                 resumen.repuesto?.let { TarjetaRepuesto(it, alAbrirRepuestos) }
             }
         }
+    }
+    FondoBarraEstado()
     }
 }
 
@@ -152,7 +159,8 @@ private fun Cabecera(estado: InicioUiState, alAbrirAjustes: () -> Unit, alTocarM
             }
         }
         estado.resumen?.let { resumen ->
-            Row(horizontalArrangement = Arrangement.spacedBy(Espaciado.s)) {
+            // Las tres a la misma altura aunque una etiqueta ocupe dos líneas
+            Row(Modifier.height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(Espaciado.s)) {
                 resumen.metricas.forEach { metrica ->
                     TarjetaMetrica(
                         valor = "${metrica.valor}",
@@ -161,6 +169,7 @@ private fun Cabecera(estado: InicioUiState, alAbrirAjustes: () -> Unit, alTocarM
                         enCabecera = true,
                         modifier = Modifier
                             .weight(1f)
+                            .fillMaxHeight()
                             .clip(MaterialTheme.shapes.large)
                             .clickable(role = Role.Button, onClick = alTocarMetrica)
                     )
