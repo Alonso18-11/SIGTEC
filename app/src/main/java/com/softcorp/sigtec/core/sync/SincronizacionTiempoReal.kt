@@ -158,9 +158,12 @@ class SincronizacionTiempoReal @Inject constructor(
             val remota = documento.aFallaEntity() ?: continue
             if (debeReemplazarFalla(fallaDiccionarioDao.porId(remota.id), remota)) fallaDiccionarioDao.guardar(remota)
         }
-        // Si el borrado ocurrió mientras la app no escuchaba, no llega como REMOVED: con la lista completa del servidor
-        // se quitan las fallas ya sincronizadas que dejaron de existir
-        if (!snap.metadata.isFromCache) fallaDiccionarioDao.borrarSincronizadasFueraDe(snap.documents.map { it.id })
+        // Si el borrado no llegó como REMOVED (la app no escuchaba, o lo ignoró una versión anterior), se quitan las
+        // fallas ya sincronizadas que no están en la lista. Esa lista puede venir de la caché de Firestore, que es de
+        // donde salieron las de Room; vacía y desde la caché no se usa, por si la caché se perdió
+        if (!snap.isEmpty || !snap.metadata.isFromCache) {
+            fallaDiccionarioDao.borrarSincronizadasFueraDe(snap.documents.map { it.id })
+        }
     }
 
     // RF-41: /equipos es de solo lectura, sin lógica de conflictos ni pendientes de sincronizar.
