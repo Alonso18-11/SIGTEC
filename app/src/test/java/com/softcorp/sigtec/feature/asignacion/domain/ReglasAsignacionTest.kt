@@ -107,4 +107,36 @@ class ReglasAsignacionTest {
         assertTrue(opcionLuis.disponible)
         assertFalse(opcionLuis.esActual)
     }
+
+    private fun opcion(tecnico: Tecnico, esActual: Boolean = false) =
+        OpcionTecnico(tecnico, disponible = tecnico.disponible, esActual = esActual)
+
+    @Test
+    fun `se recomienda a quien tiene menos incidencias activas`() {
+        val jorge = Tecnico("u-jorge", "Jorge Salas", limiteAtencion = 4, incidenciasActivas = 1)
+        assertEquals("u-jorge", recomendado(listOf(opcion(ana), opcion(jorge), opcion(luis))))
+    }
+
+    @Test
+    fun `no se recomienda a quien llego a su limite ni al que ya la tiene`() {
+        val llena = Tecnico("u-rosa", "Rosa Vilca", limiteAtencion = 2, incidenciasActivas = 2)
+        val jorge = Tecnico("u-jorge", "Jorge Salas", limiteAtencion = 4, incidenciasActivas = 0)
+        val opciones = listOf(opcion(ana), opcion(jorge, esActual = true), opcion(luis), opcion(llena))
+        assertEquals("u-luis", recomendado(opciones))
+    }
+
+    @Test
+    fun `con las mismas activas gana quien tiene mas cupo libre`() {
+        val jorge = Tecnico("u-jorge", "Jorge Salas", limiteAtencion = 4, incidenciasActivas = 2)
+        val luis2de5 = luis.copy(incidenciasActivas = 2)
+        assertEquals("u-luis", recomendado(listOf(opcion(jorge), opcion(luis2de5))))
+    }
+
+    @Test
+    fun `con empate gana el primero de la lista y sin opciones no hay recomendado`() {
+        val luis2 = luis.copy(id = "u-luis2", nombre = "Luisa Ramos")
+        assertEquals("u-luis", recomendado(listOf(opcion(luis), opcion(luis2))))
+        assertNull(recomendado(listOf(opcion(luis, esActual = true))))
+        assertNull(recomendado(emptyList()))
+    }
 }
