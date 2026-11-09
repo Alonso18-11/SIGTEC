@@ -26,6 +26,10 @@ interface MovimientoDao {
     suspend fun listosParaSubir(): List<MovimientoEntity>
 
 
+    // HU-15 (RF-1506, RF-1514): la fecha de cierre de cada incidencia, para el tablero del jefe
+    @Query("SELECT * FROM movimientos WHERE tipo = 'CERRADA'")
+    fun observarCierres(): Flow<List<MovimientoEntity>>
+
     @Query("SELECT * FROM movimientos WHERE id = :id")
     suspend fun porId(id: String): MovimientoEntity?
 
