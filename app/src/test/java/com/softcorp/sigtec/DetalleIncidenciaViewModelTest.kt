@@ -1,5 +1,8 @@
 package com.softcorp.sigtec
 
+import com.softcorp.sigtec.feature.diccionario.domain.ObservarDiccionario
+import com.softcorp.sigtec.feature.diccionario.domain.EstaEnDiccionario
+import com.softcorp.sigtec.feature.diccionario.data.DiccionarioRepositoryFalso
 import androidx.lifecycle.SavedStateHandle
 import com.softcorp.sigtec.core.data.SesionRepositoryDemo
 import com.softcorp.sigtec.core.domain.ErrorDominio
@@ -37,6 +40,7 @@ class DetalleIncidenciaViewModelTest {
     val main = MainDispatcherRule()
 
     private val sesion = SesionRepositoryDemo()
+    private val diccionario = DiccionarioRepositoryFalso()
     private var linterna = LinternaFalsa()
     private val t0 = Instant.parse("2026-09-27T14:15:00Z")
 
@@ -73,7 +77,10 @@ class DetalleIncidenciaViewModelTest {
             ObservarUsuarioActual(sesion),
             IniciarAtencion(VerificarPermiso(sesion), repo),
             EliminarEvidencia(VerificarPermiso(sesion), EvidenciaRepositoryFalso()),
-            linterna
+            linterna,
+            ObservarDiccionario(VerificarPermiso(sesion), diccionario),
+            EstaEnDiccionario(diccionario),
+            main.dispatcher
         )
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.estado.collect {} }
         return vm
@@ -90,7 +97,10 @@ class DetalleIncidenciaViewModelTest {
             ObservarUsuarioActual(sesion),
             IniciarAtencion(VerificarPermiso(sesion), repo),
             EliminarEvidencia(VerificarPermiso(sesion), EvidenciaRepositoryFalso()),
-            linterna
+            linterna,
+            ObservarDiccionario(VerificarPermiso(sesion), diccionario),
+            EstaEnDiccionario(diccionario),
+            main.dispatcher
         )
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.estado.collect {} }
         return vm
@@ -106,7 +116,10 @@ class DetalleIncidenciaViewModelTest {
             ObservarUsuarioActual(sesion),
             IniciarAtencion(VerificarPermiso(sesion), repo),
             EliminarEvidencia(VerificarPermiso(sesion), EvidenciaRepositoryFalso()),
-            linterna
+            linterna,
+            ObservarDiccionario(VerificarPermiso(sesion), diccionario),
+            EstaEnDiccionario(diccionario),
+            main.dispatcher
         )
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.estado.collect {} }
         return vm to repo
@@ -128,7 +141,10 @@ class DetalleIncidenciaViewModelTest {
             ObservarUsuarioActual(sesion),
             IniciarAtencion(VerificarPermiso(sesion), repo),
             EliminarEvidencia(VerificarPermiso(sesion), evidencias),
-            linterna
+            linterna,
+            ObservarDiccionario(VerificarPermiso(sesion), diccionario),
+            EstaEnDiccionario(diccionario),
+            main.dispatcher
         )
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.estado.collect {} }
         return vm to evidencias

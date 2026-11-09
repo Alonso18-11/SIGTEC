@@ -1,5 +1,8 @@
 package com.softcorp.sigtec.feature.incidencias.presentation
 
+import com.softcorp.sigtec.feature.diccionario.presentation.TarjetaFalla
+import com.softcorp.sigtec.core.domain.model.FallaDiccionario
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.derivedStateOf
@@ -100,7 +103,8 @@ data class AccionesDetalle(
     val alCerrarFoto: () -> Unit = {},
     val alAbrirAsistente: () -> Unit = {},
     val alVerHistorial: (String) -> Unit = {},
-    val alAlternarLinterna: () -> Unit = {}
+    val alAlternarLinterna: () -> Unit = {},
+    val alGuardarEnDiccionario: () -> Unit = {}   // HU-13 (RF-1317)
 )
 
 @Composable
@@ -172,7 +176,7 @@ fun DetalleIncidenciaScreen(
                 )
                 else -> Contenido(
                     estado.detalle,
-                    estado.ahora,
+                    estado,
                     puedeAgregarFoto = estado.puedeAtender,
                     acciones,
                     alAbrirFoto = { fotoAbiertaId = it.id },
@@ -204,7 +208,7 @@ fun DetalleIncidenciaScreen(
 @Composable
 private fun Contenido(
     detalle: DetalleIncidencia,
-    ahora: Instant,
+    estado: DetalleIncidenciaUiState,
     puedeAgregarFoto: Boolean,
     acciones: AccionesDetalle,
     alAbrirFoto: (Evidencia) -> Unit,
@@ -222,7 +226,7 @@ private fun Contenido(
             Modifier.padding(Espaciado.m),
             verticalArrangement = Arrangement.spacedBy(Espaciado.l)
         ) {
-            ContenidoCuerpo(detalle, ahora, puedeAgregarFoto, acciones, alAbrirFoto)
+            ContenidoCuerpo(detalle, estado, puedeAgregarFoto, acciones, alAbrirFoto)
         }
     }
 }
@@ -230,20 +234,30 @@ private fun Contenido(
 @Composable
 private fun ContenidoCuerpo(
     detalle: DetalleIncidencia,
-    ahora: Instant,
+    estado: DetalleIncidenciaUiState,
     puedeAgregarFoto: Boolean,
     acciones: AccionesDetalle,
     alAbrirFoto: (Evidencia) -> Unit
 ) {
     val incidencia = detalle.incidencia
+    val ahora = estado.ahora
     TarjetasEquipoUsuario(incidencia, acciones.alVerHistorial)
     // El avance tiene sentido desde que hay técnico; «Sin asignar» se lee en la etiqueta de la cabecera
     pasoActual(incidencia.marca)?.let { AvanceIncidencia(actual = it) }
     PanelDatos(incidencia)
 
+    // ---------- Fallas parecidas (HU-13): pendiente y con acceso al diccionario (RF-1324, RF-1330) ----------
+    estado.fallasParecidas?.let { SeccionFallasParecidas(it) }
+
     // ---------- Informe técnico (HU-08): solo si ya llegó a este celular (RF-827 a RF-829) ----------
     if (incidencia.estado == EstadoIncidencia.SOLUCIONADO && detalle.informe != null) {
-        SeccionInforme(detalle.informe, incidencia.tecnicoAsignadoNombre ?: SIN_TECNICO)
+        SeccionInforme(
+            detalle.informe,
+            incidencia.tecnicoAsignadoNombre ?: SIN_TECNICO,
+            puedeGuardarEnDiccionario = estado.puedeGuardarEnDiccionario,
+            yaEnDiccionario = estado.yaEnDiccionario,
+            alGuardarEnDiccionario = acciones.alGuardarEnDiccionario
+        )
     }
 
     // ---------- Repuestos (HU-11): los ve cualquier perfil (RF-1120) ----------
@@ -441,7 +455,13 @@ private fun SeccionRepuestos(solicitudes: List<SolicitudRepuesto>, ahora: Instan
 
 /** RF-827: diagnóstico, solución aplicada, piezas (si las hay), observaciones (si las hay), y quién/cuándo confirmó. */
 @Composable
-private fun SeccionInforme(informe: InformeTecnico, tecnicoNombre: String) {
+private fun SeccionInforme(
+    informe: InformeTecnico,
+    tecnicoNombre: String,
+    puedeGuardarEnDiccionario: Boolean = false,
+    yaEnDiccionario: Boolean = false,
+    alGuardarEnDiccionario: () -> Unit = {}
+) {
     Seccion("Informe técnico") {
         Tarjeta(Modifier.fillMaxWidth()) {
             Column(verticalArrangement = Arrangement.spacedBy(Espaciado.sm)) {
@@ -464,6 +484,45 @@ private fun SeccionInforme(informe: InformeTecnico, tecnicoNombre: String) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+                // HU-13 (RF-1316, RF-1319): lo resuelto hoy queda en el diccionario para mañana
+                if (puedeGuardarEnDiccionario) {
+                    if (yaEnDiccionario) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.AutoMirrored.Outlined.MenuBook,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(Modifier.width(Espaciado.s))
+                            Text("Ya está en el diccionario", style = MaterialTheme.typography.bodyMedium)
+                        }
+                    } else {
+                        BotonSecundario(onClick = alGuardarEnDiccionario, modifier = Modifier.fillMaxWidth()) {
+                            Icon(Icons.AutoMirrored.Outlined.MenuBook, contentDescription = null)
+                            Spacer(Modifier.width(Espaciado.s))
+                            Text("Guardar en el diccionario")
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** HU-13 (RF-1324 a RF-1327): hasta 3 fallas del diccionario con su solución, marcadas como sugerencia. */
+@Composable
+private fun SeccionFallasParecidas(fallas: List<FallaDiccionario>) {
+    Seccion("Fallas parecidas") {
+        if (fallas.isEmpty()) {
+            Text(
+                "No hay fallas parecidas en el diccionario.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        } else {
+            Column(verticalArrangement = Arrangement.spacedBy(Espaciado.s)) {
+                fallas.forEach { TarjetaFalla(it, sugerencia = true) }
             }
         }
     }
