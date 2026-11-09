@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.room.withTransaction
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.MetadataChanges
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.QuerySnapshot
 import com.softcorp.sigtec.core.data.AlmacenFotos
@@ -96,7 +97,10 @@ class SincronizacionTiempoReal @Inject constructor(
         guardar: suspend (QuerySnapshot) -> Unit,
         consulta: Query = firestore.collection(coleccion)
     ): Flow<Unit> = callbackFlow {
-        val registro = consulta.addSnapshotListener { snap, error ->
+        // INCLUDE: Firestore avisa también cuando confirma con el servidor lo que antes dio desde su caché. Sin eso, al
+        // iniciar sesión con la caché llena y sin cambios en el servidor nunca llegaba una lista «del servidor» y la
+        // descarga no se anotaba. `documentChanges` sigue sin traer los cambios que son solo de metadatos.
+        val registro = consulta.addSnapshotListener(MetadataChanges.INCLUDE) { snap, error ->
             if (error != null) Log.w(TAG, "Error al escuchar $coleccion", error)
             else if (snap != null) trySend(snap)
         }
