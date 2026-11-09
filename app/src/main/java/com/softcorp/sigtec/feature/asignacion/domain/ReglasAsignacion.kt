@@ -67,10 +67,11 @@ fun armarOpciones(
 
 /**
  * Pantallas v2 (prototipo 07): «Recomendado» va en quien tiene menos incidencias activas entre los que se pueden
- * elegir (con cupo y que no sean el actual). Solo sugiere: el jefe sigue eligiendo. Con empate gana el primero de la
- * lista, que ya va por nombre. Null si nadie se puede elegir.
+ * elegir (con cupo y que no sean el actual). Solo sugiere: el jefe sigue eligiendo. Con empate gana quien tiene más
+ * cupo libre en proporción (2 de 5 antes que 2 de 4), y si siguen iguales, el primero de la lista, que va por nombre.
+ * Null si nadie se puede elegir.
  */
 fun recomendado(opciones: List<OpcionTecnico>): String? =
     opciones.filter { it.disponible && !it.esActual }
-        .minByOrNull { it.tecnico.incidenciasActivas }
+        .minWithOrNull(compareBy<OpcionTecnico>({ it.tecnico.incidenciasActivas }, { it.tecnico.cargaRelativa }))
         ?.tecnico?.id
