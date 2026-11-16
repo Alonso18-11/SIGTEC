@@ -32,7 +32,7 @@ class EstadoDatosRepositoryImpl @Inject constructor(
     private val incidenciaDao: IncidenciaDao,
     private val movimientoDao: MovimientoDao,
     private val informeTecnicoDao: InformeTecnicoDao,
-    @IoDispatcher private val io: CoroutineDispatcher
+    @param:IoDispatcher private val io: CoroutineDispatcher
 ) : EstadoDatosRepository {
 
     // RF-13 (HU-01): una por incidencia con algo sin subir. Sus movimientos no suman aparte:
