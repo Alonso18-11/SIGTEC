@@ -19,7 +19,6 @@ import org.junit.Rule
 import org.junit.Test
 
 /** HU-13 (RF-1301 a RF-1309): el diccionario según el perfil, con búsqueda, filtro y fallas desplegadas. */
-// UnconfinedTestDispatcher sigue siendo experimental en kotlinx-coroutines-test
 @OptIn(ExperimentalCoroutinesApi::class)
 class DiccionarioViewModelTest {
 
