@@ -1,6 +1,12 @@
 package com.softcorp.sigtec.feature.atencion.presentation
 
 import com.softcorp.sigtec.core.ui.components.CampoTexto
+import com.softcorp.sigtec.core.ui.components.BotonSecundario
+import com.softcorp.sigtec.core.ui.components.TarjetaSugerenciaIA
+import com.softcorp.sigtec.core.domain.model.SugerenciaIA
+import com.softcorp.sigtec.core.domain.model.TipoSugerencia
+import com.softcorp.sigtec.feature.ia.domain.BorradorInforme
+import com.softcorp.sigtec.feature.ia.domain.comoContenido
 import com.softcorp.sigtec.core.ui.components.BarraAccionInferior
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.FilledIconButton
@@ -19,6 +25,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material3.CircularProgressIndicator
@@ -93,6 +100,9 @@ fun InformeTecnicoRoute(
         alCambiarPiezas = vm::alCambiarPiezas,
         alCambiarObservaciones = vm::alCambiarObservaciones,
         alCambiarNotas = vm::alCambiarNotas,
+        alRedactarBorrador = vm::alRedactarBorrador,
+        alUsarBorrador = vm::alUsarBorrador,
+        alDescartarBorrador = vm::alDescartarBorrador,
         alConfirmar = {
             verificador.verificar(titulo = "Confirma el cierre") { resultado ->
                 if (resultado is ResultadoBiometrico.Exito) vm.alConfirmarCierre(resultado.instante)
@@ -133,7 +143,10 @@ fun InformeTecnicoScreen(
     alConfirmar: () -> Unit,
     alAgregarFoto: () -> Unit = {},
     alDictar: (CampoDictado) -> Unit = {},
-    alCambiarNotas: (String) -> Unit = {}
+    alCambiarNotas: (String) -> Unit = {},
+    alRedactarBorrador: () -> Unit = {},
+    alUsarBorrador: () -> Unit = {},
+    alDescartarBorrador: () -> Unit = {}
 ) {
     val editable = !estado.guardando
     var intentoConfirmar by remember { mutableStateOf(false) }
@@ -177,6 +190,7 @@ fun InformeTecnicoScreen(
                 lineasMinimas = 2,
                 teclado = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
             )
+            BloqueBorrador(estado, alRedactarBorrador, alUsarBorrador, alDescartarBorrador)
             CampoTexto(
                 valor = estado.diagnostico,
                 alCambiar = alCambiarDiagnostico,
@@ -223,6 +237,15 @@ fun InformeTecnicoScreen(
                 teclado = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
             )
 
+            // HU-14 (RF-1420): lo que salió del borrador lo revisa el técnico antes de confirmar con su huella
+            if (estado.textoDeIA) {
+                Text(
+                    "Texto redactado por IA: revísalo antes de confirmar el cierre.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
             // HU-09 (RF-938, D-6): fotografiar la pieza cambiada sin salir del cierre
             SeccionEvidencias(
                 evidencias = estado.evidencias,
@@ -238,6 +261,55 @@ fun InformeTecnicoScreen(
         FotoAmpliada(foto = foto, alVolver = { fotoAbiertaId = null })
     }
 }
+
+/**
+ * HU-14 (RF-1414 a RF-1423, prototipo 08): el botón para pedir el borrador, el aviso sin conexión y la tarjeta marcada
+ * como IA. El informe no cambia hasta «Usar borrador» (RF-1428).
+ */
+@Composable
+private fun BloqueBorrador(
+    estado: InformeTecnicoUiState,
+    alRedactar: () -> Unit,
+    alUsar: () -> Unit,
+    alDescartar: () -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(Espaciado.s)) {
+        BotonSecundario(onClick = alRedactar, enabled = estado.puedeRedactar, modifier = Modifier.fillMaxWidth()) {
+            Icon(Icons.Outlined.AutoAwesome, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(Espaciado.s))
+            Text("Redactar borrador con IA")
+        }
+        if (!estado.iaDisponible) {
+            Text(
+                "La IA necesita conexión a internet.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        val borrador = estado.borradorLeido
+        when {
+            estado.redactando -> TarjetaSugerenciaIA(texto = "Redactando borrador")
+            borrador != null -> TarjetaSugerenciaIA(
+                titulo = "Borrador generado automáticamente",
+                texto = textoBorrador(borrador),
+                alUsar = alUsar,
+                alDescartar = alDescartar,
+                textoUsar = "Usar borrador"
+            )
+        }
+        estado.errorBorrador?.let {
+            Text(it.mensaje(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+        }
+    }
+}
+
+/** RF-1419: cada campo con su nombre, con los mismos nombres del formulario; los vacíos no se muestran. */
+private fun textoBorrador(borrador: BorradorInforme): String = listOf(
+    "Diagnóstico" to borrador.diagnostico,
+    "Solución aplicada" to borrador.trabajoRealizado,
+    "Piezas cambiadas" to borrador.piezasCambiadas,
+    "Observaciones" to borrador.observaciones
+).filter { it.second.isNotBlank() }.joinToString("\n") { (nombre, valor) -> "$nombre: $valor" }
 
 @Composable
 private fun BarraConfirmar(estado: InformeTecnicoUiState, onClick: () -> Unit) {
@@ -372,6 +444,58 @@ private fun InformeConError() = SigtecTheme {
             {}, {}, {}, {}, {}, {}
         )
     }
+}
+
+// HU-14: el borrador del prototipo 08 a la vista, con notas y conexión
+private val borradorDePrueba = SugerenciaIA(
+    "b1", "i124", TipoSugerencia.BORRADOR_INFORME,
+    BorradorInforme(
+        diagnostico = "Falla en la fuente de poder causada por la variación de voltaje.",
+        trabajoRealizado = "Se reemplazó la fuente por una ATX de 500 W y se verificó el encendido.",
+        piezasCambiadas = "Fuente ATX de 500 W",
+        observaciones = ""
+    ).comoContenido(),
+    "gemini-3.5-flash-lite", java.time.Instant.parse("2026-11-16T15:00:00Z")
+)
+
+private val conNotas = InformeTecnicoUiState(
+    notas = "cambie la fuente, ahora prende",
+    iaDisponible = true,
+    disponibilidadBiometrica = DisponibilidadBiometrica.HUELLA
+)
+
+@Preview(name = "Con borrador, claro", showBackground = true, heightDp = 1100)
+@Composable
+private fun InformeConBorradorClaro() = SigtecTheme {
+    Surface { InformeTecnicoScreen(conNotas.copy(borrador = borradorDePrueba), {}, {}, {}, {}, {}, {}) }
+}
+
+@Preview(name = "Con borrador, oscuro", showBackground = true, heightDp = 1100, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun InformeConBorradorOscuro() = SigtecTheme(darkTheme = true) {
+    Surface { InformeTecnicoScreen(conNotas.copy(borrador = borradorDePrueba), {}, {}, {}, {}, {}, {}) }
+}
+
+@Preview(name = "Redactando, claro", showBackground = true)
+@Composable
+private fun InformeRedactando() = SigtecTheme {
+    Surface { InformeTecnicoScreen(conNotas.copy(redactando = true), {}, {}, {}, {}, {}, {}) }
+}
+
+@Preview(name = "Sin conexión y con error, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun InformeSinIA() = SigtecTheme(darkTheme = true) {
+    Surface {
+        InformeTecnicoScreen(
+            conNotas.copy(iaDisponible = false, errorBorrador = ErrorDominio.IANoDisponible), {}, {}, {}, {}, {}, {}
+        )
+    }
+}
+
+@Preview(name = "Borrador usado, claro", showBackground = true, heightDp = 1100)
+@Composable
+private fun InformeTextoDeIA() = SigtecTheme {
+    Surface { InformeTecnicoScreen(formularioCompleto.copy(textoDeIA = true, iaDisponible = true), {}, {}, {}, {}, {}, {}) }
 }
 
 private val formularioConFotos = formularioCompleto.copy(
