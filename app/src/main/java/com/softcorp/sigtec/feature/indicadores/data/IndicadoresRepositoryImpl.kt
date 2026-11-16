@@ -18,7 +18,7 @@ class IndicadoresRepositoryImpl @Inject constructor(
     private val incidenciaDao: IncidenciaDao,
     private val movimientoDao: MovimientoDao,
     private val catalogoDao: CatalogoDao,
-    @IoDispatcher private val io: CoroutineDispatcher
+    @param:IoDispatcher private val io: CoroutineDispatcher
 ) : IndicadoresRepository {
 
     override fun observarDatos(): Flow<DatosIndicadores> =
