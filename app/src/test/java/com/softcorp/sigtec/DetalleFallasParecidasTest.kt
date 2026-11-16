@@ -18,6 +18,7 @@ import com.softcorp.sigtec.feature.incidencias.data.IncidenciaRepositoryFalso
 import com.softcorp.sigtec.feature.incidencias.domain.IniciarAtencion
 import com.softcorp.sigtec.feature.incidencias.domain.ObservarDetalleIncidencia
 import com.softcorp.sigtec.feature.incidencias.presentation.DetalleIncidenciaViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -31,6 +32,7 @@ import org.junit.Test
 import java.time.Instant
 
 /** HU-13: fallas parecidas (RF-1324 a RF-1330) y «Guardar en el diccionario» (RF-1316, RF-1319) en el detalle. */
+@OptIn(ExperimentalCoroutinesApi::class)
 class DetalleFallasParecidasTest {
 
     @get:Rule
