@@ -39,6 +39,7 @@ import com.softcorp.sigtec.core.ui.components.BarraSuperior
 import com.softcorp.sigtec.core.ui.components.BotonPrincipal
 import com.softcorp.sigtec.core.ui.components.EncabezadoSeccion
 import com.softcorp.sigtec.core.ui.components.EtiquetaIncidencia
+import com.softcorp.sigtec.core.ui.components.PestanasSegmentadas
 import com.softcorp.sigtec.core.ui.mensaje
 import com.softcorp.sigtec.feature.asignacion.domain.OpcionTecnico
 import com.softcorp.sigtec.feature.asignacion.domain.OpcionesAsignacion
@@ -70,7 +71,9 @@ fun AsignacionRoute(
         estado = estado,
         alVolver = alVolver,
         alElegir = vm::alElegir,
-        alAsignar = vm::alAsignar
+        alAsignar = vm::alAsignar,
+        alElegirTipo = vm::alElegirTipo,
+        alElegirPrioridad = vm::alElegirPrioridad
     )
 }
 
@@ -79,7 +82,9 @@ fun AsignacionScreen(
     estado: AsignacionUiState,
     alVolver: () -> Unit,
     alElegir: (String) -> Unit,
-    alAsignar: () -> Unit
+    alAsignar: () -> Unit,
+    alElegirTipo: (TipoFalla?) -> Unit = {},
+    alElegirPrioridad: (Prioridad?) -> Unit = {}
 ) {
     // BarraSuperior aplica el margen de la barra de estado
     Scaffold(
@@ -103,19 +108,27 @@ fun AsignacionScreen(
                         .align(Alignment.Center)
                         .padding(Espaciado.m)
                 )
-                else -> Contenido(opciones, estado, alElegir)
+                else -> Contenido(opciones, estado, alElegir, alElegirTipo, alElegirPrioridad)
             }
         }
     }
 }
 
 @Composable
-private fun Contenido(opciones: OpcionesAsignacion, estado: AsignacionUiState, alElegir: (String) -> Unit) {
+private fun Contenido(
+    opciones: OpcionesAsignacion,
+    estado: AsignacionUiState,
+    alElegir: (String) -> Unit,
+    alElegirTipo: (TipoFalla?) -> Unit,
+    alElegirPrioridad: (Prioridad?) -> Unit
+) {
     LazyColumn(
         contentPadding = PaddingValues(Espaciado.m),
         verticalArrangement = Arrangement.spacedBy(Espaciado.s)
     ) {
         item { TarjetaResumen(opciones, estado.ahora) }
+        // HU-14 (RF-1408): opcional, entre el resumen y los técnicos
+        item { SeccionClasificacion(estado.tipoElegido, estado.prioridadElegida, alElegirTipo, alElegirPrioridad) }
         // RF-607: el motivo se ve desde que se abre, antes de pulsar nada
         opciones.bloqueo?.let { motivo ->
             item {
@@ -174,6 +187,24 @@ private fun TarjetaResumen(opciones: OpcionesAsignacion, ahora: Instant) {
                 }
             }
         }
+    }
+}
+
+// P-6: la opción nula deja empezar sin clasificar y permite quitar una clasificación
+private val OPCIONES_TIPO: List<TipoFalla?> = listOf(null) + TipoFalla.entries
+private val OPCIONES_PRIORIDAD: List<Prioridad?> = listOf(null) + Prioridad.entries
+
+@Composable
+private fun SeccionClasificacion(
+    tipo: TipoFalla?,
+    prioridad: Prioridad?,
+    alElegirTipo: (TipoFalla?) -> Unit,
+    alElegirPrioridad: (Prioridad?) -> Unit
+) {
+    Column(Modifier.padding(top = Espaciado.s), verticalArrangement = Arrangement.spacedBy(Espaciado.s)) {
+        EncabezadoSeccion("Clasificación")
+        PestanasSegmentadas(OPCIONES_TIPO, tipo, ::textoTipoElegido, alElegirTipo)
+        PestanasSegmentadas(OPCIONES_PRIORIDAD, prioridad, ::textoPrioridadElegida, alElegirPrioridad)
     }
 }
 
