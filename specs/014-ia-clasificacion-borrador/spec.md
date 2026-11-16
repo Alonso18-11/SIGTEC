@@ -192,3 +192,91 @@ etiqueta «IA» y la regla de Firestore de `sugerenciasIA`.
 - Bajar las sugerencias a otros celulares, y mostrar en el tablero cuántas se aceptaron.
 - Guardar las notas del técnico.
 - Ordenar las listas por prioridad: está en «Dudas abiertas».
+
+## Configuración en la consola de Firebase
+1. Consola de Firebase → el proyecto → AI Services → AI Logic → «Get started».
+2. Elegir «Gemini Developer API» (no «Agent Platform Gemini API», que exige el plan Blaze). El flujo habilita
+   `generativelanguage.googleapis.com` y `firebasevertexai.googleapis.com`. Desde mediados de 2026 ya no crea una clave
+   de Gemini: autoriza con la cuenta de servicio de Firebase AI Logic. No se agrega nada a la app ni cambia
+   `google-services.json`.
+3. App Check (D-9). El flujo deja App Check exigida para AI Logic, y sin App Check en la app toda llamada se rechaza.
+   - Opción (a): Security → App Check → pestaña «APIs» → fila «Firebase AI Logic» → «Enforces:» (lápiz) → una fecha
+     no posterior al 2027-01-21 → «Save».
+   - Opción (b): Security → App Check → pestaña «Apps» → registrar la app con Play Integrity (huella SHA-256 del
+     certificado de firma) y, por cada celular de prueba, «Manage debug tokens» con el token que muestra Logcat.
+4. Revisar la cuota gratuita del proyecto en `aistudio.google.com/rate-limit`: es por proyecto y se reinicia a
+   medianoche, hora del Pacífico. AI Logic limita además cada usuario a 100 solicitudes por minuto (cuota de «Firebase
+   AI Logic API» en la consola de Google Cloud); no hace falta cambiarla.
+5. Al fusionar el PR de la regla de `sugerenciasIA`, publicarla en Firestore → Reglas.
+
+## Criterios de finalización
+- RF-1401 a RF-1432 implementados.
+- Pruebas JVM: la validación de la clasificación y del borrador (JSON válido, valores fuera de los permitidos, campos
+  vacíos, texto en lugar de JSON, recorte); `SugerirClasificacion` (sin sesión, sin permiso, ya clasificada, ya
+  sugerida, falla de Gemini, camino feliz); `RedactarBorradorInforme` (sin permiso, otro técnico, incidencia cerrada,
+  falla, borrador anterior sin decidir, camino feliz); la decisión de una sugerencia; `AsignarIncidencia` con la
+  clasificación; `AsignacionViewModel` e `InformeTecnicoViewModel` (generando, con sugerencia, sin sugerencia, usar,
+  descartar, corregir, decisión al asignar o al cerrar, sin conexión) con `MainDispatcherRule`.
+- `SugerenciaIADaoTest` (nuevo) pasa en un celular y `version` subió a 7.
+- `firestore.rules` revisada en el PR, probada en el Rules Playground (crear a nombre propio con `aceptada`: permite;
+  a nombre de otro, sin `aceptada`, actualizar o borrar: rechaza) y publicada a mano.
+- `./gradlew assembleDebug testDebugUnitTest lintDebug` en verde y sin advertencias nuevas de lint.
+- Prueba manual en un celular real, con capturas en claro y oscuro:
+  - Como jefe, abrir «Asignar» en una incidencia sin clasificar, ver «Generando sugerencia» y luego la sugerencia;
+    usarla, corregir la prioridad y asignar; ver la clasificación en el detalle y la sugerencia no aceptada en Firestore.
+  - Repetir usando la sugerencia sin cambios (aceptada) y descartándola (no aceptada).
+  - En modo avión, abrir «Asignar»: no hay tarjeta y la asignación funciona.
+  - Como técnico, dictar notas, redactar el borrador, usarlo, corregir un campo y cerrar con huella; ver el informe y
+    la sugerencia aceptada en Firestore. Descartar otro borrador y cerrar escribiendo a mano.
+  - Sin conexión, ver «La IA necesita conexión a internet.» bajo el botón del borrador.
+  - Comprobar que el detalle ya no ofrece «Abrir asistente».
+- La línea de la HU-14 en `MEMORY.md` dice «completa».
+
+## Decisiones
+Todas propuestas el 2026-11-15, pendientes de aprobación.
+- D-1 · Asistente conversacional (RF-1432). **Propuesta:** fuera de la HU-14, y se quita «Abrir asistente» del detalle,
+  que hoy navega a una ruta sin pantalla. No está en el criterio de la planificación; multiplica las llamadas contra
+  una cuota gratuita que comparte todo el proyecto; necesita una pestaña nueva, historial de la conversación y decidir
+  qué se guarda; y lo que muestra el prototipo ya lo cubren las «Fallas parecidas» de la HU-13 («¿Qué pruebo
+  primero?») y el borrador de esta HU («Redacta el informe»). Alternativa: hacerlo como bloque aparte al final, si
+  sobra tiempo.
+- D-2 · Dónde se pide la clasificación (RF-1401, RF-1405). **Propuesta:** en «Asignar», en el celular del jefe, una
+  sola vez por incidencia. Quien decide es quien la ve, no hay que bajar sugerencias de otros celulares y una incidencia
+  registrada sin conexión igual la recibe. Alternativa descartada: pedirla al registrar (prototipo 04), que gasta una
+  consulta en cada registro y obliga a bajar las sugerencias al celular del jefe.
+- D-3 · Clasificar al asignar (RF-1411). **Propuesta:** opcional. No cambia las reglas de la HU-06 ni bloquea la
+  asignación si Gemini falla. Alternativa: exigir el tipo y la prioridad para asignar.
+- D-4 · Cuándo una clasificación cuenta como aceptada (RF-1413). **Propuesta:** solo con «Usar» y asignando sin
+  cambios. Alternativa: comparar lo asignado con lo sugerido sin mirar los botones (descartar y elegir lo mismo
+  contaría como aceptada).
+- D-5 · Cómo se pide el borrador (RF-1414 a RF-1426). **Propuesta:** a pedido, desde «Mis notas» (como el prototipo 9
+  del PDF), y «Usar borrador» reemplaza los campos que el borrador trae. Las notas no se guardan. Alternativa: pedirlo
+  solo al abrir el informe, que gasta cuota antes de que haya notas.
+- D-6 · Modelo (RNF de costo). **Propuesta:** `gemini-3.5-flash-lite`, en una sola constante. Al 2026-11-15 es estable,
+  no exige facturación, no tiene fecha de retiro publicada y es el modelo al que Google redirige `gemini-2.5-flash`
+  desde el 2026-12-01. Alternativa: `gemini-3.8-flash`, también estable y sin facturación, más capaz y probablemente
+  con menos cuota gratuita.
+- D-7 · Qué se sube (RF-1429, RF-1430). **Propuesta:** solo las sugerencias decididas, una vez, sin bajarlas; la regla
+  de `sugerenciasIA` pasa a «solo crear», como los movimientos. La regla actual (actualizar solo `aceptada`) chocaría
+  con `actualizadoEn`. Alternativa: subirlas al generarse y actualizarlas al decidir.
+- D-8 · «Registros sin enviar» (RF-1431). **Propuesta:** no contar las sugerencias: la asignación o el cierre que las
+  decide ya se cuenta, y «1 sugerencia sin enviar» no le dice nada a quien cierra sesión.
+- D-9 · App Check (RF-1406). **Propuesta:** opción (a) de la configuración (aplazar la exigencia hasta el 2027-01-21
+  como máximo) para desarrollar y probar ya, y decidir la (b) antes de publicar en Google Play. La (b) agrega dos
+  dependencias (`firebase-appcheck-playintegrity` y `firebase-appcheck-debug`) en su propio PR (principio 1) y cambia
+  `SigtecApp.kt`. La (c), dejarla «sin exigir (solo monitoreo)», la documentación la desaconseja.
+- D-10 · Dónde vive el código (para el plan). **Propuesta:** un módulo nuevo `feature/ia/{domain,data,di}` con el
+  cliente de Gemini, la validación de las respuestas, el repositorio de sugerencias y los casos de uso; «Asignar» e
+  «Informe técnico» los usan, como el detalle usa los del diccionario. Ámbito de commit `ia`, que hay que agregar a
+  la lista de `CLAUDE.md`. Alternativa: repartirlo entre `asignacion` y `atencion`, con el cliente de Gemini en `core`.
+
+## Dudas abiertas
+- [NECESITA ACLARACIÓN] D-9: ¿opción (a), (b) o (c)? ¿La entrega del curso es antes del 2027-01-21?
+- [NECESITA ACLARACIÓN] Orden por urgencia. La historia dice «para recibir la lista ordenada por urgencia», pero el
+  criterio no lo pide, y la HU-04 (más reciente primero) y la HU-08 (más antigua primero) fijan su orden. Propuesta:
+  agregar en «Incidencias» la opción de orden «Más urgentes» (prioridad alta a baja y, dentro de cada una, la más
+  antigua primero), sin cambiar el orden por defecto; serían RF-1433 en adelante. Alternativa: dejarlo fuera.
+- [NECESITA ACLARACIÓN] ¿Firebase AI Logic ya está activado en la consola, y quién lo activa y publica la regla?
+- [NECESITA ACLARACIÓN] D-10: ¿módulo `feature/ia` y ámbito `ia`?
+- [NECESITA ACLARACIÓN] Además de la opción del menú (RF-1432), ¿se borra `Ruta.Asistente` de `Rutas.kt` (archivo
+  compartido)?
