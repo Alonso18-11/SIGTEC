@@ -37,7 +37,7 @@ class IncidenciaRepositoryImpl @Inject constructor(
     private val informeTecnicoDao: InformeTecnicoDao,
     private val evidenciaDao: EvidenciaDao,   // HU-09: solo para leer; las fotos las escribe captura
     private val solicitudRepuestoDao: SolicitudRepuestoDao,   // HU-11: solo para leer; las escribe atencion
-    @IoDispatcher private val io: CoroutineDispatcher
+    @param:IoDispatcher private val io: CoroutineDispatcher
 ) : IncidenciaRepository {
 
     override suspend fun registrar(incidencia: Incidencia, movimiento: Movimiento): Resultado<Unit> =
