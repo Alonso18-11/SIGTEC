@@ -212,6 +212,11 @@ etiqueta «IA» y la regla de Firestore de `sugerenciasIA`.
 ## Configuración en la consola de Firebase
 La hace Nina cuando el plan lo pida (antes de la primera prueba en el celular con Gemini), con la opción (a) de App
 Check (D-9).
+
+**Estado al 2026-11-16 (Nina):** el proyecto `sigtec` está en el plan Spark; AI Logic quedó activado con la Gemini
+Developer API (nivel gratuito) en ese mismo proyecto (pasos 1 y 2), y App Check para AI Logic quedó «Sin aplicar» hasta
+el 2027-01-21 (paso 3, opción a). Falta el paso 5: publicar la regla de `sugerenciasIA` al fusionar #170. Antes del
+2027-01-21 hay que decidir la opción (b) o volver a aplazar la fecha; si no, AI Logic rechaza toda llamada de la app.
 1. Consola de Firebase → el proyecto → AI Services → AI Logic → «Get started».
 2. Elegir «Gemini Developer API» (no «Agent Platform Gemini API», que exige el plan Blaze). El flujo habilita
    `generativelanguage.googleapis.com` y `firebasevertexai.googleapis.com`. Desde mediados de 2026 ya no crea una clave
