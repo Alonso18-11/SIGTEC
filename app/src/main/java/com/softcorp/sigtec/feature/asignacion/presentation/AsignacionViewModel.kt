@@ -6,6 +6,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.softcorp.sigtec.core.domain.ErrorDominio
 import com.softcorp.sigtec.core.domain.Resultado
+import com.softcorp.sigtec.core.domain.model.Prioridad
+import com.softcorp.sigtec.core.domain.model.TipoFalla
+import com.softcorp.sigtec.feature.asignacion.domain.ClasificacionElegida
 import com.softcorp.sigtec.feature.asignacion.domain.AsignarIncidencia
 import com.softcorp.sigtec.feature.asignacion.domain.ObservarOpcionesAsignacion
 import com.softcorp.sigtec.feature.asignacion.domain.OpcionTecnico
@@ -16,6 +19,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -30,7 +35,11 @@ data class AsignacionUiState(
     val guardando: Boolean = false,
     val error: ErrorDominio? = null,
     val asignadaA: String? = null,          // evento: nombre del técnico; se vuelve al detalle y se limpia
-    val ahora: Instant = Instant.now()      // para los días pendientes de la etiqueta del resumen
+    val ahora: Instant = Instant.now(),     // para los días pendientes de la etiqueta del resumen
+    // HU-14 (RF-1408): empiezan con la clasificación de la incidencia; null es «Sin clasificar»
+    val tipoElegido: TipoFalla? = null,
+    val prioridadElegida: Prioridad? = null,
+    val clasificacionLista: Boolean = false     // ya tomó la de la incidencia: desde ahí se envía al asignar
 ) {
     val noEncontrada: Boolean get() = !cargando && opciones == null
 
@@ -50,7 +59,7 @@ data class AsignacionUiState(
 @HiltViewModel
 class AsignacionViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    observarOpciones: ObservarOpcionesAsignacion,
+    private val observarOpciones: ObservarOpcionesAsignacion,
     private val asignarIncidencia: AsignarIncidencia
 ) : ViewModel() {
 
@@ -72,7 +81,21 @@ class AsignacionViewModel @Inject constructor(
         l.copy(cargando = false, opciones = opciones, ahora = ahora)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AsignacionUiState())
 
+    init {
+        // HU-14 (RF-1408): una sola vez, para no pisar lo que el jefe elija después
+        viewModelScope.launch {
+            val incidencia = observarOpciones(incidenciaId).filterNotNull().first().incidencia
+            local.update {
+                it.copy(tipoElegido = incidencia.tipoFalla, prioridadElegida = incidencia.prioridad, clasificacionLista = true)
+            }
+        }
+    }
+
     fun alElegir(tecnicoId: String) = local.update { it.copy(elegidoId = tecnicoId, error = null) }
+
+    fun alElegirTipo(tipo: TipoFalla?) = local.update { it.copy(tipoElegido = tipo) }
+
+    fun alElegirPrioridad(prioridad: Prioridad?) = local.update { it.copy(prioridadElegida = prioridad) }
 
     fun alAsignar() {
         val actual = estado.value
@@ -80,7 +103,10 @@ class AsignacionViewModel @Inject constructor(
         if (!actual.puedeAsignar) return
         local.update { it.copy(guardando = true, error = null) }
         viewModelScope.launch {
-            when (val r = asignarIncidencia(incidenciaId, elegido.tecnico.id, Instant.now())) {
+            // HU-14 (RF-1411, RF-1412): opcional; va en la misma transacción que la asignación
+            val clasificacion = ClasificacionElegida(actual.tipoElegido, actual.prioridadElegida)
+                .takeIf { actual.clasificacionLista }
+            when (val r = asignarIncidencia(incidenciaId, elegido.tecnico.id, Instant.now(), clasificacion)) {
                 // "guardando" no vuelve a false: la pantalla se cierra al volver al detalle,
                 // y así un segundo toque no puede guardar la asignación dos veces
                 is Resultado.Exito -> local.update { it.copy(asignadaA = elegido.tecnico.nombre) }
