@@ -19,7 +19,7 @@ import javax.inject.Inject
 
 class DiccionarioRepositoryImpl @Inject constructor(
     private val dao: FallaDiccionarioDao,
-    @IoDispatcher private val io: CoroutineDispatcher
+    @param:IoDispatcher private val io: CoroutineDispatcher
 ) : DiccionarioRepository {
 
     override fun observarTodas(): Flow<List<FallaDiccionario>> =
