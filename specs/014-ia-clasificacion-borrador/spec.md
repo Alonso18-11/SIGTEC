@@ -81,3 +81,37 @@ etiqueta «IA» y la regla de Firestore de `sugerenciasIA`.
 - RF-1413: CUANDO la asignación se guarda y había una sugerencia sin decidir, EL SISTEMA registra la decisión (D-4):
   aceptada solo si el jefe tocó «Usar» y asignó exactamente el tipo y la prioridad sugeridos; no aceptada si la
   descartó, si cambió algún valor después de usarla o si asignó sin usarla. Guarda quién decidió y cuándo.
+
+### Redactar el borrador del informe (prototipo 08, D-5)
+- RF-1414: EL SISTEMA muestra en «Informe técnico», antes de los campos del informe, el campo «Mis notas» con la ayuda
+  «Escribe o dicta notas sueltas; la IA las ordena», el micrófono del dictado de la HU-10 y el botón «Redactar borrador
+  con IA». Las notas no forman parte del informe: no se guardan en Room ni se suben.
+- RF-1415: MIENTRAS «Mis notas» esté vacío, no haya conexión, se esté redactando un borrador o se esté cerrando la
+  incidencia, EL SISTEMA mantiene deshabilitado «Redactar borrador con IA». Sin conexión, debajo del botón dice «La IA
+  necesita conexión a internet.».
+- RF-1416: CUANDO el técnico toca «Redactar borrador con IA», EL SISTEMA verifica `ATENDER_INCIDENCIA` en el dominio y
+  que sea el técnico asignado a la incidencia y que siga pendiente; si no, no llama a Gemini y devuelve `SinPermiso`.
+- RF-1417: EL SISTEMA envía a Gemini la descripción del problema, las notas y lo que ya esté escrito en los cuatro
+  campos del informe, y le pide en español el diagnóstico, el trabajo realizado, las piezas cambiadas y las
+  observaciones, sin agregar datos que no estén en lo enviado.
+- RF-1418: MIENTRAS Gemini redacta, EL SISTEMA muestra la tarjeta con «Redactando borrador» y la etiqueta «IA»; los
+  campos del informe se pueden seguir editando.
+- RF-1419: CUANDO Gemini responde con al menos el diagnóstico y el trabajo realizado, EL SISTEMA guarda el borrador en
+  Room (tipo `BORRADOR_INFORME`, sin decidir) y lo muestra en una `TarjetaSugerenciaIA` con el título «Borrador
+  generado automáticamente», sus campos con nombre («Diagnóstico: …») y los botones «Descartar» y «Usar borrador».
+- RF-1420: CUANDO el técnico toca «Usar borrador», EL SISTEMA reemplaza cada campo del informe por el del borrador (un
+  campo que el borrador trae vacío deja el campo como estaba), oculta la tarjeta y registra el borrador como aceptado,
+  con quién decidió y cuándo. Debajo de los campos aparece «Texto redactado por IA: revísalo antes de confirmar el
+  cierre.» hasta que la incidencia se cierre.
+- RF-1421: CUANDO el técnico toca «Descartar», EL SISTEMA oculta la tarjeta, no cambia los campos y registra el
+  borrador como no aceptado.
+- RF-1422: SI el técnico pide otro borrador mientras el anterior sigue sin decidir, ENTONCES EL SISTEMA registra el
+  anterior como no aceptado y muestra solo el nuevo. Cada borrador es una sugerencia aparte.
+- RF-1423: SI no hay conexión, o la respuesta no llega en 30 segundos, o Gemini falla, o la respuesta no trae el
+  diagnóstico y el trabajo realizado, ENTONCES EL SISTEMA no guarda nada, no cambia los campos y muestra «No se pudo
+  redactar el borrador. Puedes escribir el informe a mano.». El informe se completa y se cierra igual que sin IA.
+- RF-1424: CUANDO el técnico vuelve a «Informe técnico» de una incidencia que tiene un borrador sin decidir, EL SISTEMA
+  muestra ese borrador otra vez, sin pedir uno nuevo.
+- RF-1425: El borrador nunca cierra la incidencia ni llena el informe por sí solo: el cierre sigue exigiendo el
+  diagnóstico y la confirmación biométrica de la HU-08 (RF-23 del producto) con lo que esté en los campos.
+- RF-1426: CUANDO se confirma el cierre con un borrador sin decidir, EL SISTEMA lo registra como no aceptado.
