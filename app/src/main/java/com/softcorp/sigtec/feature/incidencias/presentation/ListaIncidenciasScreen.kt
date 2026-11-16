@@ -32,7 +32,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.softcorp.sigtec.core.domain.model.Incidencia
+import com.softcorp.sigtec.core.domain.model.EstadoIncidencia
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
+import com.softcorp.sigtec.core.domain.model.Prioridad
 import com.softcorp.sigtec.core.theme.Espaciado
 import com.softcorp.sigtec.core.theme.SigtecTheme
 import com.softcorp.sigtec.core.ui.components.AvisoConexion
@@ -40,6 +42,7 @@ import com.softcorp.sigtec.core.ui.components.BarraSuperior
 import com.softcorp.sigtec.core.ui.components.BotonTexto
 import com.softcorp.sigtec.core.ui.components.FilaIncidencia
 import com.softcorp.sigtec.feature.incidencias.domain.FiltrosIncidencias
+import com.softcorp.sigtec.feature.incidencias.domain.OrdenIncidencias
 import com.softcorp.sigtec.feature.incidencias.domain.SIN_TECNICO
 import com.softcorp.sigtec.feature.incidencias.domain.codigoParaMostrar
 import java.time.Duration
@@ -64,7 +67,8 @@ fun ListaIncidenciasRoute(
         alLimpiar = vm::limpiar,
         alAbrir = alAbrir,
         alRegistrar = alRegistrar,
-        aviso = { AvisoConexion() }   // HU-05
+        aviso = { AvisoConexion() },  // HU-05
+        alOrdenar = vm::alOrdenar
     )
 }
 
@@ -80,7 +84,8 @@ fun ListaIncidenciasScreen(
     alAbrir: (String) -> Unit,
     alRegistrar: () -> Unit,
     // HU-05: aviso de conexión. En las vistas previas queda vacío (AvisoConexion usa hiltViewModel)
-    aviso: @Composable () -> Unit = {}
+    aviso: @Composable () -> Unit = {},
+    alOrdenar: (OrdenIncidencias) -> Unit = {}
 ) {
     // Pantallas v2 (prototipo 03): título grande sobre el fondo, sin barra superior, y el FAB «Nueva» en acento
     Scaffold(
@@ -110,7 +115,7 @@ fun ListaIncidenciasScreen(
                 ) {
                     aviso()
                     Buscador(estado.filtros.texto, alBuscar)
-                    Filtros(estado, alFiltrarMarca, alFiltrarTecnico, alFiltrarEquipo, alLimpiar)
+                    Filtros(estado, alFiltrarMarca, alFiltrarTecnico, alFiltrarEquipo, alLimpiar, alOrdenar)
                 }
             }
             when {
@@ -135,7 +140,11 @@ fun ListaIncidenciasScreen(
                             tecnico = incidencia.tecnicoAsignadoNombre,
                             sinTecnico = SIN_TECNICO,
                             tecnicoEsUsuarioActual = incidencia.tecnicoAsignadoId != null &&
-                                incidencia.tecnicoAsignadoId == estado.usuarioId
+                                incidencia.tecnicoAsignadoId == estado.usuarioId,
+                            // HU-14 (RF-1437): con «Más urgentes», cada pendiente dice por qué está donde está
+                            prioridad = if (estado.orden == OrdenIncidencias.URGENTES &&
+                                incidencia.estado == EstadoIncidencia.PENDIENTE
+                            ) incidencia.prioridad?.etiqueta() ?: SIN_PRIORIDAD else null
                         )
                     }
                 }
@@ -181,13 +190,19 @@ private fun Filtros(
     alFiltrarMarca: (MarcaSeguimiento?) -> Unit,
     alFiltrarTecnico: (String?) -> Unit,
     alFiltrarEquipo: (String?) -> Unit,
-    alLimpiar: () -> Unit
+    alLimpiar: () -> Unit,
+    alOrdenar: (OrdenIncidencias) -> Unit
 ) {
     val f = estado.filtros
     Row(
         modifier = Modifier.horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(Espaciado.s)
     ) {
+        // HU-14 (RF-1433): «Más recientes» es el orden de siempre; «Limpiar filtros» no lo toca (RF-1435)
+        FiltroDesplegable(
+            "Orden", estado.orden.takeIf { it == OrdenIncidencias.URGENTES }, listOf(OrdenIncidencias.URGENTES),
+            { "Más urgentes" }, { alOrdenar(it ?: OrdenIncidencias.RECIENTES) }, textoTodos = "Más recientes"
+        )
         FiltroDesplegable("Etapa", f.marca, MarcaSeguimiento.entries, { it.etiqueta() }, alFiltrarMarca)
         FiltroDesplegable("Técnico", f.tecnico, estado.opcionesTecnico, { it }, alFiltrarTecnico)
         FiltroDesplegable("Equipo", f.equipo, estado.opcionesEquipo, { it }, alFiltrarEquipo)
@@ -207,7 +222,8 @@ private fun <T> FiltroDesplegable(
     seleccion: T?,
     opciones: List<T>,
     texto: (T) -> String,
-    alElegir: (T?) -> Unit
+    alElegir: (T?) -> Unit,
+    textoTodos: String = "Todos"
 ) {
     var abierto by remember { mutableStateOf(false) }
     Box {
@@ -226,7 +242,7 @@ private fun <T> FiltroDesplegable(
         )
         DropdownMenu(expanded = abierto, onDismissRequest = { abierto = false }) {
             DropdownMenuItem(
-                text = { Text("Todos") },
+                text = { Text(textoTodos) },
                 onClick = { alElegir(null); abierto = false }
             )
             opciones.forEach { opcion ->
@@ -324,6 +340,43 @@ private fun ListaFiltrada() = SigtecTheme(darkTheme = true) {
     }
 }
 
+// HU-14 (RF-1437): las de la lista de prueba, con prioridad, ordenadas por urgencia
+private val urgentesDePrueba = listOf(
+    listaDePrueba[3].copy(prioridad = Prioridad.ALTA),
+    listaDePrueba[2].copy(prioridad = Prioridad.ALTA),
+    listaDePrueba[1].copy(prioridad = Prioridad.MEDIA),
+    listaDePrueba[0],
+    listaDePrueba[4]
+)
+
+@Preview(name = "Más urgentes, claro", showBackground = true, heightDp = 900)
+@Composable
+private fun ListaUrgentesClaro() = SigtecTheme {
+    Surface {
+        ListaIncidenciasScreen(
+            ListaIncidenciasUiState(
+                cargando = false, incidencias = urgentesDePrueba, total = urgentesDePrueba.size,
+                ahora = ahoraDePrueba, orden = OrdenIncidencias.URGENTES
+            ),
+            {}, {}, {}, {}, {}, {}, {}
+        )
+    }
+}
+
+@Preview(name = "Más urgentes, oscuro", showBackground = true, heightDp = 900, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun ListaUrgentesOscuro() = SigtecTheme(darkTheme = true) {
+    Surface {
+        ListaIncidenciasScreen(
+            ListaIncidenciasUiState(
+                cargando = false, incidencias = urgentesDePrueba, total = urgentesDePrueba.size,
+                ahora = ahoraDePrueba, orden = OrdenIncidencias.URGENTES
+            ),
+            {}, {}, {}, {}, {}, {}, {}
+        )
+    }
+}
+
 @Preview(name = "Sin resultados", showBackground = true)
 @Composable
 private fun ListaSinResultados() = SigtecTheme {
@@ -336,3 +389,6 @@ private fun ListaSinResultados() = SigtecTheme {
         )
     }
 }
+
+// HU-14 (RF-1437): una pendiente sin prioridad, con texto y no solo con color
+private const val SIN_PRIORIDAD = "Sin prioridad"
