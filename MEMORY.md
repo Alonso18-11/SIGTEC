@@ -4,9 +4,9 @@ Memoria del proyecto entre sesiones. Máximo ~50 líneas: resume o elimina lo qu
 Las reglas permanentes van en `CLAUDE.md`, no aquí.
 
 ## Estado actual
-- En `main`: HU-01 (login con Firebase), HU-02 (huella), HU-03 (registro de incidencia), HU-04 (lista y detalle) y HU-05 (sincronización con Firestore, subida con WorkManager y aviso de conexión).
-- Siguen con `PantallaEnConstruccion`: asignación, atención (bandeja, repuestos, informe), captura (cámara, OCR, fotos, dictado), diccionario, asistente IA, indicadores e historial.
-- Aún no existen: API de Logística y del directorio (Retrofit), workers diarios (repuestos, resumen, casos demorados) ni funciones de IA.
+- En `main` (2026-11-16): HU-01 a HU-13 y HU-15, con el retema y las pantallas v2. Están la API de Logística y la del directorio (Retrofit sobre MockAPI), el diccionario de fallas y el tablero de indicadores (Vico).
+- Sigue con `PantallaEnConstruccion`: el historial del equipo (HU-16).
+- Aún no existen: la IA con Gemini (HU-14, en curso), los avisos con la app cerrada (HU-17) ni los workers diarios de repuestos, resumen y casos demorados (HU-18).
 
 ## Decisiones (y por qué)
 - La huella protege el celular de su dueño; no identifica a la persona. Por eso, cerrar sesión la desvincula y bloquear la conserva. Esto difiere de la especificación original del producto, que aún debe actualizarse.
