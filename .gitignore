@@ -32,3 +32,8 @@ local.properties
 .agents/
 .claude/skills/
 .claude/settings.local.json
+
+# Android Studio: el celular elegido, los dispositivos y las preferencias de pruebas son de cada persona
+.idea/deploymentTargetSelector.xml
+.idea/deviceManager.xml
+.idea/androidTestResultsUserPreferences.xml
