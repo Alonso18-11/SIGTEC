@@ -122,3 +122,66 @@ demorados» y «Resumen del día».
   reglas que al técnico (RF-708 a RF-710 de la HU-07). Al personal de sistemas no se le pide.
 - RF-1823: SI el jefe no concedió el permiso o silenció el canal, ENTONCES las tareas corren igual (la descarga de
   RF-1810 deja Room al día), sin avisar.
+
+## Requisitos no funcionales
+- Costo cero (plan Spark): sin FCM, Cloud Functions ni servidor propio. La descarga del jefe (RF-1810) lee todas las
+  incidencias y los movimientos del día, como máximo dos veces al día: con unas 200 incidencias son unas 500 lecturas
+  diarias, el 1 % de las 50 000 gratuitas. La consulta a Logística hace una llamada por solicitud no entregada y por
+  técnico al día.
+- Hora: las tareas corren dentro de la revisión de la HU-17, así que empiezan como mucho 15 minutos después de su hora
+  con el celular en uso. En reposo o con restricciones del fabricante pueden correr más tarde ese mismo día (D-4 de la
+  HU-17).
+- Arquitectura: la lógica de cada tarea vive en el dominio de su módulo (repuestos en `feature/atencion`, demorados y
+  resumen en `feature/indicadores`), en Kotlin puro y con prueba; `core/sync` solo las dispara y es el único que habla
+  con Firestore (D-10). Los repositorios de `feature/` siguen escribiendo solo en Room.
+- Stack cerrado: sin dependencias nuevas.
+- Sin cambios en `firestore.rules` (cualquier usuario autenticado ya lee `/incidencias` y `/movimientos`), ni en las
+  entidades de Room (no sube `version`), ni permisos nuevos en el manifiesto (`POST_NOTIFICATIONS` ya está).
+- Privacidad: los avisos del jefe no muestran números con el celular bloqueado (RF-1820) ni datos de ningún caso.
+- Idioma: textos de los avisos y del canal en español, sin «·».
+- Pruebas: las reglas (si toca una tarea según la hora, el perfil y la última anotación; los textos con singular y
+  plural; el conteo de reparados hoy) son funciones puras con prueba JVM; cada caso de uso nuevo, con dobles de prueba.
+
+## Casos límite
+- El técnico abre «Estado de repuestos» a las 7:30 y consulta: a las 8:00 la tarea no vuelve a consultar ese día
+  (RF-1807).
+- Logística no responde a las 8:00: la tarea se reintenta cada 15 minutos hasta que responda ese día (RF-1808).
+- El técnico no tiene solicitudes sin entregar: la tarea termina sin llamar a Logística y se anota como hecha.
+- El último repuesto de una incidencia llega: la incidencia vuelve a «En atención» en el celular del técnico, sube con
+  la subida de la HU-05 y el jefe la ve al abrir la app o en su siguiente descarga (RF-1806).
+- El celular del jefe estuvo apagado hasta las 11:00: el aviso de demorados llega en la primera revisión después de
+  encenderlo, ese mismo día.
+- El celular del jefe estuvo apagado todo el día: no hay aviso de ese día; al día siguiente llega el de ese día.
+- Un técnico cerró ayer una incidencia demorada y el jefe no abrió la app: la descarga de RF-1810 la trae cerrada y no
+  se cuenta.
+- Cero demorados: no hay aviso, y se quita el de ayer si sigue a la vista (RF-1814).
+- El jefe cambia la hora del celular o pasa la medianoche con la app abierta: la fecha que cuenta es la del celular
+  al correr la revisión.
+- Otra persona entra en el celular: Room se borra con sus anotaciones (D-12 de la HU-05), así que las tareas del día
+  corren de nuevo para la nueva sesión, según su perfil.
+- El jefe negó el permiso de notificaciones: las tareas corren y Room queda al día, sin avisos (RF-1823).
+
+## Fuera de alcance
+- Escribir `critica` en Room o en Firestore (D-3).
+- Guardar un resumen diario aparte o mostrar una tarjeta nueva en el tablero (D-5).
+- Avisar al técnico cuando cambia el estado de un repuesto (D-7).
+- Avisar al personal de sistemas de cualquier cosa.
+- Elegir las horas o desactivar las tareas desde la app.
+- Abrir desde el aviso una lista filtrada de críticas: abre Inicio (RF-1821), sin tocar la navegación.
+
+## Criterios de finalización
+- RF-1801 a RF-1823 implementados.
+- Pruebas JVM: cuándo toca una tarea (antes y después de su hora, ya hecha hoy, hecha ayer, falló hoy, cada perfil);
+  textos de los dos avisos con 0, 1 y varios; reparados hoy con cierres de hoy, de ayer y sin movimiento; los casos de
+  uso de demorados y resumen (sin sesión, sin permiso, camino feliz) y el de repuestos ya existente llamado por la
+  tarea. Lo que depende de WorkManager, Firestore o las notificaciones reales se prueba a mano, como en la HU-17.
+- `./gradlew assembleDebug testDebugUnitTest lintDebug` en verde y sin advertencias nuevas de lint.
+- Prueba manual en un celular real (con la hora del celular adelantada para no esperar a las 8:00 o a las 18:00):
+  - Como técnico con una solicitud registrada, cambiar su estado a «ENTREGADO» en MockAPI y, con la app cerrada,
+    comprobar que tras la hora de la tarea la incidencia vuelve a «En atención» y el jefe lo ve.
+  - Como jefe, con incidencias de más de 5 días, recibir «Casos demorados» con el número correcto y sin números con el
+    celular bloqueado; tocarlo y llegar a Inicio.
+  - Como jefe, recibir «Resumen del día» con los reparados de hoy, después de cerrar una incidencia desde otro celular
+    con la app del jefe cerrada.
+  - Como personal de sistemas, comprobar que no recibe avisos ni se le pide el permiso.
+- La línea de la HU-18 en `MEMORY.md` dice «completa».
