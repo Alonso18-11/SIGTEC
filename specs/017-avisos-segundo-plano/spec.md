@@ -1,7 +1,7 @@
 # Spec 017 — Envío y avisos en segundo plano, con la app cerrada (HU-17)
 
-> Estado: borrador (2026-11-16). Decisiones D-1 a D-6 propuestas, pendientes de aprobación de Nina. El plan y las
-> tareas se escriben después de aprobarla.
+> Estado: lista (2026-11-16). Decisiones D-1 a D-6 aprobadas por Nina el 2026-11-16, sin cambios; dudas respondidas.
+> El cómo está en `plan.md` y las tareas en `tasks.md`.
 
 > Spec escrita antes del código (principio 2 de la constitución). Los requisitos usan el bloque propio de la HU-17
 > (RF-1701…). Sale de la planificación (`SIGTEC_Planificación.xlsx`, Sprint 5, épica EP-08 «Trabajo automático en
@@ -176,31 +176,31 @@ respaldo de la subida.
 - La línea de la HU-17 en `MEMORY.md` dice «completa».
 
 ## Decisiones
-Propuestas el 2026-11-16, pendientes de aprobación de Nina.
-- D-1 · Aviso de una incidencia que llega por primera vez ya asignada (RF-1710, RF-1711, RF-1713). **Propuesta:** se
+Aprobadas por Nina el 2026-11-16, sin cambios.
+- D-1 · Aviso de una incidencia que llega por primera vez ya asignada (RF-1710, RF-1711, RF-1713). **Aprobada:** se
   avisa si no estaba en el celular, salvo que su última modificación (`actualizadoEn`) sea anterior al inicio de sesión
   de esa persona en este celular. La regla vale para la revisión y para la escucha en tiempo real, y reemplaza RF-703
   de la HU-07. Sin esto, el caso más común (el jefe registra y asigna con la app del técnico cerrada) nunca avisaría,
   porque el celular no conocía la incidencia, y el criterio de la HU no se cumpliría. Comparar horas de dos celulares
   tiene la misma limitación aceptada en RF-62. Alternativas descartadas: mantener RF-703 (no cumple el criterio) y
   avisar de todo lo que llegue asignado (una avalancha de avisos al iniciar sesión).
-- D-2 · Qué baja la revisión (RF-1708). **Propuesta:** solo las incidencias no cerradas asignadas a quien tiene la
+- D-2 · Qué baja la revisión (RF-1708). **Aprobada:** solo las incidencias no cerradas asignadas a quien tiene la
   sesión, consultadas al servidor. Es lo que pide el criterio, cuesta pocas lecturas y no depende de la hora de otros
   celulares. Lo demás («descarga los cambios de los demás») llega al abrir la app, como hoy. Alternativa: bajar todas
   las incidencias y movimientos modificados desde la última descarga (`actualizadoEn` mayor que la última hora), que
   deja Room al día también para el jefe, pero puede perder cambios de un celular con la hora atrasada, lee más y
   duplica buena parte de la escucha en tiempo real.
-- D-3 · Una sola revisión para todos los perfiles (RF-1701, RF-1706, RF-1707, RF-1716). **Propuesta:** un único
+- D-3 · Una sola revisión para todos los perfiles (RF-1701, RF-1706, RF-1707, RF-1716). **Aprobada:** un único
   trabajo periódico por celular (`enqueueUniquePeriodicWork` con `KEEP`) mientras haya sesión; el respaldo de la
   subida corre para todos y la consulta de asignaciones solo para quien puede atender. Así el jefe y el personal de
   sistemas también cierran el hueco de RF-74. Alternativa: programarla solo para técnicos, que deja ese hueco abierto
   para los otros dos perfiles.
-- D-4 · Qué significa «en un máximo de 15 minutos» (RNF de tiempo). **Propuesta:** se cumple con el celular en uso o
+- D-4 · Qué significa «en un máximo de 15 minutos» (RNF de tiempo). **Aprobada:** se cumple con el celular en uso o
   cargando; en reposo, Android decide cuándo corre la revisión y la spec lo deja escrito como limitación. Alternativas
   descartadas: alarmas exactas (`SCHEDULE_EXACT_ALARM`, un permiso restringido por Google Play), un servicio en primer
   plano con una notificación fija todo el día (gasta batería y molesta al técnico) y pedir que se quite la optimización
   de batería (`REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`, también restringido por Play).
-- D-5 · Dónde vive el código (para el plan). **Propuesta:** en `core/sync`, con ámbito `core`: un worker nuevo
+- D-5 · Dónde vive el código (para el plan). **Aprobada:** en `core/sync`, con ámbito `core`: un worker nuevo
   (`RevisarAsignacionesWorker`, `@HiltWorker`), su programación junto a la subida en `ProgramadorSincronizacion`, la
   regla de D-1 en `ReglasSincronizacion.kt`, y la lógica de guardar una incidencia bajada sacada de
   `SincronizacionTiempoReal` para que la usen la escucha y el worker. Se programa y se cancela desde
@@ -208,13 +208,12 @@ Propuestas el 2026-11-16, pendientes de aprobación de Nina.
   sesión ni `SigtecApp`. Archivos compartidos que toca: `SincronizacionTiempoReal.kt`, `ReglasSincronizacion.kt`,
   `ProgramadorSincronizacion.kt` y la spec 007. Alternativa: programarla desde el caso de uso de iniciar sesión y
   cancelarla desde `CerrarSesion`, que toca el modelo de sesión.
-- D-6 · Anotar cada revisión (RF-1717). **Propuesta:** en la tabla de sincronización que ya existe, con un tipo nuevo
+- D-6 · Anotar cada revisión (RF-1717). **Aprobada:** en la tabla de sincronización que ya existe, con un tipo nuevo
   (`REVISAR_ASIGNACIONES`), sin cambiar la entidad. Permite comprobar en la prueba manual y en la exposición que la
   revisión corrió con la app cerrada. Alternativa: solo el log, que no se ve sin `adb`.
 
 ## Dudas abiertas
-- ¿Apruebas D-1 a D-6, en especial D-1, que cambia el comportamiento de la HU-07 (RF-703)?
-- ¿Te sirve D-4 como lectura del criterio «en un máximo de 15 minutos», o quieres probar otra opción aunque implique
-  permisos restringidos por Google Play?
-- `CLAUDE.md` todavía lista como «Pendiente conocido» que cerrar sesión pierde lo registrado sin señal, pero ya lo
-  resuelven RF-13, RF-14 y RF-943. ¿Lo quito en el PR de cierre de esta HU? (`CLAUDE.md` es un archivo compartido.)
+Ninguna. Respondidas por Nina el 2026-11-16:
+- D-1 a D-6 aprobadas, incluido el cambio de RF-703 de la HU-07.
+- D-4 se queda como está: sin alarmas exactas, servicio en primer plano ni permisos restringidos por Google Play.
+- El pendiente de `CLAUDE.md` sobre cerrar sesión con registros sin enviar se quita en el PR de cierre de esta HU.
