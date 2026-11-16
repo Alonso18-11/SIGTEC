@@ -1,6 +1,7 @@
 package com.softcorp.sigtec
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -8,7 +9,11 @@ import kotlinx.coroutines.test.setMain
 import org.junit.rules.TestWatcher
 import org.junit.runner.Description
 
-/** Reemplaza Dispatchers.Main para probar ViewModels (viewModelScope) en la PC. */
+/**
+ * Reemplaza Dispatchers.Main para probar ViewModels (viewModelScope) en la PC. `setMain`, `resetMain` y
+ * `UnconfinedTestDispatcher` siguen siendo experimentales en kotlinx-coroutines-test, así que se acepta aquí una vez.
+ */
+@OptIn(ExperimentalCoroutinesApi::class)
 class MainDispatcherRule(
     val dispatcher: TestDispatcher = UnconfinedTestDispatcher()
 ) : TestWatcher() {

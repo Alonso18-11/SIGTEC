@@ -13,7 +13,7 @@ import javax.inject.Inject
 /** HU-12: el directorio con Retrofit, siempre en una corrutina fuera del hilo principal (sección 14). */
 class DirectorioRepositoryImpl @Inject constructor(
     private val api: DirectorioApi,
-    @IoDispatcher private val io: CoroutineDispatcher
+    @param:IoDispatcher private val io: CoroutineDispatcher
 ) : DirectorioRepository {
 
     override suspend fun responsableDe(codigoEquipo: String): ResultadoDirectorio = withContext(io) {
