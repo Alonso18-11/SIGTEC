@@ -3,6 +3,10 @@
 > Estado: lista (2026-11-16). Decisiones D-1 a D-6 aprobadas por Nina el 2026-11-16, sin cambios; dudas respondidas.
 > El cómo está en `plan.md` y las tareas en `tasks.md`.
 
+> Implementación (2026-11-16): RF-1709 a RF-1713 en #219 (regla de aviso y guardado compartido) y RF-1701 a RF-1708 y
+> RF-1714 a RF-1717 en #220 (revisión periódica, sobre #219). Revisada en el emulador con `cmendoza`: la revisión queda
+> programada cada 15 minutos y se anota el inicio de sesión. Falta la prueba en un celular real con el técnico.
+
 > Spec escrita antes del código (principio 2 de la constitución). Los requisitos usan el bloque propio de la HU-17
 > (RF-1701…). Sale de la planificación (`SIGTEC_Planificación.xlsx`, Sprint 5, épica EP-08 «Trabajo automático en
 > segundo plano») y de la sección 15 del documento del producto («Aviso de nuevas asignaciones», cada quince minutos).
@@ -116,8 +120,8 @@ respaldo de la subida.
 - Arquitectura: la revisión vive en `core/sync`, que sigue siendo el único lugar que habla con Firestore; escribe solo en
   Room y el aviso pasa por `core/notificaciones`. Las reglas (cuándo consultar, cuándo avisar, cuándo es la primera
   descarga) son funciones puras en `ReglasSincronizacion.kt`, con prueba JVM.
-- Stack cerrado: sin dependencias nuevas; usa WorkManager 2.10 con `@HiltWorker`, como `SubirCambiosWorker`. No depende
-  de la actualización de WorkManager abierta en #205.
+- Stack cerrado: sin dependencias nuevas; usa WorkManager (2.12 desde #205) con `@HiltWorker`, como
+  `SubirCambiosWorker`.
 - Sin cambios en `firestore.rules` (cualquier usuario autenticado ya lee `/incidencias`), en el manifiesto (ningún
   permiso nuevo) ni en las entidades de Room (no sube `version`).
 - Privacidad: el aviso no muestra datos del caso con el celular bloqueado (RF-707); la revisión no guarda nada fuera de
@@ -171,8 +175,9 @@ respaldo de la subida.
   - Registrar una incidencia en modo avión, cerrar la app y quitar el modo avión: el jefe la ve sin que el técnico abra
     la app.
   - Como jefe, comprobar que nunca recibe avisos de asignación.
-  - Para no esperar 15 minutos en cada intento, se puede forzar el trabajo con
-    `adb shell cmd jobscheduler run -f com.softcorp.sigtec <id>` (el id sale de `adb shell dumpsys jobscheduler`).
+  - `adb shell cmd jobscheduler run -f` no adelanta la revisión: WorkManager pospone un trabajo periódico hasta que
+    pasan sus 15 minutos. Hay que esperar con la pantalla encendida; la última revisión se ve en la tabla
+    `sincronizaciones` (tipo `REVISAR_ASIGNACIONES`).
 - La línea de la HU-17 en `MEMORY.md` dice «completa».
 
 ## Decisiones
