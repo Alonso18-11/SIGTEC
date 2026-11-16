@@ -12,12 +12,14 @@ import com.softcorp.sigtec.core.database.dao.InformeTecnicoDao
 import com.softcorp.sigtec.core.database.dao.SolicitudRepuestoDao
 import com.softcorp.sigtec.core.database.dao.MovimientoDao
 import com.softcorp.sigtec.core.database.dao.SincronizacionDao
+import com.softcorp.sigtec.core.database.dao.SugerenciaIADao
 import com.softcorp.sigtec.core.database.entity.FallaDiccionarioEntity
 import com.softcorp.sigtec.core.database.entity.IncidenciaEntity
 import com.softcorp.sigtec.core.database.entity.InformeTecnicoEntity
 import com.softcorp.sigtec.core.database.entity.SolicitudRepuestoEntity
 import com.softcorp.sigtec.core.database.entity.MovimientoEntity
 import com.softcorp.sigtec.core.database.entity.SincronizacionEntity
+import com.softcorp.sigtec.core.database.entity.SugerenciaIAEntity
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.tasks.await
@@ -34,6 +36,7 @@ class SincronizadorIncidencias @Inject constructor(
     private val informeTecnicoDao: InformeTecnicoDao,
     private val solicitudRepuestoDao: SolicitudRepuestoDao,
     private val fallaDiccionarioDao: FallaDiccionarioDao,
+    private val sugerenciaIADao: SugerenciaIADao,
     private val sincronizacionDao: SincronizacionDao
 ) {
     private val incidencias get() = firestore.collection("incidencias")
@@ -41,6 +44,7 @@ class SincronizadorIncidencias @Inject constructor(
     private val informes get() = firestore.collection("informes")
     private val solicitudes get() = firestore.collection("solicitudesRepuesto")
     private val fallas get() = firestore.collection("fallas")
+    private val sugerencias get() = firestore.collection("sugerenciasIA")
     private val contador get() = firestore.collection("contadores").document("incidencias")
     private val usuarios get() = firestore.collection("usuarios")
 
@@ -68,6 +72,11 @@ class SincronizadorIncidencias @Inject constructor(
         for (falla in fallaDiccionarioDao.pendientesDeSincronizar()) {
             todoBien = subir(falla) && todoBien
         }
+
+        // HU-14 (RF-1429, D-7): solo las sugerencias ya decididas, una vez cada una
+        for (sugerencia in sugerenciaIADao.pendientesDeSincronizar()) {
+            todoBien = subir(sugerencia) && todoBien
+        }
         sincronizacionDao.registrar(
             SincronizacionEntity(tipoTarea = TAREA_SUBIR, ejecutadaEn = ahora, exitosa = todoBien)
         )
@@ -80,7 +89,8 @@ class SincronizadorIncidencias @Inject constructor(
             movimientoDao.pendientesDeSincronizar().isNotEmpty() ||
             informeTecnicoDao.pendientesDeSincronizar().isNotEmpty() ||
             solicitudRepuestoDao.listosParaSubir().isNotEmpty() ||
-            fallaDiccionarioDao.pendientesDeSincronizar().isNotEmpty()
+            fallaDiccionarioDao.pendientesDeSincronizar().isNotEmpty() ||
+            sugerenciaIADao.pendientesDeSincronizar().isNotEmpty()
 
     private suspend fun subir(local: IncidenciaEntity): Boolean {
         try {
@@ -263,6 +273,21 @@ class SincronizadorIncidencias @Inject constructor(
         throw e
     } catch (e: Exception) {
         Log.w(TAG, "No se pudo subir la falla ${falla.id}", e)
+        esErrorPermanente(e)
+    }
+
+    /**
+     * HU-14 (RF-1429, RF-1430): la regla de `sugerenciasIA` solo deja crear, así que se sube una vez y se marca. Si la
+     * regla la rechaza (error permanente), queda en Logcat sin frenar al resto, como las fallas.
+     */
+    private suspend fun subir(sugerencia: SugerenciaIAEntity): Boolean = try {
+        sugerencias.document(sugerencia.id).set(sugerencia.aFirestore()).await()
+        sugerenciaIADao.marcarSincronizada(sugerencia.id)
+        true
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Log.w(TAG, "No se pudo subir la sugerencia ${sugerencia.id}", e)
         esErrorPermanente(e)
     }
 
