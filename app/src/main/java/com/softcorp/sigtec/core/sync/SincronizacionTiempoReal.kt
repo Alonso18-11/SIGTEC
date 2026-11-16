@@ -132,7 +132,7 @@ class SincronizacionTiempoReal @Inject constructor(
                     if (local?.pendienteSincronizar == true) movimientoDao.marcarNecesitaAtencionDe(remota.id)
                 }
                 // HU-07 (RF-702): después de guardar, así al tocar el aviso el detalle ya tiene la versión nueva
-                if (esAsignacionNuevaPara(uid, local, remota)) notificador.avisar(remota.toDomain(), uid)
+                if (esAsignacionNuevaPara(uid, local, remota, inicioSesion = null)) notificador.avisar(remota.toDomain(), uid)
             }
         }
     }
