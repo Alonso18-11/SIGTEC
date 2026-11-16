@@ -3,6 +3,7 @@ package com.softcorp.sigtec.core.sync
 import com.softcorp.sigtec.core.domain.model.TipoFalla
 import com.softcorp.sigtec.core.database.entity.FallaDiccionarioEntity
 import com.softcorp.sigtec.core.database.entity.IncidenciaEntity
+import com.softcorp.sigtec.core.database.entity.InformeTecnicoEntity
 import com.softcorp.sigtec.core.database.entity.MovimientoEntity
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
 import com.softcorp.sigtec.core.domain.model.TipoMovimiento
@@ -58,6 +59,20 @@ class ReglasSincronizacionTest {
         assertTrue(debeGuardarMovimiento(null))
         assertTrue(debeGuardarMovimiento(movimiento(pendiente = false)))
         assertFalse(debeGuardarMovimiento(movimiento(pendiente = true)))
+    }
+
+    private fun informe(pendiente: Boolean) = InformeTecnicoEntity(
+        id = "uuid-local", incidenciaId = "i1", diagnostico = "Fuente dañada", trabajoRealizado = "Se cambió la fuente",
+        piezasCambiadas = "Fuente ATX", observaciones = null, fechaCierre = antes, confirmadoEn = antes,
+        pendienteSincronizar = pendiente
+    )
+
+    @Test
+    fun `un informe que baja se guarda solo si el celular no tiene uno para esa incidencia`() {
+        // HU-16 (RF-1624): los informes no se editan; el local, subido o pendiente, no se pisa
+        assertTrue(debeGuardarInforme(null))
+        assertFalse(debeGuardarInforme(informe(pendiente = false)))
+        assertFalse(debeGuardarInforme(informe(pendiente = true)))
     }
 
     @Test
