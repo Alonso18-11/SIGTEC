@@ -84,6 +84,14 @@ class ResumenInicioTest {
     }
 
     @Test
+    fun `los tres perfiles ven el acceso al historial del equipo`() {
+        // HU-16 (RF-1606): cualquier miembro del área consulta el historial
+        for (usuario in listOf(luis, carlos, pedro)) {
+            assertTrue(usuario.nombre, calcularResumen(usuario, emptyList()).puedeConsultarHistorial)
+        }
+    }
+
+    @Test
     fun `sin incidencias todo es cero y no hay nada destacado`() {
         val r = calcularResumen(luis, emptyList())
 
