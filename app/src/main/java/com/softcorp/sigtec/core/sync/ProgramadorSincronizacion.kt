@@ -14,7 +14,7 @@ import javax.inject.Singleton
 
 @Singleton
 class ProgramadorSincronizacion @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) {
     fun subirCambios() {
         val trabajo = OneTimeWorkRequestBuilder<SubirCambiosWorker>()

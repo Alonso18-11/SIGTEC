@@ -46,8 +46,8 @@ class SincronizacionTiempoReal @Inject constructor(
     private val programador: ProgramadorSincronizacion,
     private val reloj: Reloj,
     private val notificador: NotificadorAsignaciones,
-    @IoDispatcher private val io: CoroutineDispatcher,
-    @ApplicationScope private val scope: CoroutineScope
+    @param:IoDispatcher private val io: CoroutineDispatcher,
+    @param:ApplicationScope private val scope: CoroutineScope
 ) {
 
     @OptIn(ExperimentalCoroutinesApi::class)
