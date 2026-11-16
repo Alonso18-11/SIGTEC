@@ -16,8 +16,6 @@ import java.time.ZoneId
 
 private const val DIAS_GRAFICO = 7
 private const val DIAS_PROMEDIO = 30L
-private const val DIAS_EQUIPO = 90L
-private const val MINIMO_EQUIPO = 3
 
 /** Cierres de un día del gráfico (RF-1509). */
 data class ReparadosDia(val dia: LocalDate, val cantidad: Int, val esHoy: Boolean)
@@ -110,16 +108,18 @@ fun calcularIndicadores(
     )
 }
 
-/** RF-1521, RF-1523: el de más incidencias en 90 días (empate: el de la más reciente), si tiene 3 o más. */
+/**
+ * RF-1521, RF-1523: el de más incidencias en 90 días (empate: el de la más reciente), si es crítico. La regla es la
+ * misma del historial del equipo (HU-16, D-2), en `ReglasEquipo.kt`.
+ */
 private fun equipoAEvaluar(incidencias: List<Incidencia>, equipos: List<Equipo>, ahora: Instant): EquipoAEvaluar? {
-    val desde = ahora.minus(Duration.ofDays(DIAS_EQUIPO))
     val elegido = incidencias
-        .filter { !it.fechaRegistro.isBefore(desde) }
+        .filter { registradaEnTresMeses(it, ahora) }
         .groupBy { it.codigoEquipo }
         .maxWithOrNull(
             compareBy<Map.Entry<String, List<Incidencia>>>({ it.value.size }, { e -> e.value.maxOf { it.fechaRegistro } })
         )
-        ?.takeIf { it.value.size >= MINIMO_EQUIPO }
+        ?.takeIf { esEquipoCritico(it.value.size) }
         ?: return null
     val oficina = equipos.firstOrNull { it.codigo == elegido.key }?.oficina
     return EquipoAEvaluar(elegido.key, oficina, elegido.value.size)

@@ -11,7 +11,7 @@ import com.softcorp.sigtec.feature.captura.presentation.claveDictado
 import com.softcorp.sigtec.feature.incidencias.presentation.CLAVE_AVISO
 
 // HU-10 (D-2): los campos del informe con micrófono
-private val CAMPOS_INFORME = listOf(CampoDictado.DIAGNOSTICO, CampoDictado.SOLUCION, CampoDictado.OBSERVACIONES)
+private val CAMPOS_INFORME = listOf(CampoDictado.DIAGNOSTICO, CampoDictado.SOLUCION, CampoDictado.OBSERVACIONES, CampoDictado.NOTAS)
 
 fun NavGraphBuilder.atencionGraph(navController: NavController) {
     composable<Ruta.MisTareas> {
