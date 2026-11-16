@@ -44,7 +44,7 @@ private val autenticadoresPermitidos: Int
 
 @Singleton
 class EvaluadorBiometrico @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) {
     fun evaluar(): DisponibilidadBiometrica =
         when (BiometricManager.from(context).canAuthenticate(biometriaPermitida)) {
