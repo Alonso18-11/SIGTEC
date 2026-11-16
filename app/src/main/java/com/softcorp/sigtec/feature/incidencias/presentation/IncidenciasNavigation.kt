@@ -65,7 +65,6 @@ fun NavGraphBuilder.incidenciasGraph(navController: NavController) {
                 alSolicitarRepuesto = { navController.navigate(Ruta.SolicitarRepuesto(id)) },
                 alCerrar = { navController.navigate(Ruta.RegistrarInforme(id)) },
                 alAgregarFoto = { navController.navigate(Ruta.CapturarEvidencia(id)) },
-                alAbrirAsistente = { navController.navigate(Ruta.Asistente(id)) },
                 alVerHistorial = { codigo -> navController.navigate(Ruta.HistorialEquipo(codigo)) },
                 // HU-13 (RF-1317): el formulario se llena con la incidencia y su informe
                 alGuardarEnDiccionario = { navController.navigate(Ruta.RegistrarFalla(id)) }
