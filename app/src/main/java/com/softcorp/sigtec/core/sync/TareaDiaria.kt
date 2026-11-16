@@ -1,6 +1,10 @@
 package com.softcorp.sigtec.core.sync
 
 import com.softcorp.sigtec.core.domain.model.Perfil
+import dagger.Module
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import dagger.multibindings.Multibinds
 import java.time.Instant
 import java.time.LocalTime
 import java.time.ZoneId
@@ -33,4 +37,12 @@ interface TareaDiaria {
 
     /** Corre la tarea; true si terminó con éxito y ya no hay que repetirla hoy. */
     suspend fun ejecutar(ahora: Instant, zona: ZoneId): Boolean
+}
+
+/** Declara el conjunto de tareas diarias aunque ningún módulo aporte una, para que Hilt siempre pueda inyectarlo. */
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class TareasDiariasModule {
+    @Multibinds
+    abstract fun tareasDiarias(): Set<TareaDiaria>
 }
