@@ -9,6 +9,7 @@ import com.softcorp.sigtec.core.database.dao.InformeTecnicoDao
 import com.softcorp.sigtec.core.database.entity.IncidenciaEntity
 import com.softcorp.sigtec.core.database.entity.InformeTecnicoEntity
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -87,13 +88,25 @@ class InformeTecnicoDaoTest {
         assertEquals("inf-normal", dao.porId("inf-normal")!!.id)
     }
 
+    @Test
+    fun los_informes_de_un_equipo_son_los_de_sus_incidencias() = runTest {
+        incidencias.guardar(incidencia("del-equipo", pendiente = false))
+        incidencias.guardar(incidencia("de-otro", pendiente = false, equipo = "PC-LOG-009"))
+        dao.guardar(informe("inf-1", "del-equipo"))
+        dao.guardar(informe("inf-2", "de-otro"))
+
+        // HU-16 (RF-1611, RF-1617)
+        assertEquals(listOf("inf-1"), dao.observarDeEquipo("PC-CONT-014").first().map { it.id })
+    }
+
     private fun incidencia(
         id: String,
         pendiente: Boolean,
         atencion: Boolean = false,
-        numero: Int? = 1
+        numero: Int? = 1,
+        equipo: String = "PC-CONT-014"
     ) = IncidenciaEntity(
-        id = id, numero = numero, codigoEquipo = "PC-CONT-014", descripcion = "No enciende",
+        id = id, numero = numero, codigoEquipo = equipo, descripcion = "No enciende",
         usuarioResponsable = "María Quispe", fechaRegistro = ahora, registradoPorId = "t1",
         registradoPorNombre = "Luis Ramírez", marca = MarcaSeguimiento.ASIGNADA, tipoFalla = null,
         prioridad = null, tecnicoAsignadoId = "t1", tecnicoAsignadoNombre = "Luis Ramírez",
