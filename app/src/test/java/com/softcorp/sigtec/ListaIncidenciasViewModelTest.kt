@@ -13,6 +13,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import com.softcorp.sigtec.core.domain.model.Prioridad
+import com.softcorp.sigtec.feature.incidencias.domain.OrdenIncidencias
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
@@ -141,5 +143,33 @@ class ListaIncidenciasViewModelTest {
         sesion.iniciarSesion("lramirez@softcorp.pe", "")
 
         assertEquals("demo-lramirez", vm.estado.value.usuarioId)
+    }
+
+    @Test
+    fun `mas urgentes ordena despues de filtrar y limpiar no lo cambia`() = runTest {
+        // HU-14 (RF-1433 a RF-1435): sin prioridades, las pendientes van de la más antigua a la más reciente
+        val vm = nuevoVm()
+        assertEquals(OrdenIncidencias.RECIENTES, vm.estado.value.orden)
+
+        vm.alOrdenar(OrdenIncidencias.URGENTES)
+        vm.alFiltrarTecnico("Ana Torres")
+
+        assertEquals(listOf("e", "d"), vm.estado.value.incidencias.map { it.id })
+
+        vm.limpiar()
+
+        assertEquals(OrdenIncidencias.URGENTES, vm.estado.value.orden)
+        assertEquals(listOf("e", "c", "d", "b", "a"), vm.estado.value.incidencias.map { it.id })
+    }
+
+    @Test
+    fun `volver a mas recientes recupera el orden de la HU-04`() = runTest {
+        val vm = nuevoVm()
+        val recientes = vm.estado.value.incidencias.map { it.id }
+
+        vm.alOrdenar(OrdenIncidencias.URGENTES)
+        vm.alOrdenar(OrdenIncidencias.RECIENTES)
+
+        assertEquals(recientes, vm.estado.value.incidencias.map { it.id })
     }
 }

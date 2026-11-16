@@ -6,11 +6,21 @@ import com.softcorp.sigtec.core.data.SesionRepositoryDemo
 import com.softcorp.sigtec.core.domain.ErrorDominio
 import com.softcorp.sigtec.core.domain.model.Incidencia
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
+import com.softcorp.sigtec.core.domain.model.Prioridad
 import com.softcorp.sigtec.core.domain.model.Tecnico
+import com.softcorp.sigtec.core.domain.model.TipoFalla
 import com.softcorp.sigtec.core.domain.usecase.VerificarPermiso
 import com.softcorp.sigtec.feature.asignacion.data.AsignacionRepositoryFalso
 import com.softcorp.sigtec.feature.asignacion.domain.AsignarIncidencia
 import com.softcorp.sigtec.feature.asignacion.domain.ObservarOpcionesAsignacion
+import com.softcorp.sigtec.core.domain.Resultado
+import com.softcorp.sigtec.core.domain.model.TipoSugerencia
+import com.softcorp.sigtec.feature.ia.data.AsistenteIAFalso
+import com.softcorp.sigtec.feature.ia.data.SugerenciaIARepositoryFalso
+import com.softcorp.sigtec.feature.ia.domain.ClasificacionSugerida
+import com.softcorp.sigtec.feature.ia.domain.DecidirSugerencia
+import com.softcorp.sigtec.feature.ia.domain.ObservarSugerencia
+import com.softcorp.sigtec.feature.ia.domain.SugerirClasificacion
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -33,6 +43,8 @@ class AsignacionViewModelTest {
 
     private val sesion = SesionRepositoryDemo()
     private val repo = AsignacionRepositoryFalso()
+    private val asistente = AsistenteIAFalso()
+    private val sugerencias = SugerenciaIARepositoryFalso()
 
     private val luis = Tecnico("demo-lramirez", "Luis Ramírez", limiteAtencion = 5, incidenciasActivas = 3)
     private val ana = Tecnico("demo-atorres", "Ana Torres", limiteAtencion = 5, incidenciasActivas = 5)
@@ -50,7 +62,10 @@ class AsignacionViewModelTest {
         val vm = AsignacionViewModel(
             SavedStateHandle(mapOf(AsignacionViewModel.ARG_INCIDENCIA_ID to inc.id)),
             ObservarOpcionesAsignacion(repo),
-            AsignarIncidencia(VerificarPermiso(sesion), repo)
+            AsignarIncidencia(VerificarPermiso(sesion), repo),
+            SugerirClasificacion(VerificarPermiso(sesion), asistente, sugerencias),
+            ObservarSugerencia(sugerencias),
+            DecidirSugerencia(VerificarPermiso(sesion), sugerencias)
         )
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.estado.collect {} }
         return vm
@@ -159,5 +174,155 @@ class AsignacionViewModelTest {
         assertNotEquals(primera, vm.estado.value.ahora)
         assertEquals(opcionesAntes, vm.estado.value.opciones)
         assertEquals(elegidoAntes, vm.estado.value.elegido)
+    }
+
+    @Test
+    fun `empieza con la clasificacion de la incidencia y la conserva al asignar`() = runTest {
+        // HU-14 (RF-1408)
+        val vm = nuevoVm(incidencia.copy(tipoFalla = TipoFalla.HARDWARE, prioridad = Prioridad.ALTA))
+        assertEquals(TipoFalla.HARDWARE, vm.estado.value.tipoElegido)
+        assertEquals(Prioridad.ALTA, vm.estado.value.prioridadElegida)
+
+        vm.alElegir(luis.id)
+        vm.alAsignar()
+
+        assertEquals(TipoFalla.HARDWARE, repo.incidencias.single().tipoFalla)
+        assertEquals(Prioridad.ALTA, repo.incidencias.single().prioridad)
+    }
+
+    @Test
+    fun `la clasificacion elegida se guarda al asignar`() = runTest {
+        // HU-14 (RF-1411, RF-1412)
+        val vm = nuevoVm()
+        assertNull(vm.estado.value.tipoElegido)
+
+        vm.alElegirTipo(TipoFalla.RED)
+        vm.alElegirPrioridad(Prioridad.MEDIA)
+        vm.alElegir(luis.id)
+        vm.alAsignar()
+
+        assertEquals(TipoFalla.RED, repo.incidencias.single().tipoFalla)
+        assertEquals(Prioridad.MEDIA, repo.incidencias.single().prioridad)
+    }
+
+    @Test
+    fun `clasificar es opcional`() = runTest {
+        // HU-14 (D-3): sin tipo ni prioridad igual se asigna
+        val vm = nuevoVm()
+        vm.alElegir(luis.id)
+        assertTrue(vm.estado.value.puedeAsignar)
+
+        vm.alAsignar()
+
+        assertEquals(luis.id, repo.incidencias.single().tecnicoAsignadoId)
+        assertNull(repo.incidencias.single().tipoFalla)
+    }
+
+    private fun decision() = sugerencias.sugerencias.single { it.tipo == TipoSugerencia.CLASIFICACION }.aceptada
+
+    @Test
+    fun `sin clasificar pide la sugerencia y la muestra sin elegirla`() = runTest {
+        // HU-14 (RF-1401, RF-1404, RF-1408)
+        val vm = nuevoVm()
+
+        assertEquals(listOf(incidencia.descripcion), asistente.descripcionesClasificadas)
+        assertEquals(ClasificacionSugerida(TipoFalla.RED, Prioridad.MEDIA), vm.estado.value.clasificacionSugerida)
+        assertTrue(vm.estado.value.tarjetaSugerenciaVisible)
+        assertFalse(vm.estado.value.generandoSugerencia)
+        assertNull(vm.estado.value.tipoElegido)
+    }
+
+    @Test
+    fun `una incidencia ya clasificada no pide sugerencia`() = runTest {
+        // HU-14 (RF-1407)
+        val vm = nuevoVm(incidencia.copy(tipoFalla = TipoFalla.SOFTWARE))
+        assertTrue(asistente.descripcionesClasificadas.isEmpty())
+        assertFalse(vm.estado.value.tarjetaSugerenciaVisible)
+    }
+
+    @Test
+    fun `si Gemini falla no hay tarjeta ni error y se asigna igual`() = runTest {
+        // HU-14 (RF-1406)
+        asistente.respuestaClasificacion = Resultado.Error(ErrorDominio.IANoDisponible)
+        val vm = nuevoVm()
+
+        assertFalse(vm.estado.value.tarjetaSugerenciaVisible)
+        assertNull(vm.estado.value.error)
+        vm.alElegir(luis.id)
+        vm.alAsignar()
+        assertEquals(luis.id, repo.incidencias.single().tecnicoAsignadoId)
+    }
+
+    @Test
+    fun `usar la sugerencia la pone en clasificacion y oculta la tarjeta`() = runTest {
+        // HU-14 (RF-1409)
+        val vm = nuevoVm()
+        vm.alUsarSugerencia()
+
+        assertEquals(TipoFalla.RED, vm.estado.value.tipoElegido)
+        assertEquals(Prioridad.MEDIA, vm.estado.value.prioridadElegida)
+        assertFalse(vm.estado.value.tarjetaSugerenciaVisible)
+    }
+
+    @Test
+    fun `usada y asignada tal cual queda aceptada`() = runTest {
+        // HU-14 (RF-1412, RF-1413)
+        val vm = nuevoVm()
+        vm.alUsarSugerencia()
+        vm.alElegir(luis.id)
+        vm.alAsignar()
+
+        assertEquals(TipoFalla.RED, repo.incidencias.single().tipoFalla)
+        assertEquals(Prioridad.MEDIA, repo.incidencias.single().prioridad)
+        assertEquals(true, decision())
+        assertEquals("demo-cmendoza", sugerencias.sugerencias.single().decididaPorId)
+    }
+
+    @Test
+    fun `usada y corregida queda no aceptada con la correccion guardada`() = runTest {
+        // HU-14 (RF-1409, RF-1413)
+        val vm = nuevoVm()
+        vm.alUsarSugerencia()
+        vm.alElegirPrioridad(Prioridad.ALTA)
+        vm.alElegir(luis.id)
+        vm.alAsignar()
+
+        assertEquals(Prioridad.ALTA, repo.incidencias.single().prioridad)
+        assertEquals(false, decision())
+    }
+
+    @Test
+    fun `descartada queda no aceptada y no cambia la clasificacion`() = runTest {
+        // HU-14 (RF-1410, RF-1413)
+        val vm = nuevoVm()
+        vm.alDescartarSugerencia()
+        assertFalse(vm.estado.value.tarjetaSugerenciaVisible)
+        vm.alElegir(luis.id)
+        vm.alAsignar()
+
+        assertNull(repo.incidencias.single().tipoFalla)
+        assertEquals(false, decision())
+    }
+
+    @Test
+    fun `asignar sin usarla la deja no aceptada`() = runTest {
+        // HU-14 (RF-1413)
+        val vm = nuevoVm()
+        vm.alElegir(luis.id)
+        vm.alAsignar()
+        assertEquals(false, decision())
+    }
+
+    @Test
+    fun `si la asignacion falla la sugerencia sigue sin decidir`() = runTest {
+        // HU-14 (RF-1412)
+        val vm = nuevoVm()
+        vm.alUsarSugerencia()
+        vm.alElegir(luis.id)
+        repo.fallar = true
+        vm.alAsignar()
+
+        assertNull(decision())
+        assertNotEquals(null, vm.estado.value.error)
     }
 }
