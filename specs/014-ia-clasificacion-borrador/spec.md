@@ -41,3 +41,43 @@ etiqueta «IA» y la regla de Firestore de `sugerenciasIA`.
   no responde, la app sigue funcionando sin mostrar la sugerencia. La IA sugiere, nunca decide: el jefe acepta o
   corrige la clasificación y el técnico revisa el borrador redactado a partir de sus notas o dictado. La app guarda si
   cada sugerencia fue aceptada.
+
+## Requisitos funcionales (criterios de aceptación en EARS)
+
+### Pedir la clasificación (prototipo 07, D-2)
+- RF-1401: CUANDO el jefe abre «Asignar incidencia» para una incidencia pendiente sin tipo de falla ni prioridad, y en
+  este celular no hay una sugerencia de clasificación para ella, EL SISTEMA pide a Gemini un tipo de falla (Hardware,
+  Software o Red) y una prioridad (Baja, Media o Alta) a partir de la descripción del problema.
+- RF-1402: EL SISTEMA verifica `ASIGNAR_INCIDENCIA` en el dominio (`VerificarPermiso`) antes de pedir la sugerencia; sin
+  sesión o sin el permiso no llama a Gemini y devuelve `SinPermiso`.
+- RF-1403: EL SISTEMA pide la sugerencia sin bloquear la pantalla: la lista de técnicos, la elección y «Asignar»
+  funcionan mientras Gemini responde. Mientras tanto, la tarjeta de la sugerencia muestra «Generando sugerencia» con la
+  etiqueta «IA».
+- RF-1404: CUANDO Gemini responde con un tipo y una prioridad válidos, EL SISTEMA guarda la sugerencia en Room (tipo
+  `CLASIFICACION`, sin decidir) y la muestra en una `TarjetaSugerenciaIA` con el título «Sugerencia de IA», el texto
+  del tipo y la prioridad («Red, prioridad media»), la nota «Generada automáticamente. Tú decides la clasificación.» y
+  los botones «Descartar» y «Usar».
+- RF-1405: SI este celular ya tiene una sugerencia de clasificación para la incidencia, ENTONCES EL SISTEMA muestra esa
+  sugerencia (si sigue sin decidir) sin volver a pedirla: como máximo una consulta por incidencia y celular.
+- RF-1406: SI no hay conexión, o la respuesta no llega en 15 segundos, o Gemini falla (cuota agotada, servicio caído,
+  App Check, D-9), o la respuesta no trae un tipo y una prioridad válidos, ENTONCES EL SISTEMA no muestra la tarjeta ni
+  un mensaje de error, no guarda nada y la asignación funciona igual que sin IA. Se vuelve a intentar la próxima vez
+  que se abra la pantalla.
+- RF-1407: SI la incidencia ya tiene tipo de falla o prioridad (por ejemplo, en una reasignación), ENTONCES EL SISTEMA
+  no pide sugerencia.
+
+### Aceptar, corregir o descartar la clasificación (D-3, D-4)
+- RF-1408: EL SISTEMA muestra en «Asignar incidencia», debajo del resumen, la sección «Clasificación» con el tipo de
+  falla y la prioridad para elegir. Empiezan con los valores que ya tenga la incidencia, o vacíos si no tiene: la
+  sugerencia nunca se elige sola.
+- RF-1409: CUANDO el jefe toca «Usar», EL SISTEMA pone el tipo y la prioridad sugeridos en «Clasificación» y oculta la
+  tarjeta. El jefe puede cambiarlos antes de asignar (corregir).
+- RF-1410: CUANDO el jefe toca «Descartar», EL SISTEMA oculta la tarjeta y no cambia «Clasificación».
+- RF-1411: Clasificar es opcional (D-3): «Asignar» se habilita con las mismas condiciones de la HU-06, aunque el tipo o
+  la prioridad estén vacíos.
+- RF-1412: CUANDO el jefe asigna, EL SISTEMA guarda el tipo de falla y la prioridad elegidos en la incidencia, en la
+  misma transacción de Room que la asignación y su movimiento, con `pendienteSincronizar = true`. Si la asignación
+  falla (por ejemplo, `LimiteAtencionAlcanzado`), no guarda la clasificación.
+- RF-1413: CUANDO la asignación se guarda y había una sugerencia sin decidir, EL SISTEMA registra la decisión (D-4):
+  aceptada solo si el jefe tocó «Usar» y asignó exactamente el tipo y la prioridad sugeridos; no aceptada si la
+  descartó, si cambió algún valor después de usarla o si asignó sin usarla. Guarda quién decidió y cuándo.
