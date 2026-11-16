@@ -99,13 +99,28 @@ class MovimientoDaoTest {
         assertEquals(0, incidencias.observarAfectadasPorRechazo().first())
     }
 
+    @Test
+    fun los_cierres_de_un_equipo_son_solo_los_cerrada_de_sus_incidencias() = runTest {
+        incidencias.guardar(incidencia("del-equipo", pendiente = false))
+        incidencias.guardar(incidencia("de-otro", pendiente = false, equipo = "PC-LOG-009"))
+        dao.guardar(movimiento("m-asignada", "del-equipo"))
+        dao.guardar(movimiento("m-cerrada", "del-equipo").copy(tipo = TipoMovimiento.CERRADA))
+        dao.guardar(movimiento("m-otro", "de-otro").copy(tipo = TipoMovimiento.CERRADA))
+
+        // HU-16 (RF-1612)
+        val cierres = dao.observarCierresDeEquipo("PC-CONT-014").first().map { it.id }
+
+        assertEquals(listOf("m-cerrada"), cierres)
+    }
+
     private fun incidencia(
         id: String,
         pendiente: Boolean,
         atencion: Boolean = false,
-        numero: Int? = 1
+        numero: Int? = 1,
+        equipo: String = "PC-CONT-014"
     ) = IncidenciaEntity(
-        id = id, numero = numero, codigoEquipo = "PC-CONT-014", descripcion = "No enciende",
+        id = id, numero = numero, codigoEquipo = equipo, descripcion = "No enciende",
         usuarioResponsable = "María Quispe", fechaRegistro = ahora, registradoPorId = "t1",
         registradoPorNombre = "Luis Ramírez", marca = MarcaSeguimiento.ASIGNADA, tipoFalla = null,
         prioridad = null, tecnicoAsignadoId = "t1", tecnicoAsignadoNombre = "Luis Ramírez",
