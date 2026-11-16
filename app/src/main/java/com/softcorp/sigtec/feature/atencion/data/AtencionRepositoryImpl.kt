@@ -38,7 +38,7 @@ class AtencionRepositoryImpl @Inject constructor(
     private val solicitudRepuestoDao: SolicitudRepuestoDao,
     private val sincronizacionDao: SincronizacionDao,
     private val programadorLogistica: ProgramadorLogistica,
-    @IoDispatcher private val io: CoroutineDispatcher
+    @param:IoDispatcher private val io: CoroutineDispatcher
 ) : AtencionRepository {
 
     override suspend fun incidencia(id: String): Incidencia? =
