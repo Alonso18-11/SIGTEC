@@ -92,6 +92,7 @@ fun InformeTecnicoRoute(
         alCambiarTrabajo = vm::alCambiarTrabajo,
         alCambiarPiezas = vm::alCambiarPiezas,
         alCambiarObservaciones = vm::alCambiarObservaciones,
+        alCambiarNotas = vm::alCambiarNotas,
         alConfirmar = {
             verificador.verificar(titulo = "Confirma el cierre") { resultado ->
                 if (resultado is ResultadoBiometrico.Exito) vm.alConfirmarCierre(resultado.instante)
@@ -131,7 +132,8 @@ fun InformeTecnicoScreen(
     alCambiarObservaciones: (String) -> Unit,
     alConfirmar: () -> Unit,
     alAgregarFoto: () -> Unit = {},
-    alDictar: (CampoDictado) -> Unit = {}
+    alDictar: (CampoDictado) -> Unit = {},
+    alCambiarNotas: (String) -> Unit = {}
 ) {
     val editable = !estado.guardando
     var intentoConfirmar by remember { mutableStateOf(false) }
@@ -162,6 +164,18 @@ fun InformeTecnicoScreen(
                 "Describe lo que encontraste y lo que hiciste. Los campos con * son obligatorios.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            // HU-14 (RF-1414, prototipo 9 del PDF): notas sueltas para el borrador; no son parte del informe
+            CampoTexto(
+                valor = estado.notas,
+                alCambiar = alCambiarNotas,
+                etiqueta = "Mis notas",
+                final = { MicrofonoCampo("Dictar notas", editable) { alDictar(CampoDictado.NOTAS) } },
+                ayuda = "Escribe o dicta notas sueltas; la IA las ordena",
+                habilitado = editable,
+                unaLinea = false,
+                lineasMinimas = 2,
+                teclado = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
             )
             CampoTexto(
                 valor = estado.diagnostico,
