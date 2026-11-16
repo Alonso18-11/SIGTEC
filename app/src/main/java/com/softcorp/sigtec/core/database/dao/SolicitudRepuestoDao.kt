@@ -39,7 +39,7 @@ interface SolicitudRepuestoDao {
     """)
     suspend fun sinEntregarDe(tecnicoId: String): List<SolicitudRepuestoEntity>
 
-    // Para el worker que consulta a Logística una vez al día (HU-18)
+    // También para la consulta diaria a Logística (HU-18, TareaRepuestos)
     @Query("""
         SELECT * FROM solicitudes_repuesto
         WHERE numeroLogistica IS NOT NULL AND rechazadaPorLogistica = 0 AND estadoEntrega != 'ENTREGADO'
