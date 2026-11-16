@@ -25,7 +25,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class NotificadorAsignaciones @Inject constructor(
-    @ApplicationContext private val contexto: Context
+    @param:ApplicationContext private val contexto: Context
 ) {
 
     fun avisar(incidencia: Incidencia, usuarioId: String) {
