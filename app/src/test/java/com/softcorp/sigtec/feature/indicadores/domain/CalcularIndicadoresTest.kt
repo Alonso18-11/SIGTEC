@@ -99,7 +99,7 @@ class CalcularIndicadoresTest {
             incidencias = listOf(
                 incidencia("a", hace(1)),                                     // pendiente, no crítica
                 incidencia("b", hace(6), MarcaSeguimiento.EN_ATENCION),       // crítica por días
-                incidencia("c", hace(2), MarcaSeguimiento.SIN_ASIGNAR, critica = true),  // crítica por la HU-18
+                incidencia("c", hace(2), MarcaSeguimiento.SIN_ASIGNAR, critica = true),  // crítica por el campo `critica`
                 incidencia("d", hace(20), MarcaSeguimiento.CERRADA)           // solucionada: no cuenta
             )
         )
