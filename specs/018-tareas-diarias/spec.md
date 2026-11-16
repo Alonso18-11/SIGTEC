@@ -3,6 +3,10 @@
 > Estado: lista (2026-11-16). Decisiones D-1 a D-10 aprobadas por Nina el 2026-11-16; dudas respondidas (D-2: todos los
 > días, con las horas en una sola constante). El cómo está en `plan.md` y las tareas en `tasks.md`.
 
+> Implementación (2026-11-16): RF-1801 a RF-1805, RF-1810, RF-1811 y RF-1819 a RF-1823 en #223 (núcleo, sobre #226 de
+> la HU-17); RF-1806 a RF-1809 en #224 (repuestos) y RF-1812 a RF-1818 en #225 (avisos del jefe), los dos sobre #223.
+> Pruebas JVM en verde; falta la prueba en un celular real (T16).
+
 > Spec escrita antes del código (principio 2 de la constitución). Los requisitos usan el bloque propio de la HU-18
 > (RF-1801…). Sale de la planificación (`SIGTEC_Planificación.xlsx`, Sprint 5, épica EP-08 «Trabajo automático en
 > segundo plano») y de la sección 15 del documento del producto («Consulta del estado de repuestos», «Resumen diario
@@ -107,8 +111,9 @@ demorados» y «Resumen del día».
   hoy (incidencias con su movimiento CERRADA en el día local, la misma regla del tablero, RF-1511), las pendientes y
   las críticas.
 - RF-1817: EL SISTEMA muestra la notificación «Resumen del día» con el texto «Hoy se repararon N equipos. Quedan P
-  pendientes, C críticos.», con singular cuando el número es 1 («Hoy se reparó 1 equipo.»). Se envía aunque no haya
-  reparados.
+  pendientes, C críticos.», con singular cuando el número es 1 («Hoy se reparó 1 equipo. Queda 1 pendiente, 1
+  crítico.»). Se envía aunque no haya reparados: «Hoy no se reparó ningún equipo.»; sin pendientes, «No quedan
+  pendientes.».
 - RF-1818: El resumen no se guarda aparte: el tablero ya lo calcula al abrirlo, con la columna de hoy resaltada
   (RF-1509 y RF-1510 de la HU-15) (D-5).
 
