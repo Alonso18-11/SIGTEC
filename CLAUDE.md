@@ -22,11 +22,11 @@ Paquete raíz `com.softcorp.sigtec`. Los paquetes técnicos van en inglés y los
 - `core/data/`: `SesionRepositoryFirebase` y `PreferenciasSeguridadDataStore`.
 - `core/sync/`: el **único** lugar que habla con Firestore. Contiene `SubirCambiosWorker`, `SincronizacionTiempoReal`, `ReglasSincronizacion.kt` (la regla de conflictos), `MapeoFirestore.kt` y `MonitorConexion`.
 - `core/biometric/Biometria.kt`: `rememberVerificadorBiometrico()`, `ResultadoBiometrico` y `DisponibilidadBiometrica`.
-- `core/navigation/`: `Rutas.kt` (las 19 rutas), `SigtecRaiz.kt`, `RaizViewModel.kt`, `DestinoPrincipal.kt` (menú por permisos) y `DatosDemo.kt` (temporal).
+- `core/navigation/`: `Rutas.kt` (las 19 rutas), `SigtecRaiz.kt`, `RaizViewModel.kt`, `DestinoPrincipal.kt` (menú por permisos) y `AvisoTocado.kt` (qué incidencia abrir al tocar un aviso, HU-07).
 - `core/theme/`: paleta v2 (ver `DESIGN.md`), `ColoresEstado.kt` (`SigtecTheme.estados.*`), tipografía Inter (`res/font`), `Shapes.kt`, `Dimens.kt` (`Espaciado`, `AreaTactilMinima`) y `TemaPreview`.
 - `core/ui/`: `MensajesError.kt` y `components/` (v2, ver `DESIGN.md` 4): `BarraSuperior`, `BotonPrincipal`/`BotonSecundario`/`BotonTexto`/`BotonPeligro`, `EncabezadoSeccion`/`Seccion`, `Tarjeta`, `FilaIncidencia`, `Avatar`, `EtiquetaEstado`, `EtiquetaIncidencia`, `AvisoConexion`, `CabeceraHero`, `TarjetaMetrica`, `AvanceIncidencia`, `SeguimientoRepuesto`, `LineaTiempo`, `FiltrosChips`, `PestanasSegmentadas`, `CampoTexto`, `FabExtendido`, `BarraAccionInferior`, `BarraNavegacion`, `TarjetaSugerenciaIA`/`EtiquetaIA`, `FilaCargaTecnico` y `PantallaEnConstruccion`, esta última temporal.
 - `core/di/`: módulos de Dispatchers, Firebase, Database, Sesion, DataStore y Sincronizacion.
-- `feature/<modulo>/{domain,data,di,presentation}`: acceso, inicio, incidencias, asignacion, atencion, captura, diccionario e indicadores. Las pantallas sin HU implementada siguen con `PantallaEnConstruccion`.
+- `feature/<modulo>/{domain,data,di,presentation}`: acceso, inicio, incidencias, asignacion, atencion, captura, diccionario, indicadores e ia (Gemini por Firebase AI Logic y las sugerencias, HU-14). Las pantallas sin HU implementada siguen con `PantallaEnConstruccion`.
 - `firebase/firestore.rules`: reglas del servidor. Se cambian aquí, se revisan en el PR y después se publican a mano en la consola.
 - `app/src/test/`: pruebas JVM y dobles de prueba (`SesionRepositoryDemo`, `IncidenciaRepositoryFalso`, `MainDispatcherRule`). `app/src/androidTest/`: pruebas de DAO con Room en memoria.
 
@@ -67,7 +67,7 @@ Paquete raíz `com.softcorp.sigtec`. Los paquetes técnicos van en inglés y los
 - **Errores:** para un error nuevo, agrega el caso a `ErrorDominio` y su texto en `MensajesError.kt`; el `when` exhaustivo obliga a hacerlo. En pantalla se muestra siempre con `error.mensaje()`.
 - **Pruebas:** los dobles de prueba viven en `app/src/test` con el mismo paquete que la clase real. Si una librería se usa en `test` y en `androidTest`, se declara dos veces.
 - **Ramas:** se nombran `tipo/descripcion-corta`, con `tipo` ∈ feat, fix, chore, test, docs, refactor. Ejemplo: `feat/asignacion-tecnico`.
-- **Commits y títulos de PR:** Conventional Commits en español, con la HU al final. Ámbitos: `core, acceso, inicio, incidencias, asignacion, atencion, captura, diccionario, indicadores, ci, firebase`. Ejemplo: `feat(incidencias): registrar con fecha automática (HU-03)`.
+- **Commits y títulos de PR:** Conventional Commits en español, con la HU al final. Ámbitos: `core, acceso, inicio, incidencias, asignacion, atencion, captura, diccionario, indicadores, ia, ci, firebase`. Ejemplo: `feat(incidencias): registrar con fecha automática (HU-03)`.
 - **Specs (SDD):** cada HU tiene `specs/NNN-nombre/`, con NNN = número de la HU, y la escribe quien tiene la HU antes del código (principio 2 de la constitución). Los RF usan el bloque propio de la HU para que no se repitan números entre specs escritas a la vez: HU-06 → RF-601, RF-602…; HU-10 → RF-1001…. Las HU-01 a HU-05 conservan RF-1 a RF-78. Modelo de formato: `specs/003-registro-incidencia/`.
 
 ## Reglas de dominio / trampas conocidas
@@ -89,7 +89,7 @@ Paquete raíz `com.softcorp.sigtec`. Los paquetes técnicos van en inglés y los
 - **WorkManager.** El inicializador automático se quitó del manifest a propósito; no lo restaures. Los workers usan `@HiltWorker`. El intervalo periódico mínimo es de 15 minutos.
 - **Migraciones de Room.** La base usa `fallbackToDestructiveMigration(dropAllTables = true)`, solo para desarrollo. Quien cambia una entidad sube `version` en `SigtecDatabase` y lo dice en el PR. Ten presente que eso borra lo que no se ha sincronizado.
 - **Pendiente conocido.** Cerrar sesión ejecuta `clearAllTables()` y pierde lo registrado sin señal. Antes de dar por terminada la sincronización, debe sincronizar o avisar «tienes N registros sin enviar».
-- **Temporal.** `DatosDemo.kt` y cada `PantallaEnConstruccion` se borran cuando su HU real existe.
+- **Temporal.** Cada `PantallaEnConstruccion` se borra cuando su HU real existe.
 
 ## Forma de trabajar
 
