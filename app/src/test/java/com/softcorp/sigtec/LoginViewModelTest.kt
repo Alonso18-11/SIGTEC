@@ -15,6 +15,7 @@ import com.softcorp.sigtec.core.domain.usecase.ObservarPreferenciasHuella
 import com.softcorp.sigtec.core.sync.EstadoDatosRepositoryFalso
 import com.softcorp.sigtec.feature.acceso.presentation.LoginUiState
 import com.softcorp.sigtec.feature.acceso.presentation.LoginViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -29,6 +30,8 @@ import org.junit.Test
 import java.time.Instant
 
 // HU-01 (specs/001-inicio-sesion)
+// UnconfinedTestDispatcher sigue siendo experimental en kotlinx-coroutines-test
+@OptIn(ExperimentalCoroutinesApi::class)
 class LoginViewModelTest {
 
     @get:Rule
