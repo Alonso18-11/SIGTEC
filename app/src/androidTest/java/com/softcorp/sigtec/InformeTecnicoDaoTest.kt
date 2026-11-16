@@ -42,6 +42,17 @@ class InformeTecnicoDaoTest {
     fun cerrarBase() = db.close()
 
     @Test
+    fun los_informes_de_un_equipo_son_los_de_sus_incidencias() = runTest {
+        incidencias.guardar(incidencia("del-equipo", pendiente = false))
+        incidencias.guardar(incidencia("de-otro", pendiente = false, equipo = "PC-LOG-009"))
+        dao.guardar(informe("inf-1", "del-equipo"))
+        dao.guardar(informe("inf-2", "de-otro"))
+
+        // HU-16 (RF-1611, RF-1617)
+        assertEquals(listOf("inf-1"), dao.observarDeEquipo("PC-CONT-014").first().map { it.id })
+    }
+
+    @Test
     fun solo_suben_los_informes_cuya_incidencia_ya_esta_en_el_servidor() = runTest {
         incidencias.guardar(incidencia("subida", pendiente = false))
         incidencias.guardar(incidencia("pendiente", pendiente = true))
@@ -86,17 +97,6 @@ class InformeTecnicoDaoTest {
 
         assertNull(dao.porId("inf-rechazado"))
         assertEquals("inf-normal", dao.porId("inf-normal")!!.id)
-    }
-
-    @Test
-    fun los_informes_de_un_equipo_son_los_de_sus_incidencias() = runTest {
-        incidencias.guardar(incidencia("del-equipo", pendiente = false))
-        incidencias.guardar(incidencia("de-otro", pendiente = false, equipo = "PC-LOG-009"))
-        dao.guardar(informe("inf-1", "del-equipo"))
-        dao.guardar(informe("inf-2", "de-otro"))
-
-        // HU-16 (RF-1611, RF-1617)
-        assertEquals(listOf("inf-1"), dao.observarDeEquipo("PC-CONT-014").first().map { it.id })
     }
 
     private fun incidencia(
