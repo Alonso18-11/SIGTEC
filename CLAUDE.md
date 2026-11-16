@@ -88,7 +88,6 @@ Paquete raíz `com.softcorp.sigtec`. Los paquetes técnicos van en inglés y los
 - **Claves.** La clave de Gemini se usa solo vía Firebase AI Logic, nunca en el código ni con Retrofit. Retrofit es solo para las API de Logística y del directorio, hoy contra un servidor de prueba con la misma estructura.
 - **WorkManager.** El inicializador automático se quitó del manifest a propósito; no lo restaures. Los workers usan `@HiltWorker`. El intervalo periódico mínimo es de 15 minutos.
 - **Migraciones de Room.** La base usa `fallbackToDestructiveMigration(dropAllTables = true)`, solo para desarrollo. Quien cambia una entidad sube `version` en `SigtecDatabase` y lo dice en el PR. Ten presente que eso borra lo que no se ha sincronizado.
-- **Pendiente conocido.** Cerrar sesión ejecuta `clearAllTables()` y pierde lo registrado sin señal. Antes de dar por terminada la sincronización, debe sincronizar o avisar «tienes N registros sin enviar».
 - **Temporal.** Cada `PantallaEnConstruccion` se borra cuando su HU real existe.
 
 ## Forma de trabajar
