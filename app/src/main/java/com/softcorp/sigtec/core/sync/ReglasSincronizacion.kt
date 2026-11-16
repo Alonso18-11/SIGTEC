@@ -7,9 +7,13 @@ import com.softcorp.sigtec.core.database.entity.InformeTecnicoEntity
 import com.softcorp.sigtec.core.database.entity.MovimientoEntity
 import com.softcorp.sigtec.core.database.entity.SolicitudRepuestoEntity
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
+import java.time.Instant
 
 internal const val TAREA_SUBIR = "SUBIR_CAMBIOS"
 internal const val TAREA_BAJAR = "BAJAR_INCIDENCIAS"
+
+// HU-17 (D-1): cuándo empezó en este celular la sesión de su dueño; se borra con Room al cerrar sesión
+internal const val TAREA_INICIO_SESION = "INICIO_SESION"
 
 internal fun debeReemplazarLocal(local: IncidenciaEntity?, remota: IncidenciaEntity): Boolean =
     local == null ||
@@ -86,12 +90,19 @@ private val CODIGOS_PERMANENTES = setOf("PERMISSION_DENIED", "INVALID_ARGUMENT")
 internal fun debeIntentarSubir(hayConexionValidada: Boolean): Boolean = hayConexionValidada
 
 /**
- * HU-07 (RF-702, RF-703, RF-705): avisar solo si el cambio se observó en este celular: la incidencia
- * ya estaba aquí sin ser de esta persona y ahora le llega asignada y sin cerrar. Si llega por primera
- * vez (por ejemplo, en la primera descarga tras iniciar sesión) no se avisa, para no llenar la pantalla.
+ * HU-07 (RF-702, RF-705) y HU-17 (RF-1710, RF-1711, D-1): avisar si la incidencia le llega asignada y sin cerrar a
+ * esta persona, y antes no era suya en este celular. Si llega por primera vez, solo se avisa si cambió después de
+ * que la persona inició sesión aquí (`inicioSesion`): así no se llena la pantalla en la primera descarga, pero sí se
+ * avisa de la que se creó y asignó con la app cerrada. Sin `inicioSesion` conocido, la que llega por primera vez no
+ * se avisa, como en la HU-07.
  */
-internal fun esAsignacionNuevaPara(usuarioId: String, local: IncidenciaEntity?, remota: IncidenciaEntity): Boolean =
-    local != null &&
-        local.tecnicoAsignadoId != usuarioId &&
-        remota.tecnicoAsignadoId == usuarioId &&
-        remota.marca != MarcaSeguimiento.CERRADA
+internal fun esAsignacionNuevaPara(
+    usuarioId: String,
+    local: IncidenciaEntity?,
+    remota: IncidenciaEntity,
+    inicioSesion: Instant?
+): Boolean {
+    if (remota.tecnicoAsignadoId != usuarioId || remota.marca == MarcaSeguimiento.CERRADA) return false
+    if (local != null) return local.tecnicoAsignadoId != usuarioId
+    return inicioSesion != null && remota.actualizadoEn.isAfter(inicioSesion)
+}

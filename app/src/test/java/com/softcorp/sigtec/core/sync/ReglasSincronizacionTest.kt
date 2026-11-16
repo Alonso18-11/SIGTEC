@@ -225,37 +225,62 @@ class ReglasSincronizacionTest {
         assertFalse(debeIntentarSubir(hayConexionValidada = false))
     }
 
-    // ---------- HU-07: asignación nueva para quien tiene la sesión (RF-702, RF-703, RF-705) ----------
+    // ---------- HU-07 y HU-17: asignación nueva para quien tiene la sesión (RF-702, RF-705, RF-1710, RF-1711) ----------
 
-    private fun asignada(tecnico: String?, marca: MarcaSeguimiento = MarcaSeguimiento.ASIGNADA) =
-        incidencia(false, antes, "remota").copy(
-            tecnicoAsignadoId = tecnico, tecnicoAsignadoNombre = tecnico, marca = marca
-        )
+    private val inicioSesion = Instant.parse("2026-09-28T10:02:00Z")   // entre `antes` y `despues`
+
+    private fun asignada(
+        tecnico: String?,
+        marca: MarcaSeguimiento = MarcaSeguimiento.ASIGNADA,
+        actualizadoEn: Instant = antes
+    ) = incidencia(false, actualizadoEn, "remota").copy(
+        tecnicoAsignadoId = tecnico, tecnicoAsignadoNombre = tecnico, marca = marca
+    )
 
     @Test
     fun `asignada antes a otro o sin tecnico y ahora a mi avisa`() {
-        assertTrue(esAsignacionNuevaPara("luis", local = asignada(null, MarcaSeguimiento.SIN_ASIGNAR), remota = asignada("luis")))
-        assertTrue(esAsignacionNuevaPara("luis", local = asignada("ana"), remota = asignada("luis")))
+        assertTrue(esAsignacionNuevaPara("luis", asignada(null, MarcaSeguimiento.SIN_ASIGNAR), asignada("luis"), inicioSesion))
+        assertTrue(esAsignacionNuevaPara("luis", asignada("ana"), asignada("luis"), inicioSesion))
     }
 
     @Test
-    fun `si llega por primera vez ya asignada a mi no avisa`() {
-        assertFalse(esAsignacionNuevaPara("luis", local = null, remota = asignada("luis")))
+    fun `si llega por primera vez ya asignada a mi y cambio antes del ingreso no avisa`() {
+        assertFalse(esAsignacionNuevaPara("luis", local = null, remota = asignada("luis"), inicioSesion = inicioSesion))
+    }
+
+    @Test
+    fun `si llega por primera vez ya asignada a mi y cambio despues del ingreso avisa`() {
+        val remota = asignada("luis", actualizadoEn = despues)
+        assertTrue(esAsignacionNuevaPara("luis", local = null, remota = remota, inicioSesion = inicioSesion))
+    }
+
+    @Test
+    fun `si llega por primera vez y no se sabe cuando empezo la sesion no avisa`() {
+        val remota = asignada("luis", actualizadoEn = despues)
+        assertFalse(esAsignacionNuevaPara("luis", local = null, remota = remota, inicioSesion = null))
     }
 
     @Test
     fun `si ya era mia no avisa otra vez`() {
-        assertFalse(esAsignacionNuevaPara("luis", local = asignada("luis"), remota = asignada("luis", MarcaSeguimiento.EN_ATENCION)))
+        val remota = asignada("luis", MarcaSeguimiento.EN_ATENCION, actualizadoEn = despues)
+        assertFalse(esAsignacionNuevaPara("luis", asignada("luis"), remota, inicioSesion))
     }
 
     @Test
     fun `asignada a mi pero cerrada no avisa`() {
-        assertFalse(esAsignacionNuevaPara("luis", local = asignada("ana"), remota = asignada("luis", MarcaSeguimiento.CERRADA)))
+        assertFalse(esAsignacionNuevaPara("luis", asignada("ana"), asignada("luis", MarcaSeguimiento.CERRADA), inicioSesion))
+        val nuevaCerrada = asignada("luis", MarcaSeguimiento.CERRADA, actualizadoEn = despues)
+        assertFalse(esAsignacionNuevaPara("luis", local = null, remota = nuevaCerrada, inicioSesion = inicioSesion))
     }
 
     @Test
     fun `reasignada de mi a otra persona no avisa`() {
-        assertFalse(esAsignacionNuevaPara("luis", local = asignada("luis"), remota = asignada("ana")))
+        assertFalse(esAsignacionNuevaPara("luis", asignada("luis"), asignada("ana", actualizadoEn = despues), inicioSesion))
+    }
+
+    @Test
+    fun `una que llega por primera vez asignada a otra persona no avisa`() {
+        assertFalse(esAsignacionNuevaPara("luis", local = null, remota = asignada("ana", actualizadoEn = despues), inicioSesion = inicioSesion))
     }
 
     // ---------- HU-11: solicitudes de repuesto ----------

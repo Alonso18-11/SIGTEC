@@ -1,7 +1,6 @@
 package com.softcorp.sigtec.core.sync
 
 import android.util.Log
-import androidx.room.withTransaction
 import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.MetadataChanges
@@ -18,12 +17,10 @@ import com.softcorp.sigtec.core.database.dao.SincronizacionDao
 import com.softcorp.sigtec.core.database.dao.SolicitudRepuestoDao
 import com.softcorp.sigtec.core.database.dao.SugerenciaIADao
 import com.softcorp.sigtec.core.database.entity.SincronizacionEntity
-import com.softcorp.sigtec.core.database.entity.toDomain
 import com.softcorp.sigtec.core.di.ApplicationScope
 import com.softcorp.sigtec.core.di.IoDispatcher
 import com.softcorp.sigtec.core.domain.debeBorrarDatosAlEntrar
 import com.softcorp.sigtec.core.domain.repository.SesionRepository
-import com.softcorp.sigtec.core.notificaciones.NotificadorAsignaciones
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -49,7 +46,8 @@ class SincronizacionTiempoReal @Inject constructor(
     private val sugerenciaIADao: SugerenciaIADao,
     private val programador: ProgramadorSincronizacion,
     private val reloj: Reloj,
-    private val notificador: NotificadorAsignaciones,
+    private val guardado: GuardadoIncidencias,
+    private val inicioSesion: InicioSesionLocal,
     @param:IoDispatcher private val io: CoroutineDispatcher,
     @param:ApplicationScope private val scope: CoroutineScope
 ) {
@@ -72,6 +70,7 @@ class SincronizacionTiempoReal @Inject constructor(
                             }
                         }
                         duenoDatos = uid
+                        inicioSesion.anotarSiFalta(reloj.ahora())   // HU-17 (D-1): después del borrado de D-12
                         emitAll(
                             merge(
                                 escuchar("incidencias", { snap -> guardarIncidencias(snap, uid) }),
@@ -119,21 +118,13 @@ class SincronizacionTiempoReal @Inject constructor(
     }
 
     private suspend fun guardarIncidencias(snap: QuerySnapshot, uid: String) {
+        val inicio = inicioSesion.leer()   // HU-17 (D-1): para avisar de la que llega ya asignada tras el ingreso
         for (cambio in snap.documentChanges) {
             if (cambio.type == DocumentChange.Type.REMOVED) continue
             val documento = cambio.document
             if (documento.metadata.hasPendingWrites()) continue   // cambio propio aún sin confirmar
             val remota = documento.aIncidenciaEntity() ?: continue
-            val local = incidenciaDao.porId(remota.id)
-            if (debeReemplazarLocal(local, remota)) {
-                baseLocal.withTransaction {
-                    incidenciaDao.guardar(remota.copy(necesitaAtencion = atencionAlBajar(local, remota)))
-                    // RF-79: si se pierde un cambio sin subir, ningún movimiento de ese intento debe subir
-                    if (local?.pendienteSincronizar == true) movimientoDao.marcarNecesitaAtencionDe(remota.id)
-                }
-                // HU-07 (RF-702): después de guardar, así al tocar el aviso el detalle ya tiene la versión nueva
-                if (esAsignacionNuevaPara(uid, local, remota)) notificador.avisar(remota.toDomain(), uid)
-            }
+            guardado.guardar(remota, uid, inicio)
         }
     }
 
