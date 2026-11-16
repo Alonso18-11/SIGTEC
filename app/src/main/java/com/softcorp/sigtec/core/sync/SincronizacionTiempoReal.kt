@@ -12,6 +12,7 @@ import com.softcorp.sigtec.core.database.SigtecDatabase
 import com.softcorp.sigtec.core.database.dao.CatalogoDao
 import com.softcorp.sigtec.core.database.dao.FallaDiccionarioDao
 import com.softcorp.sigtec.core.database.dao.IncidenciaDao
+import com.softcorp.sigtec.core.database.dao.InformeTecnicoDao
 import com.softcorp.sigtec.core.database.dao.MovimientoDao
 import com.softcorp.sigtec.core.database.dao.SincronizacionDao
 import com.softcorp.sigtec.core.database.dao.SolicitudRepuestoDao
@@ -40,6 +41,7 @@ class SincronizacionTiempoReal @Inject constructor(
     private val sesion: SesionRepository,
     private val incidenciaDao: IncidenciaDao,
     private val movimientoDao: MovimientoDao,
+    private val informeTecnicoDao: InformeTecnicoDao,
     private val catalogoDao: CatalogoDao,
     private val sincronizacionDao: SincronizacionDao,
     private val solicitudRepuestoDao: SolicitudRepuestoDao,
@@ -74,6 +76,8 @@ class SincronizacionTiempoReal @Inject constructor(
                             merge(
                                 escuchar("incidencias", { snap -> guardarIncidencias(snap, uid) }),
                                 escuchar("movimientos", ::guardarMovimientos),
+                                // HU-16 (RF-1623): el historial del equipo muestra los informes de todos los técnicos
+                                escuchar("informes", ::guardarInformes),
                                 escuchar("equipos", ::guardarEquipos),
                                 // HU-11 (RF-1120): el detalle muestra las solicitudes de repuesto a todos los perfiles
                                 escuchar("solicitudesRepuesto", ::guardarSolicitudes),
@@ -138,6 +142,17 @@ class SincronizacionTiempoReal @Inject constructor(
             if (cambio.type == DocumentChange.Type.REMOVED) continue
             val remoto = cambio.document.aMovimientoEntity() ?: continue
             if (debeGuardarMovimiento(movimientoDao.porId(remoto.id))) movimientoDao.guardar(remoto)
+        }
+    }
+
+    private suspend fun guardarInformes(snap: QuerySnapshot) {
+        for (cambio in snap.documentChanges) {
+            if (cambio.type == DocumentChange.Type.REMOVED) continue
+            val documento = cambio.document
+            if (documento.metadata.hasPendingWrites()) continue   // informe propio aún sin confirmar
+            val remoto = documento.aInformeEntity() ?: continue
+            // RF-1624: si el celular ya tiene el informe de esa incidencia (subido o no), se queda con el suyo
+            if (debeGuardarInforme(informeTecnicoDao.porIncidencia(remoto.incidenciaId))) informeTecnicoDao.guardar(remoto)
         }
     }
 

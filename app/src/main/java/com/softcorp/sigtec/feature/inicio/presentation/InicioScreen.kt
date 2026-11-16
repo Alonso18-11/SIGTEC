@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CropFree
+import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -78,6 +79,7 @@ fun InicioRoute(
     alRegistrar: () -> Unit,
     alEscanear: () -> Unit,
     alAbrirRepuestos: () -> Unit,
+    alAbrirHistorial: () -> Unit,
     vm: InicioViewModel = hiltViewModel()
 ) {
     val estado by vm.estado.collectAsStateWithLifecycle()
@@ -90,7 +92,8 @@ fun InicioRoute(
         alAbrirDetalle = alAbrirDetalle,
         alRegistrar = alRegistrar,
         alEscanear = alEscanear,
-        alAbrirRepuestos = alAbrirRepuestos
+        alAbrirRepuestos = alAbrirRepuestos,
+        alAbrirHistorial = alAbrirHistorial
     )
 }
 
@@ -103,7 +106,8 @@ fun InicioScreen(
     alAbrirDetalle: (String) -> Unit,
     alRegistrar: () -> Unit,
     alEscanear: () -> Unit,
-    alAbrirRepuestos: () -> Unit
+    alAbrirRepuestos: () -> Unit,
+    alAbrirHistorial: () -> Unit
 ) {
     val resumen = estado.resumen
     IconosBarraEstadoClaros()   // la cabecera oscura queda detrás de la barra de estado
@@ -123,7 +127,10 @@ fun InicioScreen(
                 verticalArrangement = Arrangement.spacedBy(Espaciado.l)
             ) {
                 resumen.atendiendo?.let { AtendiendoAhora(it, ahora) { alAbrirDetalle(it.id) } }
-                if (resumen.puedeRegistrar) AccesosRapidos(alRegistrar, alEscanear)
+                // HU-16 (RF-1606): «Historial» lo ven también quienes no registran
+                if (resumen.puedeRegistrar || resumen.puedeConsultarHistorial) {
+                    AccesosRapidos(resumen, alRegistrar, alEscanear, alAbrirHistorial)
+                }
                 resumen.repuesto?.let { TarjetaRepuesto(it, alAbrirRepuestos) }
             }
         }
@@ -239,12 +246,22 @@ private fun AtendiendoAhora(incidencia: Incidencia, ahora: Instant, alContinuar:
     }
 }
 
-/** RF-I9: solo lo que ya funciona (decisión I-2). */
+/** RF-I9: solo lo que ya funciona (decisión I-2). HU-16 (RF-1606): «Historial» abre la búsqueda del equipo. */
 @Composable
-private fun AccesosRapidos(alRegistrar: () -> Unit, alEscanear: () -> Unit) {
+private fun AccesosRapidos(
+    resumen: ResumenInicio,
+    alRegistrar: () -> Unit,
+    alEscanear: () -> Unit,
+    alAbrirHistorial: () -> Unit
+) {
     Row(horizontalArrangement = Arrangement.spacedBy(Espaciado.l)) {
-        AccesoRapido("Registrar", Icons.Outlined.Add, principal = true, alPulsar = alRegistrar)
-        AccesoRapido("Escanear", Icons.Outlined.CropFree, principal = false, alPulsar = alEscanear)
+        if (resumen.puedeRegistrar) {
+            AccesoRapido("Registrar", Icons.Outlined.Add, principal = true, alPulsar = alRegistrar)
+            AccesoRapido("Escanear", Icons.Outlined.CropFree, principal = false, alPulsar = alEscanear)
+        }
+        if (resumen.puedeConsultarHistorial) {
+            AccesoRapido("Historial", Icons.Outlined.History, principal = false, alPulsar = alAbrirHistorial)
+        }
     }
 }
 
@@ -318,7 +335,8 @@ private fun estadoTecnico() = InicioUiState(
         metricas = listOf(Metrica(TipoMetrica.ASIGNADAS, 3), Metrica(TipoMetrica.EN_ATENCION, 1), Metrica(TipoMetrica.ESPERANDO_REPUESTO, 1)),
         atendiendo = incidenciaDePrueba,
         repuesto = RepuestoProximo("Cable HDMI", "INC-0116", EstadoSolicitudVisible.EN_CAMINO),
-        puedeRegistrar = true
+        puedeRegistrar = true,
+        puedeConsultarHistorial = true
     )
 )
 
@@ -328,13 +346,14 @@ private fun estadoJefe() = InicioUiState(
     resumen = ResumenInicio(
         vista = VistaInicio.JEFE,
         metricas = listOf(Metrica(TipoMetrica.SIN_ASIGNAR, 2), Metrica(TipoMetrica.EN_ATENCION, 4), Metrica(TipoMetrica.CRITICAS, 1)),
-        puedeRegistrar = true
+        puedeRegistrar = true,
+        puedeConsultarHistorial = true
     )
 )
 
 @Composable
 private fun Previa(estado: InicioUiState) = Surface(color = MaterialTheme.colorScheme.background) {
-    InicioScreen(estado, ahoraDePrueba, {}, {}, {}, {}, {}, {})
+    InicioScreen(estado, ahoraDePrueba, {}, {}, {}, {}, {}, {}, {})
 }
 
 @Preview(name = "Técnico, claro", showBackground = true, heightDp = 900)

@@ -26,7 +26,8 @@ data class ResumenInicio(
     val metricas: List<Metrica>,
     val atendiendo: Incidencia? = null,        // RF-I7
     val repuesto: RepuestoProximo? = null,     // RF-I8
-    val puedeRegistrar: Boolean = false        // RF-I9
+    val puedeRegistrar: Boolean = false,       // RF-I9
+    val puedeConsultarHistorial: Boolean = false   // HU-16 (RF-1606): acceso «Historial»
 )
 
 fun vistaPara(usuario: Usuario): VistaInicio = when {
@@ -47,6 +48,7 @@ fun calcularResumen(
 ): ResumenInicio {
     val vista = vistaPara(usuario)
     val puedeRegistrar = usuario.perfil.puede(Permiso.REGISTRAR_INCIDENCIA)
+    val puedeHistorial = usuario.perfil.puede(Permiso.CONSULTAR_HISTORIAL)
     fun cuenta(lista: List<Incidencia>, condicion: (Incidencia) -> Boolean) = lista.count(condicion)
     return when (vista) {
         VistaInicio.TECNICO -> {
@@ -62,7 +64,8 @@ fun calcularResumen(
                 // RF-I7: la más antigua en atención
                 atendiendo = mias.filter { it.marca == MarcaSeguimiento.EN_ATENCION }.minByOrNull { it.fechaRegistro },
                 repuesto = repuestoProximo(solicitudes),
-                puedeRegistrar = puedeRegistrar
+                puedeRegistrar = puedeRegistrar,
+                puedeConsultarHistorial = puedeHistorial
             )
         }
         // RF-I5: todo el área
@@ -74,7 +77,8 @@ fun calcularResumen(
                 // HU-15 (D-1): la misma regla que el tablero de indicadores, para que los números coincidan
                 Metrica(TipoMetrica.CRITICAS, cuenta(incidencias) { esCritica(it, ahora) })
             ),
-            puedeRegistrar = puedeRegistrar
+            puedeRegistrar = puedeRegistrar,
+            puedeConsultarHistorial = puedeHistorial
         )
         // RF-I6: lo que registró esta persona
         VistaInicio.REGISTRADOR -> {
@@ -88,7 +92,8 @@ fun calcularResumen(
                     }),
                     Metrica(TipoMetrica.SOLUCIONADAS, cuenta(suyas) { it.marca == MarcaSeguimiento.CERRADA })
                 ),
-                puedeRegistrar = puedeRegistrar
+                puedeRegistrar = puedeRegistrar,
+                puedeConsultarHistorial = puedeHistorial
             )
         }
     }

@@ -30,6 +30,13 @@ interface MovimientoDao {
     @Query("SELECT * FROM movimientos WHERE tipo = 'CERRADA'")
     fun observarCierres(): Flow<List<MovimientoEntity>>
 
+    // HU-16 (RF-1612): los cierres de las incidencias de un equipo, para su promedio de atención
+    @Query("""
+        SELECT m.* FROM movimientos m JOIN incidencias i ON i.id = m.incidenciaId
+        WHERE m.tipo = 'CERRADA' AND i.codigoEquipo = :codigo
+    """)
+    fun observarCierresDeEquipo(codigo: String): Flow<List<MovimientoEntity>>
+
     @Query("SELECT * FROM movimientos WHERE id = :id")
     suspend fun porId(id: String): MovimientoEntity?
 
