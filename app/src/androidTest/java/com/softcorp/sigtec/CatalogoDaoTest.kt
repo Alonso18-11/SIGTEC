@@ -5,6 +5,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.softcorp.sigtec.core.database.SigtecDatabase
 import com.softcorp.sigtec.core.database.dao.CatalogoDao
+import com.softcorp.sigtec.core.database.entity.EquipoEntity
 import com.softcorp.sigtec.core.database.entity.TecnicoEntity
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -61,5 +62,16 @@ class CatalogoDaoTest {
 
         assertEquals("Luis Ramírez", dao.tecnicoPorId("u-luis")?.nombre)
         assertEquals(null, dao.tecnicoPorId("u-otro"))
+    }
+
+    @Test
+    fun observa_un_equipo_por_su_codigo() = runTest {
+        // HU-16 (RF-1607, RF-1608)
+        dao.guardarEquipos(
+            listOf(EquipoEntity("PC-CONT-014", "Computadora de escritorio", "HP", "ProDesk 400", "Contabilidad", "María Quispe"))
+        )
+
+        assertEquals("Contabilidad", dao.observarEquipo("PC-CONT-014").first()?.oficina)
+        assertEquals(null, dao.observarEquipo("PC-NO-EXISTE").first())
     }
 }

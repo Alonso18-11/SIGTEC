@@ -11,6 +11,13 @@ interface InformeTecnicoDao {
     @Query("SELECT * FROM informes_tecnicos WHERE incidenciaId = :incidenciaId")
     fun observarPorIncidencia(incidenciaId: String): Flow<InformeTecnicoEntity?>
 
+    // HU-16 (RF-1611, RF-1617): los informes de las incidencias de un equipo, para su historial
+    @Query("""
+        SELECT inf.* FROM informes_tecnicos inf JOIN incidencias i ON i.id = inf.incidenciaId
+        WHERE i.codigoEquipo = :codigo
+    """)
+    fun observarDeEquipo(codigo: String): Flow<List<InformeTecnicoEntity>>
+
     @Upsert
     suspend fun guardar(informe: InformeTecnicoEntity)
 
