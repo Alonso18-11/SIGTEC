@@ -11,35 +11,39 @@
 >
 > ⚠️ = compartido de `CLAUDE.md`; 🔶 = sensible fuera de esa lista.
 
+> **Estado (2026-11-16).** PR-A en #219, PR-B en #220 (sobre #219) y PR-C en este PR (sobre #218). T09 revisada en el
+> emulador con `cmendoza`: la base de WorkManager tiene `revisar-asignaciones` en cola cada 15 minutos; la cancelación
+> al cerrar sesión no se probó para no dejar el emulador sin sesión. Falta T12.
+
 ## PR-A: regla de aviso y guardado compartido (base `main`)
-- [ ] **T01 · `esAsignacionNuevaPara` con `inicioSesion` en `ReglasSincronizacion` 🔶**, con los casos de D-1 en
+- [x] **T01 · `esAsignacionNuevaPara` con `inicioSesion` en `ReglasSincronizacion` 🔶**, con los casos de D-1 en
   `ReglasSincronizacionTest`. RF-1710, RF-1711.
   - Hecho cuando: pasan los casos de la HU-07 y los nuevos.
-- [ ] **T02 · `InicioSesionLocal`.** D-1.
+- [x] **T02 · `InicioSesionLocal`.** D-1.
   - Hecho cuando: compila.
-- [ ] **T03 · `GuardadoIncidencias` con el `Mutex`.** RF-1709, RF-1712.
+- [x] **T03 · `GuardadoIncidencias` con el `Mutex`.** RF-1709, RF-1712.
   - Hecho cuando: compila.
-- [ ] **T04 · `SincronizacionTiempoReal` anota el inicio y guarda con `GuardadoIncidencias` 🔶.** RF-1713.
+- [x] **T04 · `SincronizacionTiempoReal` anota el inicio y guarda con `GuardadoIncidencias` 🔶.** RF-1713.
   - Hecho cuando: compila y pasan las pruebas.
-- [ ] **T05 · RF-703 de la spec 007 apunta a RF-1713.** D-1.
+- [x] **T05 · RF-703 de la spec 007 apunta a RF-1713.** D-1.
   - Hecho cuando: la spec 007 ya no dice que una incidencia que llega asignada nunca se avisa.
 
 ## PR-B: revisión periódica (base PR-A)
-- [ ] **T06 · `debeConsultarAsignaciones`, `hayPendientesDeSubir`, `MARCAS_ACTIVAS_ASIGNADAS` y `TAREA_REVISAR` 🔶**,
+- [x] **T06 · `debeConsultarAsignaciones`, `hayPendientesDeSubir`, `MARCAS_ACTIVAS_ASIGNADAS` y `TAREA_REVISAR` 🔶**,
   con sus pruebas; `vigilarPendientes` usa `hayPendientesDeSubir`. RF-1706, RF-1708, RF-1716.
   - Hecho cuando: pasan las pruebas.
-- [ ] **T07 · `RevisarAsignacionesWorker`.** RF-1703, RF-1704, RF-1706 a RF-1717.
+- [x] **T07 · `RevisarAsignacionesWorker`.** RF-1703, RF-1704, RF-1706 a RF-1717.
   - Hecho cuando: compila.
-- [ ] **T08 · `programarRevision()` y `cancelarRevision()` en `ProgramadorSincronizacion` 🔶.** RF-1701, RF-1702.
+- [x] **T08 · `programarRevision()` y `cancelarRevision()` en `ProgramadorSincronizacion` 🔶.** RF-1701, RF-1702.
   - Hecho cuando: compila.
-- [ ] **T09 · `SincronizacionTiempoReal` programa y cancela según la sesión 🔶.** RF-1701, RF-1702, RF-1705.
-  - Hecho cuando: compila, pasan las pruebas y, en el emulador, `adb shell dumpsys jobscheduler` muestra el trabajo
-    periódico con sesión y no lo muestra después de cerrar sesión.
+- [x] **T09 · `SincronizacionTiempoReal` programa y cancela según la sesión 🔶.** RF-1701, RF-1702, RF-1705.
+  - Hecho cuando: compila, pasan las pruebas y, en el emulador, la base de WorkManager tiene el trabajo periódico con
+    sesión y no lo tiene después de cerrar sesión.
 
-## PR-C: cierre (base `main`)
-- [ ] **T10 · `CLAUDE.md` sin el pendiente de cerrar sesión ⚠️.**
+## PR-C: cierre (base: la spec, #218)
+- [x] **T10 · `CLAUDE.md` sin el pendiente de cerrar sesión ⚠️.**
   - Hecho cuando: la sección «Reglas de dominio» ya no lo lista.
-- [ ] **T11 · `MEMORY.md`, spec y tareas con el estado de la HU-17.**
+- [x] **T11 · `MEMORY.md`, spec y tareas con el estado de la HU-17.**
   - Hecho cuando: la línea de la HU-17 dice qué falta probar.
 - [ ] **T12 · Prueba manual en un celular real** (spec, «Criterios de finalización»).
   - Hecho cuando: todos los casos pasan; la línea de `MEMORY.md` dice «completa».

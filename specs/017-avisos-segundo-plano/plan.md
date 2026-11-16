@@ -71,9 +71,9 @@
 | Spec | `docs/spec-017-avisos-segundo-plano` | `docs(core): spec del envío y los avisos con la app cerrada (HU-17)` | `main` | — |
 | PR-A | `feat/hu17-regla-aviso` | `feat(core): avisar la asignación que llega por primera vez después del ingreso (HU-17)` | `main` | RF-1709 a RF-1713 |
 | PR-B | `feat/hu17-revision-periodica` | `feat(core): revisión periódica de asignaciones con la app cerrada (HU-17)` | PR-A | RF-1701 a RF-1708, RF-1714 a RF-1717 |
-| PR-C | `docs/hu17-cierre` | `docs(core): cierre de la HU-17 y pendiente de CLAUDE.md resuelto (HU-17)` | `main` | todos |
+| PR-C | `docs/hu17-cierre` | `docs(core): cierre de la HU-17 y pendiente de CLAUDE.md resuelto (HU-17)` | Spec | todos |
 
-PR-B se apila sobre PR-A. PR-C solo toca documentación y sale de `main`.
+PR-B se apila sobre PR-A. PR-C solo toca documentación y se apila sobre la spec, porque actualiza sus archivos.
 
 ## 3. Archivos por PR
 Leyenda: 🆕 nuevo, ✏️ modificado, ⚠️ compartido de `CLAUDE.md`, 🔶 sensible fuera de esa lista.
