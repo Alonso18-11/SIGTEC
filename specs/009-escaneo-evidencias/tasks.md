@@ -14,7 +14,7 @@
 > Para terminar antes, PR-41 a PR-49 se agruparon en #85 (detalle, foto ampliada, eliminar e informe) y PR-50 a
 > PR-56b en #86 (sesión), con el mismo contenido y las mismas pruebas que pedían sus tareas. PR-57 es el PR de
 > cierre. `EvidenciaDaoTest` (T92) y las pruebas manuales de punta a punta (T105) pasaron en un celular el
-> 2026-11-07. T104 se comprueba al fusionar #85 y #86.
+> 2026-11-07. T104 se comprobó el 2026-11-15.
 
 ## PR-01 — CI en los PR apilados (base `main`)
 - [x] **T01 · Quitar el filtro de rama base del CI 🔶**
@@ -324,8 +324,10 @@
   Hecho cuando: en el celular, con el dueño bloqueado y solo fotos, entrar con otra cuenta muestra el aviso.
 
 ## PR-57 — cierre (base: la rama del último PR fusionado)
-- [ ] **T104 · Comprobar que nada quedó fuera**: `git log main..<rama>` vacío en cada rama de la HU. RF: —
+- [x] **T104 · Comprobar que nada quedó fuera**: `git log main..<rama>` vacío en cada rama de la HU. RF: —
   Hecho cuando: ninguna rama tiene commits sin fusionar.
+  Con squash, `git log main..<rama>` nunca queda vacío; se comprobó el 2026-11-15 que cada rama de la HU tiene su PR
+  fusionado (#43 a #87) y que en el remoto ya no queda ninguna.
 - [x] **T105 · Pruebas manuales de punta a punta** («Criterios de finalización» de la spec) en un celular real.
   RF-901 a RF-944. Hecho cuando: cada prueba está anotada con su resultado.
 - [x] **T106 · Spec «completa»**, con la fecha y qué se probó. RF: — Hecho cuando: la spec describe el código.
