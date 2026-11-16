@@ -39,6 +39,12 @@ import com.softcorp.sigtec.core.ui.components.BarraSuperior
 import com.softcorp.sigtec.core.ui.components.BotonPrincipal
 import com.softcorp.sigtec.core.ui.components.EncabezadoSeccion
 import com.softcorp.sigtec.core.ui.components.EtiquetaIncidencia
+import com.softcorp.sigtec.core.ui.components.PestanasSegmentadas
+import com.softcorp.sigtec.core.ui.components.TarjetaSugerenciaIA
+import com.softcorp.sigtec.core.domain.model.SugerenciaIA
+import com.softcorp.sigtec.core.domain.model.TipoSugerencia
+import com.softcorp.sigtec.feature.ia.domain.ClasificacionSugerida
+import com.softcorp.sigtec.feature.ia.domain.comoContenido
 import com.softcorp.sigtec.core.ui.mensaje
 import com.softcorp.sigtec.feature.asignacion.domain.OpcionTecnico
 import com.softcorp.sigtec.feature.asignacion.domain.OpcionesAsignacion
@@ -70,7 +76,11 @@ fun AsignacionRoute(
         estado = estado,
         alVolver = alVolver,
         alElegir = vm::alElegir,
-        alAsignar = vm::alAsignar
+        alAsignar = vm::alAsignar,
+        alElegirTipo = vm::alElegirTipo,
+        alElegirPrioridad = vm::alElegirPrioridad,
+        alUsarSugerencia = vm::alUsarSugerencia,
+        alDescartarSugerencia = vm::alDescartarSugerencia
     )
 }
 
@@ -79,7 +89,11 @@ fun AsignacionScreen(
     estado: AsignacionUiState,
     alVolver: () -> Unit,
     alElegir: (String) -> Unit,
-    alAsignar: () -> Unit
+    alAsignar: () -> Unit,
+    alElegirTipo: (TipoFalla?) -> Unit = {},
+    alElegirPrioridad: (Prioridad?) -> Unit = {},
+    alUsarSugerencia: () -> Unit = {},
+    alDescartarSugerencia: () -> Unit = {}
 ) {
     // BarraSuperior aplica el margen de la barra de estado
     Scaffold(
@@ -103,19 +117,35 @@ fun AsignacionScreen(
                         .align(Alignment.Center)
                         .padding(Espaciado.m)
                 )
-                else -> Contenido(opciones, estado, alElegir)
+                else -> Contenido(
+                    opciones, estado, alElegir, alElegirTipo, alElegirPrioridad, alUsarSugerencia, alDescartarSugerencia
+                )
             }
         }
     }
 }
 
 @Composable
-private fun Contenido(opciones: OpcionesAsignacion, estado: AsignacionUiState, alElegir: (String) -> Unit) {
+private fun Contenido(
+    opciones: OpcionesAsignacion,
+    estado: AsignacionUiState,
+    alElegir: (String) -> Unit,
+    alElegirTipo: (TipoFalla?) -> Unit,
+    alElegirPrioridad: (Prioridad?) -> Unit,
+    alUsarSugerencia: () -> Unit,
+    alDescartarSugerencia: () -> Unit
+) {
     LazyColumn(
         contentPadding = PaddingValues(Espaciado.m),
         verticalArrangement = Arrangement.spacedBy(Espaciado.s)
     ) {
         item { TarjetaResumen(opciones, estado.ahora) }
+        // HU-14 (RF-1403, RF-1404): marcada como IA; sin sugerencia no ocupa lugar (RF-1406)
+        if (estado.tarjetaSugerenciaVisible) {
+            item { SugerenciaClasificacion(estado.clasificacionSugerida, alUsarSugerencia, alDescartarSugerencia) }
+        }
+        // HU-14 (RF-1408): opcional, entre el resumen y los técnicos
+        item { SeccionClasificacion(estado.tipoElegido, estado.prioridadElegida, alElegirTipo, alElegirPrioridad) }
         // RF-607: el motivo se ve desde que se abre, antes de pulsar nada
         opciones.bloqueo?.let { motivo ->
             item {
@@ -163,7 +193,7 @@ private fun TarjetaResumen(opciones: OpcionesAsignacion, ahora: Instant) {
             Text(incidencia.descripcion, style = MaterialTheme.typography.titleMedium)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Espaciado.s)) {
                 EtiquetaIncidencia(incidencia.marca, incidencia.critica, incidencia.diasPendiente(ahora))
-                // Sin la sugerencia de IA del prototipo: es de la HU-14
+                // La clasificación guardada; la sugerencia de IA va en su propia tarjeta (HU-14, DESIGN.md principio 5)
                 val clasificacion = listOfNotNull(incidencia.tipoFalla?.etiqueta(), incidencia.prioridad?.etiqueta())
                 if (clasificacion.isNotEmpty()) {
                     Text(
@@ -174,6 +204,39 @@ private fun TarjetaResumen(opciones: OpcionesAsignacion, ahora: Instant) {
                 }
             }
         }
+    }
+}
+
+/** HU-14: «Generando sugerencia» mientras Gemini responde; luego lo sugerido con «Descartar» y «Usar». */
+@Composable
+private fun SugerenciaClasificacion(sugerida: ClasificacionSugerida?, alUsar: () -> Unit, alDescartar: () -> Unit) {
+    if (sugerida == null) {
+        TarjetaSugerenciaIA(texto = "Generando sugerencia")
+    } else {
+        TarjetaSugerenciaIA(
+            titulo = "Sugerencia de IA",
+            texto = textoClasificacionSugerida(sugerida) + "\n" + NOTA_SUGERENCIA,
+            alUsar = alUsar,
+            alDescartar = alDescartar
+        )
+    }
+}
+
+// P-6: la opción nula deja empezar sin clasificar y permite quitar una clasificación
+private val OPCIONES_TIPO: List<TipoFalla?> = listOf(null) + TipoFalla.entries
+private val OPCIONES_PRIORIDAD: List<Prioridad?> = listOf(null) + Prioridad.entries
+
+@Composable
+private fun SeccionClasificacion(
+    tipo: TipoFalla?,
+    prioridad: Prioridad?,
+    alElegirTipo: (TipoFalla?) -> Unit,
+    alElegirPrioridad: (Prioridad?) -> Unit
+) {
+    Column(Modifier.padding(top = Espaciado.s), verticalArrangement = Arrangement.spacedBy(Espaciado.s)) {
+        EncabezadoSeccion("Clasificación")
+        PestanasSegmentadas(OPCIONES_TIPO, tipo, ::textoTipoElegido, alElegirTipo)
+        PestanasSegmentadas(OPCIONES_PRIORIDAD, prioridad, ::textoPrioridadElegida, alElegirPrioridad)
     }
 }
 
@@ -263,6 +326,43 @@ private fun AsignacionElegidoClaro() = SigtecTheme { Previa(estadoDePrueba()) }
 @Preview(name = "Elegido, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun AsignacionElegidoOscuro() = SigtecTheme(darkTheme = true) { Previa(estadoDePrueba()) }
+
+// HU-14: la incidencia del prototipo, todavía sin clasificar, con la sugerencia de Gemini
+private val sinClasificarDePrueba = incidenciaDePrueba.copy(tipoFalla = null, prioridad = null)
+
+private val sugerenciaDePrueba = SugerenciaIA(
+    "s1", "i127", TipoSugerencia.CLASIFICACION,
+    ClasificacionSugerida(TipoFalla.RED, Prioridad.MEDIA).comoContenido(), "gemini-3.5-flash-lite", ahoraDePrueba
+)
+
+@Preview(name = "Con sugerencia, claro", showBackground = true)
+@Composable
+private fun AsignacionConSugerenciaClaro() = SigtecTheme {
+    Previa(estadoDePrueba(incidencia = sinClasificarDePrueba).copy(sugerencia = sugerenciaDePrueba))
+}
+
+@Preview(name = "Con sugerencia, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun AsignacionConSugerenciaOscuro() = SigtecTheme(darkTheme = true) {
+    Previa(estadoDePrueba(incidencia = sinClasificarDePrueba).copy(sugerencia = sugerenciaDePrueba))
+}
+
+@Preview(name = "Generando sugerencia, claro", showBackground = true)
+@Composable
+private fun AsignacionGenerando() = SigtecTheme {
+    Previa(estadoDePrueba(incidencia = sinClasificarDePrueba, elegidoId = null).copy(generandoSugerencia = true))
+}
+
+@Preview(name = "Clasificación usada, oscuro", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun AsignacionClasificada() = SigtecTheme(darkTheme = true) {
+    Previa(
+        estadoDePrueba(incidencia = sinClasificarDePrueba).copy(
+            sugerencia = sugerenciaDePrueba, sugerenciaUsada = true,
+            tipoElegido = TipoFalla.RED, prioridadElegida = Prioridad.MEDIA
+        )
+    )
+}
 
 @Preview(name = "Reasignar, claro", showBackground = true)
 @Composable

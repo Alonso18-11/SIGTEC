@@ -1,5 +1,8 @@
 package com.softcorp.sigtec.feature.asignacion.presentation
 
+import com.softcorp.sigtec.core.domain.model.Prioridad
+import com.softcorp.sigtec.core.domain.model.TipoFalla
+import com.softcorp.sigtec.feature.ia.domain.ClasificacionSugerida
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -29,5 +32,20 @@ class TextosAsignacionTest {
     @Test
     fun `la linea bajo el boton no promete un aviso`() {
         assertEquals("La incidencia aparecerá en la bandeja de Luis Ramírez", textoBandeja("Luis Ramírez"))
+    }
+
+    @Test
+    fun `la clasificacion sugerida se lee como una frase`() {
+        // HU-14 (RF-1404)
+        assertEquals("Red, prioridad media", textoClasificacionSugerida(ClasificacionSugerida(TipoFalla.RED, Prioridad.MEDIA)))
+    }
+
+    @Test
+    fun `las opciones de clasificacion incluyen dejarla vacia`() {
+        // HU-14 (RF-1408, P-6)
+        assertEquals("Sin clasificar", textoTipoElegido(null))
+        assertEquals("Hardware", textoTipoElegido(TipoFalla.HARDWARE))
+        assertEquals("Sin prioridad", textoPrioridadElegida(null))
+        assertEquals("Alta", textoPrioridadElegida(Prioridad.ALTA))
     }
 }
