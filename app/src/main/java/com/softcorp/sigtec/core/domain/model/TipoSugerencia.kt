@@ -2,7 +2,8 @@ package com.softcorp.sigtec.core.domain.model
 
 import java.time.Instant
 
-enum class TipoSugerencia { CLASIFICACION, SOLUCIONES_PARECIDAS, BORRADOR_INFORME }
+// Las «Fallas parecidas» de la HU-13 se calculan en el celular y no se guardan (D-1 de la spec 013): no son un tipo
+enum class TipoSugerencia { CLASIFICACION, BORRADOR_INFORME }
 
 /**
  * Lo que propuso la IA y lo que la persona decidió (HU-14, RF-1427). La IA solo sugiere: [aceptada] queda en null
