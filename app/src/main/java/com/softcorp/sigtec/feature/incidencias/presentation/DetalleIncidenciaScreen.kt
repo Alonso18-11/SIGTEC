@@ -37,7 +37,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Inventory2
-import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.PersonAdd
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material3.*
@@ -101,7 +100,6 @@ data class AccionesDetalle(
     val alAgregarFoto: () -> Unit = {},
     val alEliminarFoto: (Evidencia) -> Unit = {},
     val alCerrarFoto: () -> Unit = {},
-    val alAbrirAsistente: () -> Unit = {},
     val alVerHistorial: (String) -> Unit = {},
     val alAlternarLinterna: () -> Unit = {},
     val alGuardarEnDiccionario: () -> Unit = {}   // HU-13 (RF-1317)
@@ -144,7 +142,6 @@ fun DetalleIncidenciaScreen(
     avisos: SnackbarHostState = remember { SnackbarHostState() }
 ) {
     val incidencia = estado.detalle?.incidencia
-    var menuAbierto by remember { mutableStateOf(false) }
     // RF-934: guarda el id, no la foto: al eliminarla deja de estar en la lista y la vista ampliada se cierra sola
     var fotoAbiertaId by rememberSaveable { mutableStateOf<String?>(null) }
     val desplazamiento = rememberScrollState()
@@ -182,7 +179,7 @@ fun DetalleIncidenciaScreen(
                     alAbrirFoto = { fotoAbiertaId = it.id },
                     desplazamiento = desplazamiento,
                     cabecera = {
-                        Cabecera(estado.detalle.incidencia, estado, acciones, menuAbierto, alMenu = { menuAbierto = it })
+                        Cabecera(estado.detalle.incidencia, estado, acciones)
                     }
                 )
             }
@@ -279,14 +276,12 @@ private fun pasoActual(marca: MarcaSeguimiento): Int? = when (marca) {
     MarcaSeguimiento.CERRADA -> PasosIncidencia.size
 }
 
-/** Cabecera oscura (prototipo 05): volver, código, linterna y menú; el problema, su estado y su clasificación. */
+/** Cabecera oscura (prototipo 05): volver, código y linterna; el problema, su estado y su clasificación. */
 @Composable
 private fun Cabecera(
     incidencia: Incidencia,
     estado: DetalleIncidenciaUiState,
-    acciones: AccionesDetalle,
-    menuAbierto: Boolean,
-    alMenu: (Boolean) -> Unit
+    acciones: AccionesDetalle
 ) {
     val marca = SigtecTheme.marca
     IconosBarraEstadoClaros()   // la cabecera oscura queda detrás de la barra de estado
@@ -302,20 +297,12 @@ private fun Cabecera(
                 textAlign = TextAlign.Center,
                 modifier = Modifier.weight(1f)
             )
-            // HU-10 (RF-1024): antes del menú, solo para el técnico asignado
+            // HU-10 (RF-1024): solo para el técnico asignado. HU-14 (RF-1432): ya no hay menú del asistente, así que sin
+            // linterna un espacio del mismo ancho que «Volver» deja el código centrado
             if (estado.linternaVisible) {
                 BotonLinterna(encendida = estado.linternaEncendida, alAlternar = acciones.alAlternarLinterna, enCabecera = true)
-            }
-            Box {
-                IconButton(onClick = { alMenu(true) }) {
-                    Icon(Icons.Outlined.MoreVert, contentDescription = "Más opciones", tint = marca.sobreHero)
-                }
-                DropdownMenu(expanded = menuAbierto, onDismissRequest = { alMenu(false) }) {
-                    DropdownMenuItem(
-                        text = { Text("Abrir asistente") },
-                        onClick = { alMenu(false); acciones.alAbrirAsistente() }
-                    )
-                }
+            } else {
+                Spacer(Modifier.size(AreaTactilMinima))
             }
         }
         Text(incidencia.descripcion, style = MaterialTheme.typography.headlineMedium, color = marca.sobreHero)
