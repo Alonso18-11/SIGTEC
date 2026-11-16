@@ -103,3 +103,44 @@ respaldo de la subida.
 - RF-1717: CUANDO una revisión consulta al servidor sin error, EL SISTEMA anota la fecha y hora en el registro de
   sincronización de Room, con un tipo propio y las 20 más recientes, como RF-65; sirve para comprobar en la prueba
   manual que la revisión corrió con la app cerrada (D-6).
+
+## Requisitos no funcionales
+- Costo cero (plan Spark): sin FCM ni Cloud Functions. La consulta de RF-1708 lee como máximo las incidencias activas de
+  un técnico (hasta su `limiteAtencion`), y una consulta vacía cuenta como 1 lectura: con 96 revisiones al día son unas
+  500 lecturas por técnico, menos del 5 % de las 50 000 diarias gratuitas con los 4 técnicos de prueba.
+- Tiempo: con el celular en uso o cargando, el aviso llega a más tardar 15 minutos después de la asignación. En reposo
+  (Doze), con ahorro de batería o con las restricciones de algunos fabricantes (Xiaomi, Huawei), Android puede retrasar
+  la revisión; la app no lo evita ni pide quitar la optimización de batería (D-4).
+- Batería: la revisión solo exige conexión; no mantiene el celular despierto ni abre escuchas que queden vivas. Termina
+  en segundos.
+- Arquitectura: la revisión vive en `core/sync`, que sigue siendo el único lugar que habla con Firestore; escribe solo en
+  Room y el aviso pasa por `core/notificaciones`. Las reglas (cuándo consultar, cuándo avisar, cuándo es la primera
+  descarga) son funciones puras en `ReglasSincronizacion.kt`, con prueba JVM.
+- Stack cerrado: sin dependencias nuevas; usa WorkManager 2.10 con `@HiltWorker`, como `SubirCambiosWorker`. No depende
+  de la actualización de WorkManager abierta en #205.
+- Sin cambios en `firestore.rules` (cualquier usuario autenticado ya lee `/incidencias`), en el manifiesto (ningún
+  permiso nuevo) ni en las entidades de Room (no sube `version`).
+- Privacidad: el aviso no muestra datos del caso con el celular bloqueado (RF-707); la revisión no guarda nada fuera de
+  Room.
+- Plataforma: Android 8.0 (minSdk 26) o superior.
+
+## Casos límite
+- El jefe registra y asigna una incidencia nueva mientras la app del técnico está cerrada: la siguiente revisión la baja
+  y avisa (RF-1710), aunque el celular nunca la haya visto.
+- El técnico inicia sesión en un celular nuevo y ya tiene 3 incidencias asignadas: no se avisa de ninguna (RF-1711);
+  las ve en su lista.
+- Una incidencia se asigna y se cierra entre dos revisiones: no llega en la consulta (solo trae las no cerradas) y no
+  se avisa, como RF-705.
+- El jefe reasigna una incidencia de Ana a Luis con las dos apps cerradas: Luis recibe el aviso en su revisión; la de
+  Ana ya no la trae, así que en su celular sigue figurando como suya hasta que abra la app y baje el cambio (D-2).
+- La revisión avisa y luego la persona abre la app: la escucha baja la misma incidencia, ya asignada en Room, y no
+  repite el aviso (RF-1712).
+- La sesión está bloqueada con huella: la revisión corre igual y el aviso se ve sin detalles en la pantalla de bloqueo;
+  al tocarlo pide desbloquear (RF-712).
+- El celular se reinicia: WorkManager vuelve a programar la revisión sin abrir la app.
+- La persona usa «Forzar detención» en los ajustes de Android: Android cancela los trabajos programados hasta que se
+  vuelve a abrir la app; al abrirla, la revisión se programa de nuevo (RF-1701).
+- Modo avión durante horas: no corre ninguna revisión; al volver la red, WorkManager ejecuta la que estaba atrasada.
+- Dos asignaciones en la misma revisión: dos avisos, uno por incidencia (cada una con su id).
+- La persona negó el permiso de notificaciones: las asignaciones aparecen en su lista al abrir la app, sin aviso.
+- Cerrar sesión con registros sin enviar: lo cubre el aviso de la HU-01 (RF-13); la revisión se cancela al cerrar.
