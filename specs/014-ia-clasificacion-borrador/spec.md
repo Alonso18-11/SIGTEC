@@ -133,6 +133,19 @@ etiqueta «IA» y la regla de Firestore de `sugerenciasIA`.
 - RF-1432: EL SISTEMA no ofrece «Abrir asistente» en el menú del detalle de la incidencia. Hoy esa opción navega a
   `Ruta.Asistente`, que no tiene pantalla desde #144, y el asistente queda fuera de esta HU.
 
+### Ordenar por urgencia (D-11)
+- RF-1433: EL SISTEMA ofrece en «Incidencias» dos órdenes: «Más recientes», el de la HU-04 y el que aparece al abrir
+  la pantalla, y «Más urgentes».
+- RF-1434: CUANDO se elige «Más urgentes», EL SISTEMA muestra primero las pendientes, por prioridad (Alta, Media, Baja
+  y al final las que no tienen) y, dentro de cada prioridad, de la más antigua a la más reciente; después, las
+  solucionadas, de la más reciente a la más antigua.
+- RF-1435: EL SISTEMA aplica el orden después de la búsqueda y los filtros de la HU-04; limpiar los filtros no cambia
+  el orden, y el orden se conserva al rotar el celular mientras la pantalla siga abierta.
+- RF-1436: El orden usa solo la prioridad guardada en la incidencia, la que eligió el jefe; nunca una sugerencia sin
+  decidir (principio 5 de la constitución).
+- RF-1437: MIENTRAS el orden sea «Más urgentes», cada fila de una incidencia pendiente muestra su prioridad
+  («Prioridad alta», «Prioridad media», «Prioridad baja» o «Sin prioridad»), con texto y no solo con color.
+
 ## Requisitos no funcionales
 - IA que solo sugiere (principio 5 de la constitución y `CLAUDE.md`): toda salida de Gemini se muestra con la etiqueta
   «IA» y el texto «generada/generado automáticamente», y requiere que la persona la use, la corrija o la descarte.
@@ -157,7 +170,8 @@ etiqueta «IA» y la regla de Firestore de `sugerenciasIA`.
 - Diseño: prototipos 07 y 08 con los componentes v2: `TarjetaSugerenciaIA`, `EtiquetaIA`, los selectores de
   «Clasificación» con `PestanasSegmentadas` (como el tipo en «Registrar falla») y `CampoTexto` con el micrófono para
   «Mis notas». Solo roles del tema; vistas previas en claro y oscuro de cada estado (generando, con sugerencia, sin
-  sugerencia, borrador usado). Textos sin «·».
+  sugerencia, borrador usado). El orden de «Incidencias» usa `FiltrosChips` como los filtros de la HU-04, y la
+  prioridad de cada fila es un parámetro opcional de `FilaIncidencia`. Textos sin «·».
 - Pruebas: la validación de las respuestas son funciones puras con pruebas JVM; los casos de uso, con un doble del
   cliente de IA y del repositorio; los ViewModels, con `MainDispatcherRule`. Ninguna prueba llama a Gemini.
 
@@ -191,7 +205,8 @@ etiqueta «IA» y la regla de Firestore de `sugerenciasIA`.
 - Clasificar fuera de «Asignar incidencia» (por ejemplo, desde el detalle).
 - Bajar las sugerencias a otros celulares, y mostrar en el tablero cuántas se aceptaron.
 - Guardar las notas del técnico.
-- Ordenar las listas por prioridad: está en «Dudas abiertas».
+- Cambiar el orden por defecto de «Incidencias» (HU-04) o el de «Mis tareas» (HU-08): la urgencia es una opción más
+  de «Incidencias» (D-11).
 
 ## Configuración en la consola de Firebase
 1. Consola de Firebase → el proyecto → AI Services → AI Logic → «Get started».
@@ -210,13 +225,15 @@ etiqueta «IA» y la regla de Firestore de `sugerenciasIA`.
 5. Al fusionar el PR de la regla de `sugerenciasIA`, publicarla en Firestore → Reglas.
 
 ## Criterios de finalización
-- RF-1401 a RF-1432 implementados.
+- RF-1401 a RF-1437 implementados.
 - Pruebas JVM: la validación de la clasificación y del borrador (JSON válido, valores fuera de los permitidos, campos
   vacíos, texto en lugar de JSON, recorte); `SugerirClasificacion` (sin sesión, sin permiso, ya clasificada, ya
   sugerida, falla de Gemini, camino feliz); `RedactarBorradorInforme` (sin permiso, otro técnico, incidencia cerrada,
   falla, borrador anterior sin decidir, camino feliz); la decisión de una sugerencia; `AsignarIncidencia` con la
   clasificación; `AsignacionViewModel` e `InformeTecnicoViewModel` (generando, con sugerencia, sin sugerencia, usar,
-  descartar, corregir, decisión al asignar o al cerrar, sin conexión) con `MainDispatcherRule`.
+  descartar, corregir, decisión al asignar o al cerrar, sin conexión) con `MainDispatcherRule`; el orden por urgencia
+  (prioridades, sin prioridad, empates por antigüedad, solucionadas al final, combinado con filtros) y
+  `ListaIncidenciasViewModel` con el orden elegido.
 - `SugerenciaIADaoTest` (nuevo) pasa en un celular y `version` subió a 7.
 - `firestore.rules` revisada en el PR, probada en el Rules Playground (crear a nombre propio con `aceptada`: permite;
   a nombre de otro, sin `aceptada`, actualizar o borrar: rechaza) y publicada a mano.
@@ -230,6 +247,8 @@ etiqueta «IA» y la regla de Firestore de `sugerenciasIA`.
     la sugerencia aceptada en Firestore. Descartar otro borrador y cerrar escribiendo a mano.
   - Sin conexión, ver «La IA necesita conexión a internet.» bajo el botón del borrador.
   - Comprobar que el detalle ya no ofrece «Abrir asistente».
+  - En «Incidencias», elegir «Más urgentes» y ver primero las de prioridad alta con su prioridad en la fila; combinarlo
+    con un filtro, rotar el celular y volver a «Más recientes».
 - La línea de la HU-14 en `MEMORY.md` dice «completa».
 
 ## Decisiones
@@ -269,6 +288,9 @@ Todas aprobadas por Nina el 2026-11-15.
   cliente de Gemini, la validación de las respuestas, el repositorio de sugerencias y los casos de uso; «Asignar» e
   «Informe técnico» los usan, como el detalle usa los del diccionario. Ámbito de commit `ia`, que hay que agregar a
   la lista de `CLAUDE.md`. Alternativa: repartirlo entre `asignacion` y `atencion`, con el cliente de Gemini en `core`.
+- D-11 · Lista por urgencia (RF-1433 a RF-1437). **Aprobada:** el orden «Más urgentes» como opción de «Incidencias»,
+  sin cambiar el orden por defecto de la HU-04 ni el de «Mis tareas» de la HU-08, que fijan sus propios criterios.
+  Alternativa descartada: dejarlo fuera, porque es el «para» de la historia.
 
 ## Dudas abiertas
 - [NECESITA ACLARACIÓN] D-9: ¿opción (a), (b) o (c)? ¿La entrega del curso es antes del 2027-01-21?
