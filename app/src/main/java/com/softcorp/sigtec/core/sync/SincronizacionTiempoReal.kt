@@ -55,9 +55,17 @@ class SincronizacionTiempoReal @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     fun iniciar() {
         var duenoDatos: String? = null
+        var habiaSesion = false
         sesion.usuarioActual
             .map { it?.id }
             .distinctUntilChanged()
+            .onEach { uid ->
+                // HU-17 (RF-1701, RF-1702): al arrancar, el primer valor es null aunque haya sesión; por eso solo se
+                // cancela al pasar de una sesión a ninguna (cerrar sesión o perfil revocado)
+                if (uid != null) programador.programarRevision()
+                else if (habiaSesion) programador.cancelarRevision()
+                habiaSesion = uid != null
+            }
             .flatMapLatest { uid ->
                 if (uid == null) {
                     emptyFlow()
@@ -205,7 +213,7 @@ class SincronizacionTiempoReal @Inject constructor(
             fallaDiccionarioDao.observarCantidadPendientes(),
             sugerenciaIADao.observarCantidadPendientes()
         ) { i, m, s, f, sug ->
-            i + m + s + f + sug > 0
+            hayPendientesDeSubir(i, m, s, f, sug)
         }
             .distinctUntilChanged()
             .filter { it }

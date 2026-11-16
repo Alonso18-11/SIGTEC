@@ -6,6 +6,7 @@ import com.softcorp.sigtec.core.database.entity.IncidenciaEntity
 import com.softcorp.sigtec.core.database.entity.InformeTecnicoEntity
 import com.softcorp.sigtec.core.database.entity.MovimientoEntity
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
+import com.softcorp.sigtec.core.domain.model.Perfil
 import com.softcorp.sigtec.core.domain.model.TipoMovimiento
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -333,5 +334,33 @@ class ReglasSincronizacionTest {
     @Test
     fun `una falla propia sin subir no se pisa con la misma version del servidor`() {
         assertFalse(debeReemplazarFalla(falla(true, 100), falla(false, 100)))
+    }
+
+    // ---------- HU-17: revisión periódica (RF-1706, RF-1708, RF-1716) ----------
+
+    @Test
+    fun `solo el tecnico consulta sus asignaciones`() {
+        assertTrue(debeConsultarAsignaciones(Perfil.TECNICO))
+        assertFalse(debeConsultarAsignaciones(Perfil.JEFE))
+        assertFalse(debeConsultarAsignaciones(Perfil.PERSONAL_SISTEMAS))
+    }
+
+    @Test
+    fun `las marcas activas de una asignada no incluyen sin asignar ni cerrada`() {
+        assertEquals(
+            listOf(MarcaSeguimiento.ASIGNADA, MarcaSeguimiento.EN_ATENCION, MarcaSeguimiento.ESPERANDO_REPUESTO),
+            MARCAS_ACTIVAS_ASIGNADAS
+        )
+    }
+
+    @Test
+    fun `sin pendientes no hay nada que subir`() {
+        assertFalse(hayPendientesDeSubir(0, 0, 0, 0, 0))
+    }
+
+    @Test
+    fun `con un solo pendiente en cualquier tabla hay que subir`() {
+        assertTrue(hayPendientesDeSubir(0, 0, 0, 0, 1))
+        assertTrue(hayPendientesDeSubir(2, 0, 0, 0, 0))
     }
 }
