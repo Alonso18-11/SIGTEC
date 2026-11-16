@@ -23,7 +23,6 @@ import org.junit.Test
 import java.time.Instant
 
 /** HU-15 (RF-1501 a RF-1504): el estado del tablero según el perfil y los datos. */
-// UnconfinedTestDispatcher sigue siendo experimental en kotlinx-coroutines-test
 @OptIn(ExperimentalCoroutinesApi::class)
 class IndicadoresViewModelTest {
 
