@@ -8,6 +8,13 @@
 > Rutas relativas a `app/src/main/java/com/softcorp/sigtec/` y `app/src/test/java/com/softcorp/sigtec/`.
 > ⚠️ = compartido de `CLAUDE.md`; 🔶 = sensible fuera de esa lista; ⏸ = paso manual de Nina en la consola.
 
+> **Reagrupación (2026-11-16, plan, sección 1).** Ya salieron como PR propios PR-01 (#167), PR-02 (#168), PR-04
+> (#169), PR-07 (#170), PR-11 (#171), PR-12 (#182), PR-13 (#183), PR-18 (#184), PR-24 (#185) y PR-25 (#186). Lo que
+> falta va en un PR por bloque, con las mismas tareas: **A** = PR-05, PR-06, PR-08 a PR-10 (T10 a T14, T17 a T20);
+> **B** = PR-14 a PR-17 y PR-20 a PR-23 (T27 a T34, T42 a T50); **C** = PR-19 (T38 a T41); **D** = PR-26 a PR-30
+> (T54 a T66); **E** = PR-31 a PR-38 (T67 a T83); **F** = PR-39 a PR-43 (T84 a T90); **G** = PR-03 (T05 y T06);
+> **cierre** = PR-44 (T91 a T95). Las tareas se marcan cuando su PR se fusiona.
+
 ## PR-01 — `feature/ia` y el ámbito `ia` en `CLAUDE.md` (base `main`)
 - [ ] **T01 · `ia` en la lista de módulos de `feature/` 🔶** (D-10). RF: — Hecho cuando: `CLAUDE.md` la nombra.
 - [ ] **T02 · `ia` en los ámbitos de commit 🔶.** RF: — Hecho cuando: la lista de ámbitos la incluye.
