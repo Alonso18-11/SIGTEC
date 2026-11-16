@@ -132,3 +132,63 @@ etiqueta «IA» y la regla de Firestore de `sugerenciasIA`.
 ### Asistente (D-1)
 - RF-1432: EL SISTEMA no ofrece «Abrir asistente» en el menú del detalle de la incidencia. Hoy esa opción navega a
   `Ruta.Asistente`, que no tiene pantalla desde #144, y el asistente queda fuera de esta HU.
+
+## Requisitos no funcionales
+- IA que solo sugiere (principio 5 de la constitución y `CLAUDE.md`): toda salida de Gemini se muestra con la etiqueta
+  «IA» y el texto «generada/generado automáticamente», y requiere que la persona la use, la corrija o la descarte.
+- Costo cero: Gemini Developer API a través de Firebase AI Logic, que funciona en el plan Spark, con un modelo estable
+  que no exige facturación (D-6). Sin Cloud Functions ni servicios nuevos.
+- Claves: ninguna en el código ni en el repo. Firebase AI Logic autoriza las llamadas con su propia cuenta de servicio
+  («Firebase AI Logic Service Agent»); no se usa ni se crea una clave de Gemini, y no se usa Retrofit para Gemini.
+- Cuota: la del nivel gratuito es por proyecto (todos los celulares la comparten) y se reinicia a medianoche, hora del
+  Pacífico. Por eso la clasificación se pide una sola vez por incidencia y celular (RF-1405) y el borrador solo cuando
+  el técnico lo pide.
+- Privacidad: a Gemini solo se envía el texto del problema (descripción, notas y campos del informe). No se envían
+  nombres, correos, el responsable ni su área, el técnico ni el código del equipo. En el nivel gratuito, Google puede
+  usar lo enviado para mejorar sus productos y personas pueden revisarlo, así que se prueba solo con datos de prueba.
+- Respuestas: se pide JSON con un esquema fijo (tipo y prioridad como valores cerrados; los cuatro campos del borrador
+  como texto) y en español. El dominio valida la respuesta y recorta cada campo a un largo máximo antes de mostrarla.
+- Rendimiento: las llamadas no bloquean la pantalla (RF-1403, RF-1418); límite de 15 segundos para la clasificación y
+  30 para el borrador.
+- Dependencias: ninguna nueva para Gemini (`firebase-ai` ya está en el BoM 34.19.0). App Check depende de D-9.
+- Persistencia: cambia `SugerenciaIAEntity` (y `SugerenciaIA` en `core/domain/model`) con los campos de RF-1427; sube
+  `version` de `SigtecDatabase` de 6 a 7 y se dice en el PR (migración destructiva: se pierde lo no sincronizado).
+- Firestore: cambia la regla de `sugerenciasIA` (RF-1430) y se publica a mano en la consola después de revisarla en el PR.
+- Diseño: prototipos 07 y 08 con los componentes v2: `TarjetaSugerenciaIA`, `EtiquetaIA`, los selectores de
+  «Clasificación» con `PestanasSegmentadas` (como el tipo en «Registrar falla») y `CampoTexto` con el micrófono para
+  «Mis notas». Solo roles del tema; vistas previas en claro y oscuro de cada estado (generando, con sugerencia, sin
+  sugerencia, borrador usado). Textos sin «·».
+- Pruebas: la validación de las respuestas son funciones puras con pruebas JVM; los casos de uso, con un doble del
+  cliente de IA y del repositorio; los ViewModels, con `MainDispatcherRule`. Ninguna prueba llama a Gemini.
+
+## Casos límite
+- Descripción muy corta o vaga («no prende»): Gemini igual propone; si no trae valores válidos, no hay tarjeta
+  (RF-1406).
+- Gemini devuelve un tipo o una prioridad fuera de los permitidos, o texto en lugar de JSON: se trata como falla
+  (RF-1406, RF-1423).
+- El jefe abre «Asignar» sin conexión: no hay tarjeta; si vuelve con conexión, se pide entonces (RF-1406).
+- El jefe usa la sugerencia y cambia solo la prioridad: se asigna con su corrección y la sugerencia queda no aceptada
+  (RF-1413).
+- El jefe descarta la sugerencia y elige a mano los mismos valores: queda no aceptada, porque la descartó (RF-1413).
+- El jefe sale de «Asignar» sin asignar: la sugerencia queda sin decidir y se muestra al volver (RF-1405).
+- La asignación falla por el límite de atención: no se guarda la clasificación y la sugerencia sigue sin decidir
+  (RF-1412).
+- Reasignar una incidencia ya clasificada: no se pide sugerencia y se ve la clasificación actual, que se puede cambiar
+  (RF-1407, RF-1408).
+- El técnico rota el celular mientras se redacta el borrador: el `ViewModel` sigue y el borrador llega igual.
+- El técnico usa el borrador y después edita los campos: es lo esperado; el borrador queda aceptado y el informe se
+  guarda con lo que él dejó (RF-1420, RF-1425).
+- El técnico escribe un nombre en sus notas: se envía tal cual (RNF de privacidad); la app no agrega datos personales.
+- Gemini inventa una pieza que no aparece en las notas: el técnico la corrige antes de confirmar (RF-1417, RF-1420).
+- Cuota agotada, servicio caído o App Check sin configurar (D-9): todo funciona sin IA (RF-1406, RF-1423).
+- Cerrar sesión con sugerencias sin subir: se borran con los datos locales; la asignación o el cierre que las decidió
+  ya se cuenta en «registros sin enviar» (RF-1431, D-8).
+
+## Fuera de alcance
+- El asistente conversacional (prototipo 09, 16 del PDF) y su pestaña (D-1).
+- La sugerencia en «Nueva incidencia» (prototipo 04, 4 del PDF) (D-2).
+- Usar Gemini para las «Fallas parecidas» de la HU-13, que siguen calculándose en el celular.
+- Clasificar fuera de «Asignar incidencia» (por ejemplo, desde el detalle).
+- Bajar las sugerencias a otros celulares, y mostrar en el tablero cuántas se aceptaron.
+- Guardar las notas del técnico.
+- Ordenar las listas por prioridad: está en «Dudas abiertas».
