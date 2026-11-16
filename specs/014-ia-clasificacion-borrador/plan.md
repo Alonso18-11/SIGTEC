@@ -122,3 +122,85 @@ si la base de un PR ya se fusionó, sale de `main`.
 
 **Pasos manuales de Nina** (la spec, «Configuración en la consola»): publicar la regla de `sugerenciasIA` cuando se
 fusione PR-07, y activar Firebase AI Logic con la exigencia de App Check aplazada antes de probar PR-19 en el celular.
+
+## 2. Archivos y commits por PR
+
+Leyenda: 🆕 se crea · ✏️ se modifica · ⚠️ compartido de la lista de `CLAUDE.md` (aprobado con la spec) · 🔶 sensible
+fuera de esa lista · sin marca: módulo de la HU. Cada commit lleva `(HU-14)` al final y va seguido de su push; las
+pruebas van en commits `test(...)` propios.
+
+### Proceso y asistente (PR-01 a PR-03)
+| PR | Archivos | Commits |
+|---|---|---|
+| PR-01 | ✏️🔶 `CLAUDE.md`: `ia` en la lista de módulos de `feature/` y en los ámbitos de commit (D-10) | 1. `docs(ci): módulo feature/ia en la estructura` · 2. `docs(ci): ámbito ia en los commits` |
+| PR-02 | ✏️ `feature/incidencias/presentation/DetalleIncidenciaScreen.kt` (sin el menú «Más opciones» ni `alAbrirAsistente`); ✏️ `IncidenciasNavigation.kt` (sin la navegación a `Ruta.Asistente`) | 1. `fix(incidencias): quitar «Abrir asistente» del detalle` · 2. `fix(incidencias): sin navegar a Ruta.Asistente` |
+| PR-03 | ✏️⚠️ `core/navigation/Rutas.kt` (sin `Asistente`); ✏️🔶 `CLAUDE.md` («las 18 rutas») | 1. `refactor(core): borrar Ruta.Asistente` · 2. `docs(ci): CLAUDE.md con 18 rutas` |
+
+### Room y Firestore (PR-04 a PR-10)
+| PR | Archivos | Commits |
+|---|---|---|
+| PR-04 | ✏️⚠️ `core/domain/model/TipoSugerencia.kt` (`SugerenciaIA` con `modelo`, `generadaEn`, `decididaPorId`, `decididaEn`); ✏️⚠️ `core/database/entity/SugerenciaIAEntity.kt` (lo mismo y `actualizadoEn`); ✏️⚠️ `SigtecDatabase.kt` (`version = 7`) | 1. `feat(core): SugerenciaIA con modelo, fechas y quién decide` · 2. `feat(core): SugerenciaIAEntity con los campos nuevos y actualizadoEn` · 3. `feat(core): base de datos en la versión 7` |
+| PR-05 | ✏️⚠️ `core/database/dao/SugerenciaIADao.kt` (`observarSinDecidir`, `contar`, `decidir`, `pendientesDeSincronizar`, `observarCantidadPendientes`, `marcarSincronizada`; sin `responder`) | 1. `feat(core): sugerencia sin decidir por incidencia y tipo` · 2. `feat(core): decidir una sugerencia` · 3. `feat(core): sugerencias decididas por subir` |
+| PR-06 | 🆕 (androidTest) `SugerenciaIADaoTest.kt` | 1. `test(core): la última sugerencia sin decidir y el conteo por tipo` · 2. `test(core): solo las decididas quedan por subir` |
+| PR-07 | ✏️⚠️ `firebase/firestore.rules` (`sugerenciasIA`: crear con `decididaPorId == uid`, `aceptada is bool` y tipo válido; sin `update` ni `delete`) | 1. `feat(firebase): sugerencias de IA solo se crean, decididas y a nombre propio` |
+| PR-08 | ✏️🔶 `core/sync/MapeoFirestore.kt` (`SugerenciaIAEntity.aFirestore()`) | 1. `feat(core): sugerencia de IA a Firestore` |
+| PR-09 | ✏️🔶 `core/sync/SincronizadorIncidencias.kt` (subir con `set` y `marcarSincronizada`; contarlas en `hayPendientes`) | 1. `feat(core): subir las sugerencias decididas` · 2. `feat(core): las sugerencias cuentan como pendientes de subir` |
+| PR-10 | ✏️🔶 `core/sync/SincronizacionTiempoReal.kt` (quinto flujo en `vigilarPendientes`) | 1. `feat(core): una sugerencia decidida programa la subida` |
+
+### Dominio y datos de la IA (PR-11 a PR-23)
+| PR | Archivos | Commits |
+|---|---|---|
+| PR-11 | ✏️⚠️ `core/domain/Resultado.kt` (`IANoDisponible`); ✏️⚠️ `core/ui/MensajesError.kt` | 1. `feat(core): error IANoDisponible` · 2. `feat(core): mensaje de IANoDisponible` |
+| PR-12 | 🆕 `feature/ia/domain/Clasificacion.kt` (`ClasificacionSugerida`, `leerClasificacion`, `comoContenido`, 3.1); 🆕 (test) `ClasificacionTest.kt` | 1. `feat(ia): leer la clasificación que propone Gemini` · 2. `test(ia): clasificación válida, valores fuera de los permitidos y texto suelto` |
+| PR-13 | 🆕 `feature/ia/domain/Borrador.kt` (`BorradorInforme`, `EntradaBorrador`, `leerBorrador`, `comoContenido`, 3.2); 🆕 (test) `BorradorTest.kt` | 1. `feat(ia): leer el borrador del informe` · 2. `test(ia): borrador completo, sin diagnóstico, recortado y texto suelto` |
+| PR-14 | 🆕 `feature/ia/domain/ReglasSugerencia.kt` (`clasificacionAceptada`, 3.3); 🆕 (test) `ReglasSugerenciaTest.kt` | 1. `feat(ia): cuándo una clasificación cuenta como aceptada` · 2. `test(ia): usada sin cambios, corregida, descartada y sin usar` |
+| PR-15 | 🆕 `feature/ia/domain/AsistenteIA.kt` (interfaz: `modelo`, `disponible`, `clasificar`, `redactarBorrador`); 🆕 (test) `feature/ia/data/AsistenteIAFalso.kt` | 1. `feat(ia): contrato del asistente de IA` · 2. `test(ia): asistente falso con respuestas y fallas` |
+| PR-16 | 🆕 `feature/ia/domain/SugerenciaIARepository.kt`; 🆕 (test) `feature/ia/data/SugerenciaIARepositoryFalso.kt` | 1. `feat(ia): contrato del repositorio de sugerencias` · 2. `test(ia): repositorio de sugerencias en memoria` |
+| PR-17 | 🆕 `feature/ia/data/SugerenciaIARepositoryImpl.kt` (`@param:IoDispatcher`, `catch` de la convención); 🆕 `feature/ia/di/IAModule.kt` (`@Binds`) | 1. `feat(ia): repositorio de sugerencias sobre Room` · 2. `feat(ia): módulo de Hilt de la IA` |
+| PR-18 | 🆕 `feature/ia/data/InstruccionesGemini.kt` (instrucciones de sistema y armado del pedido, 4.5); 🆕 (test) `InstruccionesGeminiTest.kt` | 1. `feat(ia): instrucciones para clasificar` · 2. `feat(ia): instrucciones para redactar el borrador` · 3. `test(ia): el pedido lleva el texto del problema y nada más` |
+| PR-19 | 🆕 `feature/ia/data/AsistenteIAGemini.kt` (4.6); ✏️ `IAModule.kt` (`@Binds` y los dos modelos con su esquema, P-2) | 1. `feat(ia): modelos de Gemini con su esquema y su límite de tiempo` · 2. `feat(ia): asistente con Gemini` · 3. `feat(ia): el asistente en el módulo de Hilt` |
+| PR-20 | 🆕 `feature/ia/domain/SugerirClasificacion.kt` (4.1); 🆕 (test) `SugerirClasificacionTest.kt` | 1. `feat(ia): SugerirClasificacion` · 2. `test(ia): sin permiso, ya clasificada, ya sugerida, falla y camino feliz` |
+| PR-21 | 🆕 `feature/ia/domain/RedactarBorradorInforme.kt` (4.2); 🆕 (test) `RedactarBorradorInformeTest.kt` | 1. `feat(ia): RedactarBorradorInforme` · 2. `test(ia): otro técnico, cerrada, sin notas, falla, anterior sin decidir y camino feliz` |
+| PR-22 | 🆕 `feature/ia/domain/DecidirSugerencia.kt` (4.3); 🆕 (test) `DecidirSugerenciaTest.kt` | 1. `feat(ia): DecidirSugerencia` · 2. `test(ia): decide con quién y cuándo, y respeta el permiso de cada tipo` |
+| PR-23 | 🆕 `feature/ia/domain/ObservarSugerencia.kt`; 🆕 `feature/ia/domain/ObservarIADisponible.kt`; 🆕 (test) `ObservarSugerenciaTest.kt` | 1. `feat(ia): observar la sugerencia sin decidir` · 2. `feat(ia): observar si la IA está disponible` · 3. `test(ia): observar sin decidir y disponibilidad` |
+
+### Componentes (PR-24)
+| PR | Archivos | Commits |
+|---|---|---|
+| PR-24 | ✏️🔶 `core/ui/components/TarjetaSugerenciaIA.kt` (`textoUsar = "Usar"` y vista previa con «Usar borrador») | 1. `feat(core): TarjetaSugerenciaIA con el texto del botón Usar` |
+
+### Asignar (PR-25 a PR-30)
+| PR | Archivos | Commits |
+|---|---|---|
+| PR-25 | ✏️ `feature/asignacion/domain/AsignarIncidencia.kt` (`ClasificacionElegida?`, null = no cambia); ✏️ (test) `AsignarIncidenciaTest.kt` | 1. `feat(asignacion): AsignarIncidencia guarda la clasificación elegida` · 2. `test(asignacion): con clasificación, sin ella y si el límite lo impide` |
+| PR-26 | ✏️ `AsignacionViewModel.kt` (`tipoElegido`, `prioridadElegida`, `alElegirTipo`, `alElegirPrioridad`); ✏️ (test) `AsignacionViewModelTest.kt` | 1. `feat(asignacion): el ViewModel lleva la clasificación elegida` · 2. `test(asignacion): empieza con la de la incidencia y se envía al asignar` |
+| PR-27 | ✏️ `AsignacionScreen.kt` (`SeccionClasificacion` con dos `PestanasSegmentadas`, 5.1; vistas previas) | 1. `feat(asignacion): sección Clasificación` · 2. `feat(asignacion): vistas previas con y sin clasificación` |
+| PR-28 | ✏️ `AsignacionViewModel.kt` (`EstadoSugerencia`, pedirla una vez, 4.7); ✏️ (test) | 1. `feat(asignacion): el ViewModel pide la sugerencia al abrir` · 2. `test(asignacion): generando, lista, sin sugerencia y ya clasificada` |
+| PR-29 | ✏️ `AsignacionViewModel.kt` (`alUsarSugerencia`, `alDescartarSugerencia`, decisión al asignar); ✏️ (test) | 1. `feat(asignacion): usar y descartar la sugerencia` · 2. `feat(asignacion): decidir la sugerencia al asignar` · 3. `test(asignacion): aceptada, corregida, descartada y sin usar` |
+| PR-30 | ✏️ `AsignacionScreen.kt` (tarjeta generando y lista, 5.2; sin el comentario «es de la HU-14»; vistas previas) | 1. `feat(asignacion): tarjeta Sugerencia de IA` · 2. `feat(asignacion): vistas previas de la sugerencia` |
+
+### Informe técnico (PR-31 a PR-38)
+| PR | Archivos | Commits |
+|---|---|---|
+| PR-31 | ✏️ `feature/captura/domain/TextoDictado.kt` (`CampoDictado.NOTAS`); ✏️ `MensajesDictado.kt` («Dictar notas»); ✏️ `InformeTecnicoViewModel.kt` (rama `NOTAS` sin efecto todavía) | 1. `feat(captura): campo dictable NOTAS` · 2. `feat(captura): título Dictar notas` |
+| PR-32 | ✏️ `InformeTecnicoViewModel.kt` (`notas`, `alCambiarNotas`, dictado `NOTAS`); ✏️ (test) `InformeTecnicoViewModelTest.kt` | 1. `feat(atencion): el informe lleva Mis notas` · 2. `test(atencion): escribir y dictar notas` |
+| PR-33 | ✏️ `InformeTecnicoScreen.kt` (`CampoTexto` «Mis notas» con micrófono); ✏️ `AtencionNavigation.kt` (`NOTAS` en `CAMPOS_INFORME`) | 1. `feat(atencion): campo Mis notas` · 2. `feat(atencion): dictar Mis notas` |
+| PR-34 | ✏️ `InformeTecnicoViewModel.kt` (`iaDisponible`, `EstadoBorrador`, `alRedactarBorrador`, 4.8); ✏️ (test) | 1. `feat(atencion): pedir el borrador` · 2. `feat(atencion): mostrar el borrador sin decidir al volver` · 3. `test(atencion): redactando, listo, falla y sin conexión` |
+| PR-35 | ✏️ `InformeTecnicoViewModel.kt` (`alUsarBorrador`, `alDescartarBorrador`, `textoDeIA`, decisión al cerrar); ✏️ (test) | 1. `feat(atencion): usar y descartar el borrador` · 2. `feat(atencion): un borrador sin decidir queda no aceptado al cerrar` · 3. `test(atencion): usar, descartar, otro borrador y cierre` |
+| PR-36 | ✏️ `InformeTecnicoScreen.kt` (botón «Redactar borrador con IA» y «La IA necesita conexión a internet.») | 1. `feat(atencion): botón Redactar borrador con IA` · 2. `feat(atencion): aviso de la IA sin conexión` |
+| PR-37 | ✏️ `InformeTecnicoScreen.kt` (tarjeta redactando y lista, error, 5.3; vistas previas) | 1. `feat(atencion): tarjeta del borrador` · 2. `feat(atencion): vistas previas del borrador` |
+| PR-38 | ✏️ `InformeTecnicoScreen.kt` (aviso «Texto redactado por IA…») | 1. `feat(atencion): aviso del texto redactado por IA` |
+
+### Orden por urgencia (PR-39 a PR-43)
+| PR | Archivos | Commits |
+|---|---|---|
+| PR-39 | 🆕 `feature/incidencias/domain/OrdenIncidencias.kt` (`OrdenIncidencias`, `ordenar`, 3.4); 🆕 (test) `OrdenIncidenciasTest.kt` | 1. `feat(incidencias): ordenar por urgencia` · 2. `test(incidencias): prioridades, sin prioridad, empates y solucionadas` |
+| PR-40 | ✏️ `ListaIncidenciasViewModel.kt` (`orden` en `SavedStateHandle`, `alOrdenar`); ✏️ (test) | 1. `feat(incidencias): la lista recuerda el orden elegido` · 2. `test(incidencias): orden con filtros y al limpiar` |
+| PR-41 | ✏️🔶 `core/ui/components/FilaIncidencia.kt` (`prioridad: String? = null`; vista previa) | 1. `feat(core): FilaIncidencia con la prioridad` |
+| PR-42 | ✏️ `ListaIncidenciasScreen.kt` (chip «Orden», 5.4) | 1. `feat(incidencias): chip Orden en Incidencias` |
+| PR-43 | ✏️ `ListaIncidenciasScreen.kt` (prioridad de cada pendiente con «Más urgentes») | 1. `feat(incidencias): la prioridad en la fila al ordenar por urgencia` |
+
+### Cierre (PR-44)
+| PR | Archivos | Commits |
+|---|---|---|
+| PR-44 | ✏️ `spec.md` (estado «completa» y lo que se probó); ✏️ `tasks.md`; ✏️ `MEMORY.md` (línea de la HU-14) | 1. `docs(ia): spec completa` · 2. `docs(ia): tareas marcadas` · 3. `docs(ia): HU-14 completa en MEMORY` |
