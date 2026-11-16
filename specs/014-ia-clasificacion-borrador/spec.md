@@ -170,8 +170,8 @@ etiqueta «IA» y la regla de Firestore de `sugerenciasIA`.
 - Diseño: prototipos 07 y 08 con los componentes v2: `TarjetaSugerenciaIA`, `EtiquetaIA`, los selectores de
   «Clasificación» con `PestanasSegmentadas` (como el tipo en «Registrar falla») y `CampoTexto` con el micrófono para
   «Mis notas». Solo roles del tema; vistas previas en claro y oscuro de cada estado (generando, con sugerencia, sin
-  sugerencia, borrador usado). El orden de «Incidencias» usa `FiltrosChips` como los filtros de la HU-04, y la
-  prioridad de cada fila es un parámetro opcional de `FilaIncidencia`. Textos sin «·».
+  sugerencia, borrador usado). El orden de «Incidencias» es un chip desplegable más (`FiltroDesplegable`, como
+  «Etapa», «Técnico» y «Equipo»), y la prioridad de cada fila es un parámetro opcional de `FilaIncidencia`. Textos sin «·».
 - Pruebas: la validación de las respuestas son funciones puras con pruebas JVM; los casos de uso, con un doble del
   cliente de IA y del repositorio; los ViewModels, con `MainDispatcherRule`. Ninguna prueba llama a Gemini.
 
