@@ -29,7 +29,7 @@ Con esta HU, la pestaña «Indicadores» muestra un tablero con esos datos, calc
 - RF-1505: EL SISTEMA muestra tres `TarjetaMetrica` sobre la cabecera: «Reparados en 7 días», «Pendientes» y «Críticos (+5 días)».
 - RF-1506: «Reparados en 7 días» cuenta las incidencias cerradas (movimiento CERRADA) en los últimos 7 días, contando hoy (D-3).
 - RF-1507: «Pendientes» cuenta las incidencias en estado Pendiente (cualquier marca que no sea CERRADA).
-- RF-1508: «Críticos (+5 días)» cuenta las incidencias pendientes registradas hace más de 5 días, más las que tengan `critica = true` (que marcará la HU-18) (D-1). La tarjeta va en la variante de alerta solo si el número es mayor que 0.
+- RF-1508: «Críticos (+5 días)» cuenta las incidencias pendientes registradas hace más de 5 días, más las que tengan `critica = true` (D-1; hoy nadie escribe ese campo, D-3 de la spec 018). La tarjeta va en la variante de alerta solo si el número es mayor que 0.
 
 ### Equipos reparados por día
 - RF-1509: EL SISTEMA muestra la tarjeta «Equipos reparados por día» con un gráfico de columnas (Vico) de los últimos 7 días, de hace 6 días a hoy, con la inicial del día debajo («Lun», «Mar»…) y el número encima de cada columna (D-3).
@@ -80,7 +80,7 @@ Con esta HU, la pestaña «Indicadores» muestra un tablero con esos datos, calc
 
 ## Fuera de alcance
 - El historial del equipo y su búsqueda (prototipo 11): HU-16.
-- Marcar incidencias como críticas en Room, avisos y el resumen del día: HU-18.
+- Avisos de casos demorados y del resumen del día: HU-18, que no marca `critica` en Room (D-3 de la spec 018).
 - Filtros por fechas, exportar o compartir el tablero.
 - La barra inferior del prototipo 10 (Incidencias, Asignar, Indicadores, Historial): se mantiene la barra por permisos de hoy.
 - Cambiar Inicio del jefe.
@@ -93,7 +93,7 @@ Con esta HU, la pestaña «Indicadores» muestra un tablero con esos datos, calc
 - La línea de la HU-15 en `MEMORY.md` dice «completa» y se borra `DatosDemo.kt` (`EQUIPO_DEMO`), que solo existía para esta pantalla.
 
 ## Decisiones
-- D-1 · Qué es crítico (RF-1508). **Aprobada el 2026-11-09:** pendiente hace más de 5 días, como el prototipo («Críticos (+5 días)»), calculado en el celular; también cuentan las que marque `critica` la HU-18. Alternativas descartadas: solo el campo `critica` (hoy siempre 0) y contar equipos con muchas incidencias.
+- D-1 · Qué es crítico (RF-1508). **Aprobada el 2026-11-09:** pendiente hace más de 5 días, como el prototipo («Críticos (+5 días)»), calculado en el celular; también cuentan las que tengan `critica` (hoy ninguna: la HU-18 decidió no escribirlo, D-3 de la spec 018). Alternativas descartadas: solo el campo `critica` (hoy siempre 0) y contar equipos con muchas incidencias.
 - D-2 · Incidencias por estado (RF-1515, RF-1516). **Aprobada el 2026-11-09:** una tarjeta con una barra por marca y las solucionadas, porque el criterio lo pide aunque el prototipo no lo dibuje. Alternativa descartada: solo las métricas de arriba.
 - D-3 · Período del gráfico (RF-1506, RF-1509). **Aprobada el 2026-11-09:** los últimos 7 días contando hoy, con hoy resaltado; así nunca empieza vacío. Alternativa descartada: la semana actual de lunes a domingo, como el prototipo.
 - D-4 · Equipo a evaluar (RF-1521 a RF-1523). **Aprobada el 2026-11-09:** el equipo con más incidencias en 90 días, si tiene 3 o más, con acceso al historial (HU-16). Alternativa descartada: dejarlo para la HU-16.

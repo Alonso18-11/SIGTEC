@@ -11,42 +11,45 @@
 >
 > ⚠️ = compartido de `CLAUDE.md`; 🔶 = sensible fuera de esa lista.
 
-## PR-A: núcleo (base #220)
-- [ ] **T01 · `TipoTareaDiaria` y `TareaDiaria` 🔶.** D-2, D-10.
+> **Estado (2026-11-16).** PR-A en #223 (sobre #226, que reemplaza a #220 de la HU-17), PR-B en #224 y PR-C en #225
+> (los dos sobre #223), y PR-D en este PR (sobre #222). Falta T16.
+
+## PR-A: núcleo (base #226, antes #220)
+- [x] **T01 · `TipoTareaDiaria` y `TareaDiaria` 🔶.** D-2, D-10.
   - Hecho cuando: compila.
-- [ ] **T02 · `tocaTareaDiaria` en `ReglasSincronizacion` 🔶** con sus casos. RF-1801, RF-1803.
+- [x] **T02 · `tocaTareaDiaria` en `ReglasSincronizacion` 🔶** con sus casos. RF-1801, RF-1803.
   - Hecho cuando: pasan las pruebas.
-- [ ] **T03 · `DescargaDatosAlDia` 🔶.** RF-1810.
+- [x] **T03 · `DescargaDatosAlDia` 🔶.** RF-1810.
   - Hecho cuando: compila.
-- [ ] **T04 · `RevisarAsignacionesWorker` corre las tareas diarias 🔶.** RF-1801 a RF-1805, RF-1811.
+- [x] **T04 · `RevisarAsignacionesWorker` corre las tareas diarias 🔶.** RF-1801 a RF-1805, RF-1811.
   - Hecho cuando: compila y pasan las pruebas.
-- [ ] **T05 · `NotificadorAvisosArea`.** RF-1819 a RF-1821.
+- [x] **T05 · `NotificadorAvisosArea`.** RF-1819 a RF-1821.
   - Hecho cuando: compila.
-- [ ] **T06 · Permiso de notificaciones también para el jefe**, con su prueba. RF-1822, RF-1823.
+- [x] **T06 · Permiso de notificaciones también para el jefe**, con su prueba. RF-1822, RF-1823.
   - Hecho cuando: pasa `PermisoNotificacionesTest`.
 
 ## PR-B: repuestos (base PR-A)
-- [ ] **T07 · `TareaRepuestos` con su prueba.** RF-1806 a RF-1809.
+- [x] **T07 · `TareaRepuestos` con su prueba.** RF-1806 a RF-1809.
   - Hecho cuando: pasa (técnico sí, jefe no; éxito solo sin solicitudes sin respuesta).
-- [ ] **T08 · `@IntoSet` en `AtencionModule` ⚠️.**
+- [x] **T08 · `@IntoSet` en `AtencionModule` ⚠️.**
   - Hecho cuando: compila.
-- [ ] **T09 · Comentarios de «la HU-18 llamará…».**
+- [x] **T09 · Comentarios de «la HU-18 llamará…».**
   - Hecho cuando: ya no hay comentarios que hablen de la HU-18 en futuro en `feature/atencion`.
 
 ## PR-C: avisos del jefe (base PR-A)
-- [ ] **T10 · `AvisosJefe` con su prueba.** RF-1813, RF-1817, RF-1820.
+- [x] **T10 · `AvisosJefe` con su prueba.** RF-1813, RF-1817, RF-1820.
   - Hecho cuando: pasa con 0, 1 y varios.
-- [ ] **T11 · `registrarTarea` y `ultimaTareaExitosa` en `IndicadoresRepository`**, su `Impl` y el doble. RF-1803.
+- [x] **T11 · `registrarTarea` y `ultimaTareaExitosa` en `IndicadoresRepository`**, su `Impl` y el doble. RF-1803.
   - Hecho cuando: compila.
-- [ ] **T12 · `CalcularIndicadoresDeHoy` con su prueba.** RF-1812, RF-1816.
+- [x] **T12 · `CalcularIndicadoresDeHoy` con su prueba.** RF-1812, RF-1816.
   - Hecho cuando: pasa (sin sesión, sin permiso, reparados de hoy).
-- [ ] **T13 · `TareaCasosDemorados`, `TareaResumenDia` y su `@IntoSet` ⚠️.** RF-1812 a RF-1818.
+- [x] **T13 · `TareaCasosDemorados`, `TareaResumenDia` y su `@IntoSet` ⚠️.** RF-1812 a RF-1818.
   - Hecho cuando: compila y pasan las pruebas.
-- [ ] **T14 · Comentarios de `critica` (D-3) ⚠️.**
+- [x] **T14 · Comentarios de `critica` (D-3) ⚠️.**
   - Hecho cuando: ningún comentario dice que la HU-18 escribe `critica`.
 
 ## PR-D: cierre (base: la spec)
-- [ ] **T15 · Nota de RF-1508 en la spec 015**, `MEMORY.md`, spec y tareas con el estado.
+- [x] **T15 · Nota de RF-1508 en la spec 015**, `MEMORY.md`, spec y tareas con el estado.
   - Hecho cuando: la línea de la HU-18 dice qué falta probar.
 - [ ] **T16 · Prueba manual en un celular real** (spec, «Criterios de finalización»).
   - Hecho cuando: todos los casos pasan; la línea de `MEMORY.md` dice «completa».
