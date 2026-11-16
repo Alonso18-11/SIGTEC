@@ -32,7 +32,6 @@ import org.junit.Test
 import java.time.Instant
 
 /** HU-13: fallas parecidas (RF-1324 a RF-1330) y «Guardar en el diccionario» (RF-1316, RF-1319) en el detalle. */
-// UnconfinedTestDispatcher sigue siendo experimental en kotlinx-coroutines-test
 @OptIn(ExperimentalCoroutinesApi::class)
 class DetalleFallasParecidasTest {
 
