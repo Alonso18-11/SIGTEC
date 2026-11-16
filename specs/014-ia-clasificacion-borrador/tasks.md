@@ -131,3 +131,116 @@
 ## PR-24 — texto del botón «Usar» (base `main`)
 - [ ] **T51 · `textoUsar = "Usar"` en `TarjetaSugerenciaIA` y vista previa con «Usar borrador» 🔶.** RF-1419.
   Hecho cuando: las vistas previas se ven en claro y oscuro.
+
+## PR-25 — `AsignarIncidencia` guarda la clasificación (base `main`)
+- [ ] **T52 · `ClasificacionElegida?` en `AsignarIncidencia`** (`null` no cambia nada). RF-1412. Hecho cuando: compila.
+- [ ] **T53 · Casos nuevos de `AsignarIncidenciaTest`**: con clasificación, sin ella y con el límite alcanzado.
+  RF-1412. Hecho cuando: la prueba pasa.
+
+## PR-26 — el `ViewModel` con la clasificación elegida (base PR-25)
+- [ ] **T54 · `tipoElegido`, `prioridadElegida` y sus `al…`**, iniciados una vez con los de la incidencia (plan 4.7).
+  RF-1408, RF-1411. Hecho cuando: compila.
+- [ ] **T55 · `alAsignar` envía la clasificación.** RF-1412. Hecho cuando: compila.
+- [ ] **T56 · Casos nuevos de `AsignacionViewModelTest`.** Mismos RF. Hecho cuando: la prueba pasa.
+
+## PR-27 — sección «Clasificación» (base PR-26)
+- [ ] **T57 · `SeccionClasificacion` con dos `PestanasSegmentadas` y la opción nula** (plan 5.1, P-6). RF-1408.
+  Hecho cuando: compila.
+- [ ] **T58 · Vistas previas con y sin clasificación** en claro y oscuro. RF: — Hecho cuando: se ven.
+
+## PR-28 — pedir y mostrar la sugerencia (base PR-26, trae PR-19, PR-20 y PR-23)
+- [ ] **T59 · `EstadoSugerencia` y el pedido en la primera carga** (plan 4.7). RF-1401, RF-1403, RF-1404, RF-1406,
+  RF-1407. Hecho cuando: compila.
+- [ ] **T60 · La sugerencia a la vista sale de `ObservarSugerencia`.** RF-1405. Hecho cuando: compila.
+- [ ] **T61 · Casos nuevos de `AsignacionViewModelTest`**: generando, lista, sin sugerencia, ya clasificada.
+  Mismos RF. Hecho cuando: la prueba pasa.
+
+## PR-29 — usar, descartar y decidir (base PR-28, trae PR-14 y PR-22)
+- [ ] **T62 · `alUsarSugerencia` y `alDescartarSugerencia`.** RF-1409, RF-1410. Hecho cuando: compila.
+- [ ] **T63 · Decidir la sugerencia después de asignar** con `clasificacionAceptada` (plan 4.7, P-8). RF-1413.
+  Hecho cuando: compila.
+- [ ] **T64 · Casos nuevos de `AsignacionViewModelTest`**: aceptada, corregida, descartada y sin usar. Mismos RF.
+  Hecho cuando: la prueba pasa.
+
+## PR-30 — tarjeta «Sugerencia de IA» (base PR-29, trae PR-27)
+- [ ] **T65 · La tarjeta generando y lista, sin el comentario «es de la HU-14»** (plan 5.2). RF-1403, RF-1404,
+  RF-1409, RF-1410. Hecho cuando: compila.
+- [ ] **T66 · Vistas previas de la sugerencia** en claro y oscuro. RF: —
+  Hecho cuando: en el celular, como jefe, se ve «Generando sugerencia» y luego la sugerencia; usarla, corregirla y
+  descartarla dejan en Firestore la decisión esperada (spec, «Criterios de finalización»).
+
+## PR-31 — `NOTAS` se puede dictar (base `main`)
+- [ ] **T67 · `CampoDictado.NOTAS` y la rama en `InformeTecnicoViewModel` (sin efecto todavía).** RF-1414.
+  Hecho cuando: compila.
+- [ ] **T68 · «Dictar notas» en `tituloDictado`.** RF-1414. Hecho cuando: compila.
+
+## PR-32 — el informe lleva «Mis notas» (base PR-31)
+- [ ] **T69 · `notas`, `alCambiarNotas` y el dictado de `NOTAS`.** RF-1414. Hecho cuando: compila.
+- [ ] **T70 · Casos nuevos de `InformeTecnicoViewModelTest`**: escribir y dictar notas. RF-1414.
+  Hecho cuando: la prueba pasa.
+
+## PR-33 — campo «Mis notas» (base PR-32)
+- [ ] **T71 · `CampoTexto` «Mis notas» con micrófono, antes de los campos del informe.** RF-1414.
+  Hecho cuando: compila y las vistas previas lo muestran.
+- [ ] **T72 · `NOTAS` en `CAMPOS_INFORME`.** RF-1414. Hecho cuando: en el celular, dictar notas las escribe en el campo.
+
+## PR-34 — pedir el borrador (base PR-32, trae PR-19, PR-21 y PR-23)
+- [ ] **T73 · `iaDisponible`, `EstadoBorrador`, `puedeRedactar` y `alRedactarBorrador`** (plan 4.8). RF-1415 a
+  RF-1419, RF-1423. Hecho cuando: compila.
+- [ ] **T74 · El borrador sin decidir se muestra al volver.** RF-1424. Hecho cuando: compila.
+- [ ] **T75 · Casos nuevos de `InformeTecnicoViewModelTest`**: redactando, listo, error, sin conexión. Mismos RF.
+  Hecho cuando: la prueba pasa.
+
+## PR-35 — usar, descartar y decidir al cerrar (base PR-34, trae PR-22)
+- [ ] **T76 · `alUsarBorrador`, `alDescartarBorrador` y `textoDeIA` en el `SavedStateHandle`.** RF-1420 a RF-1422.
+  Hecho cuando: compila.
+- [ ] **T77 · Un borrador sin decidir queda no aceptado al cerrar.** RF-1425, RF-1426. Hecho cuando: compila.
+- [ ] **T78 · Casos nuevos de `InformeTecnicoViewModelTest`**: usar, descartar, otro borrador, cierre, rotación.
+  Mismos RF. Hecho cuando: la prueba pasa.
+
+## PR-36 — botón y aviso sin conexión (base PR-34, trae PR-33)
+- [ ] **T79 · «Redactar borrador con IA» habilitado según `puedeRedactar`.** RF-1414, RF-1415. Hecho cuando: compila.
+- [ ] **T80 · «La IA necesita conexión a internet.» sin red.** RF-1415.
+  Hecho cuando: las vistas previas muestran el botón con y sin conexión.
+
+## PR-37 — tarjeta del borrador (base PR-36, trae PR-24 y PR-35)
+- [ ] **T81 · Tarjeta redactando y lista con «Usar borrador», y el error con `error.mensaje()`** (plan 5.3).
+  RF-1418 a RF-1421, RF-1423. Hecho cuando: compila.
+- [ ] **T82 · Vistas previas del borrador** en claro y oscuro. RF: — Hecho cuando: se ven.
+
+## PR-38 — aviso del texto redactado por IA (base PR-37)
+- [ ] **T83 · «Texto redactado por IA: revísalo antes de confirmar el cierre.» mientras `textoDeIA`.** RF-1420.
+  Hecho cuando: en el celular, como técnico, dictar notas, redactar, usar el borrador, corregir un campo y cerrar con
+  huella deja el informe y la sugerencia aceptada en Firestore.
+
+## PR-39 — ordenar por urgencia (base `main`)
+- [ ] **T84 · `OrdenIncidencias` y `ordenar`** (plan 3.4). RF-1434, RF-1436. Hecho cuando: compila.
+- [ ] **T85 · `OrdenIncidenciasTest`.** Mismos RF. Hecho cuando: la prueba pasa.
+
+## PR-40 — la lista recuerda el orden (base PR-39)
+- [ ] **T86 · `orden` en el `SavedStateHandle`, `alOrdenar` y el orden después de los filtros.** RF-1433, RF-1435.
+  Hecho cuando: compila.
+- [ ] **T87 · Casos nuevos de `ListaIncidenciasViewModelTest`**: con filtros y al limpiar. Mismos RF.
+  Hecho cuando: la prueba pasa.
+
+## PR-41 — prioridad en `FilaIncidencia` (base `main`)
+- [ ] **T88 · `prioridad: String? = null` y su vista previa 🔶.** RF-1437. Hecho cuando: se ve en claro y oscuro.
+
+## PR-42 — chip «Orden» (base PR-40)
+- [ ] **T89 · `FiltroDesplegable("Orden", …)` antes de «Etapa»; «Limpiar» no lo toca** (plan 5.4). RF-1433, RF-1435.
+  Hecho cuando: compila y las vistas previas lo muestran.
+
+## PR-43 — prioridad en cada fila (base PR-42, trae PR-41)
+- [ ] **T90 · Con «Más urgentes», cada pendiente muestra su prioridad o «Sin prioridad».** RF-1437.
+  Hecho cuando: en el celular se cumple el punto del orden de la spec, incluida la rotación.
+
+## PR-44 — cierre (base: la rama del último PR fusionado)
+- [ ] **T91 · Comprobar que nada quedó fuera**: cada rama de la HU tiene su PR fusionado. RF: —
+  Hecho cuando: en el remoto no queda ninguna rama de la HU.
+- [ ] **T92 · Pruebas manuales de punta a punta** («Criterios de finalización» de la spec) en un celular real.
+  RF-1401 a RF-1437. Hecho cuando: cada prueba está anotada con su resultado.
+- [ ] **T93 · Spec «completa»**, con la fecha y qué se probó. RF: — Hecho cuando: la spec describe el código.
+- [ ] **T94 · Tareas marcadas**, con el motivo de las que no se hicieron. RF: — Hecho cuando: no queda ninguna sin
+  explicar.
+- [ ] **T95 · HU-14 «completa (RF-1401 a RF-1437)» en `MEMORY.md`**, después de `git pull origin main`. RF: —
+  Hecho cuando: la línea está actualizada.
