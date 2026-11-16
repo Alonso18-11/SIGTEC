@@ -112,10 +112,15 @@ service cloud.firestore {
     }
 
     // ---------- IA ----------
+    // HU-14 (RF-1430, D-7): el celular sube cada sugerencia una sola vez, ya decidida y a nombre de quien la decidió.
+    // No se cambia ni se borra, como los movimientos.
     match /sugerenciasIA/{id} {
-      allow read, create: if autenticado();
-      allow update: if autenticado() && soloCambia(['aceptada']);
-      allow delete: if false;
+      allow read: if autenticado();
+      allow create: if autenticado()
+        && request.resource.data.decididaPorId == request.auth.uid
+        && request.resource.data.aceptada is bool
+        && request.resource.data.tipo in ['CLASIFICACION', 'BORRADOR_INFORME'];
+      allow update, delete: if false;
     }
 
     // ---------- Diccionario ----------
