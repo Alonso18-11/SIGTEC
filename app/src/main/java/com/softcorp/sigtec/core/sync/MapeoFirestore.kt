@@ -92,6 +92,24 @@ internal fun InformeTecnicoEntity.aFirestore(): Map<String, Any?> = mapOf(
     "confirmadoEn" to confirmadoEn.aTimestamp()
 )
 
+/**
+ * HU-16 (RF-1623, RF-1625): el documento se llama como la incidencia y no guarda el id local de quien lo escribió, así
+ * que en los demás celulares el informe toma ese nombre como id. Baja ya sincronizado: no vuelve a subir.
+ */
+internal fun DocumentSnapshot.aInformeEntity(): InformeTecnicoEntity? = runCatching {
+    InformeTecnicoEntity(
+        id = id,
+        incidenciaId = id,
+        diagnostico = getString("diagnostico")!!,
+        trabajoRealizado = getString("trabajoRealizado")!!,
+        piezasCambiadas = getString("piezasCambiadas"),
+        observaciones = getString("observaciones"),
+        fechaCierre = getTimestamp("fechaCierre")!!.toInstant(),
+        confirmadoEn = getTimestamp("confirmadoEn")!!.toInstant(),
+        pendienteSincronizar = false
+    )
+}.getOrNull()
+
 // ---------- Solicitudes de repuesto (HU-11) ----------
 
 internal fun SolicitudRepuestoEntity.aFirestore(): Map<String, Any?> = mapOf(
