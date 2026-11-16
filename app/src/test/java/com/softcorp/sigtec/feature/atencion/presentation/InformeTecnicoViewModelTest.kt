@@ -17,6 +17,14 @@ import com.softcorp.sigtec.feature.captura.data.EvidenciaRepositoryFalso
 import com.softcorp.sigtec.feature.captura.domain.CampoDictado
 import com.softcorp.sigtec.feature.captura.domain.MAX_FOTOS
 import com.softcorp.sigtec.feature.captura.domain.ObservarCapturaEvidencia
+import com.softcorp.sigtec.core.domain.Resultado
+import com.softcorp.sigtec.core.domain.model.TipoSugerencia
+import com.softcorp.sigtec.feature.ia.data.AsistenteIAFalso
+import com.softcorp.sigtec.feature.ia.data.SugerenciaIARepositoryFalso
+import com.softcorp.sigtec.feature.ia.domain.DecidirSugerencia
+import com.softcorp.sigtec.feature.ia.domain.ObservarIADisponible
+import com.softcorp.sigtec.feature.ia.domain.ObservarSugerencia
+import com.softcorp.sigtec.feature.ia.domain.RedactarBorradorInforme
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -35,6 +43,8 @@ class InformeTecnicoViewModelTest {
     private val sesion = SesionRepositoryDemo()
     private val repo = AtencionRepositoryFalso()
     private val evidencias = EvidenciaRepositoryFalso()
+    private val asistente = AsistenteIAFalso()
+    private val sugerencias = SugerenciaIARepositoryFalso()
     private val confirmadoEn = Instant.parse("2026-10-12T15:30:00Z")
 
     // INC-0127: asignada a Luis Ramírez, en atención
@@ -56,7 +66,11 @@ class InformeTecnicoViewModelTest {
             SavedStateHandle(mapOf("incidenciaId" to incidenciaId)),
             CerrarIncidenciaConInforme(VerificarPermiso(sesion), repo),
             ObservarCapturaEvidencia(evidencias, ObservarUsuarioActual(sesion)),
-            disponibilidad
+            disponibilidad,
+            RedactarBorradorInforme(VerificarPermiso(sesion), asistente, sugerencias),
+            ObservarSugerencia(sugerencias),
+            ObservarIADisponible(asistente),
+            DecidirSugerencia(VerificarPermiso(sesion), sugerencias)
         )
     }
 
@@ -275,5 +289,96 @@ class InformeTecnicoViewModelTest {
 
         assertEquals("cambie la fuente ahora prende", vm.estado.value.notas)
         assertEquals("", vm.estado.value.diagnostico)
+    }
+
+    private fun borradores() = sugerencias.sugerencias.filter { it.tipo == TipoSugerencia.BORRADOR_INFORME }
+
+    @Test
+    fun `sin notas o sin conexion no se puede redactar`() = runTest {
+        // HU-14 (RF-1415)
+        val vm = nuevoVm()
+        assertFalse(vm.estado.value.puedeRedactar)
+
+        vm.alCambiarNotas("cambie la fuente")
+        assertTrue(vm.estado.value.puedeRedactar)
+
+        asistente.disponible.value = false
+        assertFalse(vm.estado.value.puedeRedactar)
+        vm.alRedactarBorrador()
+        assertTrue(asistente.entradasDeBorrador.isEmpty())
+    }
+
+    @Test
+    fun `redactar muestra el borrador sin cambiar los campos`() = runTest {
+        // HU-14 (RF-1417, RF-1419, RF-1428)
+        val vm = nuevoVm()
+        vm.alCambiarDiagnostico("Fuente")
+        vm.alCambiarNotas("cambie la fuente, ahora prende")
+        vm.alRedactarBorrador()
+
+        val enviada = asistente.entradasDeBorrador.single()
+        assertEquals(enAtencion.descripcion, enviada.descripcion)
+        assertEquals("Fuente", enviada.diagnostico)
+        assertEquals("Fuente dañada por voltaje", vm.estado.value.borradorLeido?.diagnostico)
+        assertEquals("Fuente", vm.estado.value.diagnostico)
+        assertFalse(vm.estado.value.redactando)
+    }
+
+    @Test
+    fun `si Gemini falla se ve el aviso y los campos no cambian`() = runTest {
+        // HU-14 (RF-1423)
+        asistente.respuestaBorrador = Resultado.Error(ErrorDominio.SinConexion)
+        val vm = nuevoVm()
+        vm.alCambiarNotas("cambie la fuente")
+        vm.alRedactarBorrador()
+
+        assertEquals(ErrorDominio.IANoDisponible, vm.estado.value.errorBorrador)
+        assertEquals(null, vm.estado.value.borrador)
+        assertEquals("", vm.estado.value.diagnostico)
+    }
+
+    @Test
+    fun `usar el borrador llena los campos, lo acepta y avisa que es texto de IA`() = runTest {
+        // HU-14 (RF-1420): las observaciones vienen vacías y no tocan lo escrito
+        val vm = nuevoVm()
+        vm.alCambiarObservaciones("Revisar el estabilizador")
+        vm.alCambiarNotas("cambie la fuente")
+        vm.alRedactarBorrador()
+        vm.alUsarBorrador()
+
+        assertEquals("Fuente dañada por voltaje", vm.estado.value.diagnostico)
+        assertEquals("Se cambió la fuente", vm.estado.value.trabajoRealizado)
+        assertEquals("Fuente ATX de 500 W", vm.estado.value.piezasCambiadas)
+        assertEquals("Revisar el estabilizador", vm.estado.value.observaciones)
+        assertTrue(vm.estado.value.textoDeIA)
+        assertEquals(true, borradores().single().aceptada)
+        assertEquals(null, vm.estado.value.borrador)
+    }
+
+    @Test
+    fun `descartar el borrador no cambia los campos y lo deja no aceptado`() = runTest {
+        // HU-14 (RF-1421)
+        val vm = nuevoVm()
+        vm.alCambiarNotas("cambie la fuente")
+        vm.alRedactarBorrador()
+        vm.alDescartarBorrador()
+
+        assertEquals("", vm.estado.value.diagnostico)
+        assertFalse(vm.estado.value.textoDeIA)
+        assertEquals(false, borradores().single().aceptada)
+    }
+
+    @Test
+    fun `cerrar con un borrador sin decidir lo deja no aceptado`() = runTest {
+        // HU-14 (RF-1425, RF-1426)
+        val vm = nuevoVm()
+        vm.alCambiarNotas("cambie la fuente")
+        vm.alRedactarBorrador()
+        vm.alCambiarDiagnostico("Fuente dañada")
+        vm.alCambiarTrabajo("Se cambió la fuente")
+        vm.alConfirmarCierre(confirmadoEn)
+
+        assertTrue(vm.estado.value.cerrada)
+        assertEquals(false, borradores().single().aceptada)
     }
 }
