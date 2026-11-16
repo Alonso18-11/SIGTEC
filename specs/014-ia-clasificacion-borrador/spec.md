@@ -131,7 +131,8 @@ etiqueta «IA» y la regla de Firestore de `sugerenciasIA`.
 
 ### Asistente (D-1)
 - RF-1432: EL SISTEMA no ofrece «Abrir asistente» en el menú del detalle de la incidencia. Hoy esa opción navega a
-  `Ruta.Asistente`, que no tiene pantalla desde #144, y el asistente queda fuera de esta HU.
+  `Ruta.Asistente`, que no tiene pantalla desde #144, y el asistente queda fuera de esta HU. `Ruta.Asistente` se
+  borra de `Rutas.kt` en su propio PR.
 
 ### Ordenar por urgencia (D-11)
 - RF-1433: EL SISTEMA ofrece en «Incidencias» dos órdenes: «Más recientes», el de la HU-04 y el que aparece al abrir
@@ -209,6 +210,8 @@ etiqueta «IA» y la regla de Firestore de `sugerenciasIA`.
   de «Incidencias» (D-11).
 
 ## Configuración en la consola de Firebase
+La hace Nina cuando el plan lo pida (antes de la primera prueba en el celular con Gemini), con la opción (a) de App
+Check (D-9).
 1. Consola de Firebase → el proyecto → AI Services → AI Logic → «Get started».
 2. Elegir «Gemini Developer API» (no «Agent Platform Gemini API», que exige el plan Blaze). El flujo habilita
    `generativelanguage.googleapis.com` y `firebasevertexai.googleapis.com`. Desde mediados de 2026 ya no crea una clave
@@ -293,12 +296,9 @@ Todas aprobadas por Nina el 2026-11-15.
   Alternativa descartada: dejarlo fuera, porque es el «para» de la historia.
 
 ## Dudas abiertas
-- [NECESITA ACLARACIÓN] D-9: ¿opción (a), (b) o (c)? ¿La entrega del curso es antes del 2027-01-21?
-- [NECESITA ACLARACIÓN] Orden por urgencia. La historia dice «para recibir la lista ordenada por urgencia», pero el
-  criterio no lo pide, y la HU-04 (más reciente primero) y la HU-08 (más antigua primero) fijan su orden. Propuesta:
-  agregar en «Incidencias» la opción de orden «Más urgentes» (prioridad alta a baja y, dentro de cada una, la más
-  antigua primero), sin cambiar el orden por defecto; serían RF-1433 en adelante. Alternativa: dejarlo fuera.
-- [NECESITA ACLARACIÓN] ¿Firebase AI Logic ya está activado en la consola, y quién lo activa y publica la regla?
-- [NECESITA ACLARACIÓN] D-10: ¿módulo `feature/ia` y ámbito `ia`?
-- [NECESITA ACLARACIÓN] Además de la opción del menú (RF-1432), ¿se borra `Ruta.Asistente` de `Rutas.kt` (archivo
-  compartido)?
+Ninguna. Respondidas por Nina el 2026-11-15:
+- App Check: se aplaza la exigencia (D-9, opción a); antes de publicar en Google Play se decide si se agrega a la app.
+- Orden por urgencia: sí, en sus propios PR (D-11, RF-1433 a RF-1437).
+- Consola: Nina activa Firebase AI Logic y publica la regla cuando el plan lo pida.
+- Módulo `feature/ia` con ámbito `ia`: sí (D-10).
+- `Ruta.Asistente`: se borra de `Rutas.kt` en su propio PR (RF-1432).
