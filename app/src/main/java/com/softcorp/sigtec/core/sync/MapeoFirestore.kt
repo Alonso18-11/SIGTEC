@@ -8,6 +8,7 @@ import com.softcorp.sigtec.core.database.entity.IncidenciaEntity
 import com.softcorp.sigtec.core.database.entity.InformeTecnicoEntity
 import com.softcorp.sigtec.core.database.entity.MovimientoEntity
 import com.softcorp.sigtec.core.database.entity.SolicitudRepuestoEntity
+import com.softcorp.sigtec.core.database.entity.SugerenciaIAEntity
 import com.softcorp.sigtec.core.database.entity.TecnicoEntity
 import com.softcorp.sigtec.core.domain.model.EstadoEntrega
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
@@ -150,6 +151,22 @@ internal fun FallaDiccionarioEntity.aFirestore(): Map<String, Any?> = mapOf(
     "autorNombre" to autorNombre,
     "incidenciaOrigenId" to incidenciaOrigenId,
     "registradaEn" to actualizadoEn.aTimestamp()
+)
+
+/**
+ * HU-14 (RF-1427, RF-1429, RF-1430): la sugerencia ya decidida, tal como se mostró. Solo se sube (D-7): no hay lectura
+ * de vuelta. `decididaPorId` y `aceptada` son los campos que exige la regla de `sugerenciasIA`.
+ */
+internal fun SugerenciaIAEntity.aFirestore(): Map<String, Any?> = mapOf(
+    "incidenciaId" to incidenciaId,
+    "tipo" to tipo.name,
+    "contenido" to contenido,
+    "modelo" to modelo,
+    "generadaEn" to generadaEn.aTimestamp(),
+    "aceptada" to aceptada,
+    "decididaPorId" to decididaPorId,
+    "decididaEn" to decididaEn?.aTimestamp(),
+    "actualizadoEn" to actualizadoEn.aTimestamp()
 )
 
 internal fun DocumentSnapshot.aFallaEntity(): FallaDiccionarioEntity? = runCatching {
