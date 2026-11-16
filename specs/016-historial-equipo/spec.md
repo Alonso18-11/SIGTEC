@@ -1,7 +1,7 @@
 # Spec 016 — Historial de atenciones de un equipo (HU-16)
 
-> Estado: borrador para revisar (2026-11-16). Decisiones D-1 a D-7 propuestas, sin aprobar; ver «Decisiones» y «Dudas
-> abiertas».
+> Estado: lista (2026-11-16). Decisiones D-1 a D-8 aprobadas por Nina el 2026-11-16 (D-3 con cambio: las tres métricas
+> en 90 días); dudas respondidas. El cómo está en `plan.md` y las tareas en `tasks.md`.
 
 > Spec escrita antes del código (principio 2 de la constitución). Los requisitos usan el bloque propio de la HU-16
 > (RF-1601…). Sale de la planificación (`SIGTEC_Planificación.xlsx`, Sprint 4, semana 12, épica EP-07 «Control y
@@ -14,8 +14,8 @@ incidencias de ese equipo, quién las atendió ni qué se le hizo. La app ya gua
 muestra por equipo. Los accesos ya existen y llevan a una pantalla en construcción: «Ver historial» en el detalle de
 una incidencia (HU-04) y la tarjeta del equipo a evaluar del tablero (HU-15, RF-1522).
 
-Con esta HU, «Historial del equipo» muestra, para un código de equipo, sus datos del catálogo, tres números (atenciones
-en 3 meses, piezas cambiadas y días promedio de atención), un aviso de «Equipo crítico» cuando falla seguido, y la línea
+Con esta HU, «Historial del equipo» muestra, para un código de equipo, sus datos del catálogo, tres números de los
+últimos 3 meses (atenciones, piezas cambiadas y días promedio de atención), un aviso de «Equipo crítico» cuando falla seguido, y la línea
 de tiempo de todas sus incidencias con su problema, su técnico y lo que dice su informe. Todo sale de Room; para que
 el informe de un técnico se vea en los demás celulares, la sincronización empieza a bajar los informes (D-1).
 
@@ -46,7 +46,7 @@ el informe de un técnico se vea en los demás celulares, la sincronización emp
 - RF-1605: CUANDO el escaneo devuelve un código (`CLAVE_CODIGO_ESCANEADO`), EL SISTEMA lo pone en el campo y muestra su
   historial sin pedir otro toque.
 - RF-1606: EL SISTEMA agrega el acceso rápido «Historial» en Inicio, junto a «Registrar» y «Escanear», que abre la
-  pantalla sin código (D-5).
+  pantalla sin código (D-5). Lo ve todo perfil con `CONSULTAR_HISTORIAL` (hoy, los tres), aunque no pueda registrar.
 
 ### Cabecera (prototipo 11)
 - RF-1607: EL SISTEMA muestra una `CabeceraHero` con el botón de volver, la etiqueta «Código del equipo», el código en
@@ -54,14 +54,16 @@ el informe de un técnico se vea en los demás celulares, la sincronización emp
   responsable.
 - RF-1608: SI el código no está en el catálogo, ENTONCES la cabecera muestra solo el código y la línea «Equipo fuera
   del catálogo», y el historial se muestra igual con las incidencias que haya.
-- RF-1609: EL SISTEMA muestra en la cabecera tres `TarjetaMetrica`: «Atenciones en 3 meses», «Piezas cambiadas» y
-  «Días promedio de atención» (D-3).
-- RF-1610: «Atenciones en 3 meses» cuenta las incidencias del equipo registradas en los últimos 90 días, contando hoy.
-- RF-1611: «Piezas cambiadas» cuenta las incidencias cerradas del equipo cuyo informe tiene el campo «Piezas cambiadas»
-  con texto (una por atención, no por pieza escrita) (D-3).
-- RF-1612: «Días promedio de atención» es el promedio, con un decimal y coma, entre la fecha de registro de cada
-  incidencia cerrada del equipo y la de su movimiento CERRADA, la misma medida del tablero (RF-1514). Menos de un día se
-  muestra en horas («6 h»). Sin incidencias cerradas, la tarjeta muestra «-».
+- RF-1609: EL SISTEMA muestra en la cabecera tres `TarjetaMetrica` con las incidencias del equipo registradas en los
+  últimos 90 días, contando hoy (la ventana de D-2), y cada etiqueta lo dice: «Atenciones en 3 meses», «Piezas
+  cambiadas en 3 meses» y «Días promedio en 3 meses» (D-3).
+- RF-1610: «Atenciones en 3 meses» cuenta esas incidencias.
+- RF-1611: «Piezas cambiadas en 3 meses» cuenta las de esas incidencias que están cerradas y cuyo informe tiene el campo
+  «Piezas cambiadas» con texto (una por atención, no por pieza escrita) (D-3).
+- RF-1612: «Días promedio en 3 meses» es el promedio, con un decimal y coma («2,1»), entre la fecha de registro y la de
+  su movimiento CERRADA de las de esas incidencias que están cerradas, la misma medida del tablero (RF-1514). Con menos
+  de un día, el número va en horas y la etiqueta dice «Horas promedio en 3 meses». Sin ninguna cerrada con su
+  movimiento, el número es «-».
 
 ### Equipo crítico (D-2)
 - RF-1613: SI el equipo tiene 3 o más incidencias registradas en los últimos 90 días (la misma regla que elige el equipo
@@ -80,12 +82,13 @@ el informe de un técnico se vea en los demás celulares, la sincronización emp
   atendió; una pendiente muestra el técnico asignado o «Sin técnico» (D-7).
 - RF-1618: SI una incidencia cerrada aún no tiene su informe en el celular, ENTONCES muestra «Informe por descargar» en
   lugar del trabajo realizado, con el técnico.
-- RF-1619: El punto de la línea de tiempo usa el color de su estado (`SigtecTheme.estados.*`): el de pendiente para las
-  pendientes y el de solucionado para las cerradas; el estado siempre va también en texto.
+- RF-1619: El punto de la línea de tiempo es verde (`SigtecTheme.estados.solucionado`) para las cerradas y ámbar con
+  halo (el acento, como «en curso» de `LineaTiempo`) para las pendientes, como el prototipo; el estado va también en
+  texto (RF-1616), así que no depende solo del color.
 - RF-1620: CUANDO la persona toca una atención, EL SISTEMA abre el detalle de esa incidencia (HU-04), que ya muestra el
   informe completo (RF-827) (D-7).
 - RF-1621: SI el equipo no tiene ninguna incidencia en el celular, ENTONCES EL SISTEMA muestra la cabecera con las
-  métricas en 0 y «-», y en lugar de la lista el texto «Este equipo no tiene atenciones registradas.».
+  métricas en 0, 0 y «-», y en lugar de la lista el texto «Este equipo no tiene atenciones registradas.».
 
 ### Datos y sincronización (D-1)
 - RF-1622: EL SISTEMA calcula el historial en el celular con lo que hay en Room (incidencias, movimientos, informes y
@@ -106,8 +109,7 @@ el informe de un técnico se vea en los demás celulares, la sincronización emp
   1 segundo (prueba JVM).
 - Diseño: prototipo 11 con los componentes v2: `CabeceraHero` con `IconosBarraEstadoClaros()` y `FondoBarraEstado` (la
   pantalla se desplaza), `TarjetaMetrica`, `EtiquetaEstado` con `SigtecTheme.estados.critico` y el ícono de alerta, el aviso como en las demás
-  pantallas y `LineaTiempo` (si su forma actual no alcanza para las tres líneas de cada atención, el plan dice si se
-  extiende o se hace una fila propia). Sin hexadecimales ni `fontSize`. Vistas previas en claro y oscuro: con historial
+  pantallas y una fila propia de `feature/indicadores` para cada atención, sin modificar `LineaTiempo` (D-8). Sin hexadecimales ni `fontSize`. Vistas previas en claro y oscuro: con historial
   crítico, sin atenciones, fuera del catálogo y la búsqueda.
 - Accesibilidad: cada atención se lee como un solo elemento («27 de septiembre de 2026, INC-0124, En atención, No
   enciende después del corte de luz, Luis Ramírez») con el rol de botón (RF-1620); toques de 48 dp o más.
@@ -120,8 +122,10 @@ el informe de un técnico se vea en los demás celulares, la sincronización emp
   descarga de informes (RF-1624) como función pura en `ReglasSincronizacion.kt`, con su prueba.
 
 ## Casos límite
-- Equipo con incidencias de hace más de 3 meses y ninguna reciente: aparecen todas en la lista, «Atenciones en 3 meses»
-  es 0 y no es crítico.
+- Equipo con incidencias de hace más de 3 meses y ninguna reciente: aparecen todas en la lista, las métricas quedan en
+  0, 0 y «-», y no es crítico.
+- Incidencia registrada hace más de 90 días y cerrada hace poco: aparece en la lista, pero no cuenta en las métricas,
+  que miran la fecha de registro, igual que «Equipo crítico».
 - Incidencia cerrada en otro celular: su movimiento CERRADA y, con D-1, su informe bajan solos; mientras el informe no
   llegue, se ve «Informe por descargar» (RF-1618).
 - Incidencia cerrada sin movimiento CERRADA en Room: se muestra como cerrada (la marca manda) pero no cuenta en el
@@ -148,8 +152,8 @@ el informe de un técnico se vea en los demás celulares, la sincronización emp
 
 ## Criterios de finalización
 - RF-1601 a RF-1626 implementados.
-- Pruebas JVM: el cálculo del historial (orden, 90 días con hoy, piezas con texto vacío, promedio en días y en horas, sin
-  cerradas, cerrada sin movimiento o sin informe, crítico con 2 y con 3, fuera del catálogo, 500 incidencias en menos de
+- Pruebas JVM: el cálculo del historial (orden, 90 días con hoy en las tres métricas, piezas con texto vacío, promedio en
+  días y en horas, sin cerradas, cerrada sin movimiento o sin informe, crítico con 2 y con 3, fuera del catálogo, 500 incidencias en menos de
   1 s); la normalización del código; la regla de descarga de informes (sin local, con local subido, con local
   pendiente); el caso de uso (sin sesión, sin permiso, camino feliz con cada perfil); el ViewModel (con código, búsqueda,
   código escaneado, rotación) con `MainDispatcherRule`.
@@ -165,39 +169,46 @@ el informe de un técnico se vea en los demás celulares, la sincronización emp
   «completa».
 
 ## Decisiones
-Propuestas, pendientes de aprobación.
-- D-1 · Bajar los informes (RF-1622 a RF-1625). **Propuesta:** escuchar `/informes` en `SincronizacionTiempoReal` y
+Aprobadas por Nina el 2026-11-16.
+- D-1 · Bajar los informes (RF-1622 a RF-1625). **Aprobada:** escuchar `/informes` en `SincronizacionTiempoReal` y
   guardarlos solo si no hay uno local para esa incidencia. Sin esto, el historial solo mostraría los informes escritos
   en el propio celular, y el criterio pide el informe. La HU-08 lo dejó para esta HU (D-4 de su plan). Toca
   `core/sync` (`SincronizacionTiempoReal.kt`, `MapeoFirestore.kt`, `ReglasSincronizacion.kt`), que es archivo
   compartido. Alternativa descartada: leer `/informes` directo desde la pantalla (rompe «Room es la fuente de verdad» y
   no funciona sin conexión).
-- D-2 · Qué es «Equipo crítico» (RF-1613, RF-1614). **Propuesta:** la misma regla del equipo a evaluar del tablero (3 o
+- D-2 · Qué es «Equipo crítico» (RF-1613, RF-1614). **Aprobada:** la misma regla del equipo a evaluar del tablero (3 o
   más incidencias registradas en 90 días), sacada a una función que usen los dos, para que un equipo no sea crítico en
   una pantalla y no en la otra. Alternativa: contar solo las cerradas o solo las de hardware.
-- D-3 · Las tres métricas (RF-1609 a RF-1612). **Propuesta:** «Atenciones en 3 meses» con la ventana de 90 días de D-2;
-  «Piezas cambiadas» y «Días promedio de atención» sobre todo el historial del equipo, porque sirven para la decisión de
-  compra aunque las fallas sean antiguas. «Piezas cambiadas» cuenta informes con ese campo lleno, porque es texto libre
-  («RAM de 16 GB y disco SSD») y no se puede contar piezas sin adivinar. Alternativas: las tres en 90 días; contar las
-  solicitudes de repuesto entregadas (HU-11), que no incluyen las piezas que el técnico tenía a mano.
-- D-4 · Orden (RF-1615). **Propuesta:** de la más reciente a la más antigua, como el prototipo y como la lista de
+- D-3 · Las tres métricas (RF-1609 a RF-1612). **Aprobada con cambio:** las tres sobre las incidencias registradas en
+  los últimos 90 días, con «en 3 meses» en cada etiqueta, para que coincidan con la regla de «Equipo crítico» (D-2).
+  «Piezas cambiadas» cuenta informes con ese campo lleno, porque es texto libre («RAM de 16 GB y disco SSD») y no se
+  pueden contar piezas sin adivinar. Alternativas descartadas: piezas y promedio sobre todo el historial (la propuesta
+  inicial); contar las solicitudes de repuesto entregadas (HU-11), que no incluyen las piezas que el técnico tenía a
+  mano.
+- D-4 · Orden (RF-1615). **Aprobada:** de la más reciente a la más antigua, como el prototipo y como la lista de
   incidencias (HU-04). El criterio dice «en orden cronológico», y este orden lo es, solo que invertido. Alternativa: de
   la más antigua a la más reciente.
-- D-5 · Buscar sin código (RF-1603 a RF-1606). **Propuesta:** cuando no llega código, la pantalla pide uno (escrito o
+- D-5 · Buscar sin código (RF-1603 a RF-1606). **Aprobada:** cuando no llega código, la pantalla pide uno (escrito o
   escaneado), y se agrega el acceso rápido «Historial» en Inicio (el prototipo 02 lo muestra como «Historial de
   equipo»). Así el técnico frente a un equipo escanea su etiqueta y ve el historial sin buscar una incidencia; la HU-09
-  dejó la clave del escaneo lista para esto. Toca `feature/inicio`. Alternativa: solo los dos accesos que ya existen y
+  dejó la clave del escaneo lista para esto. El acceso lo ven los tres perfiles, porque cualquier miembro del área
+  consulta el historial (RF-1606). Toca `feature/inicio`. Alternativa: solo los dos accesos que ya existen y
   quitar el `null` de `Ruta.HistorialEquipo` (toca `Rutas.kt`).
-- D-6 · Dónde vive el código (para el plan). **Propuesta:** en `feature/indicadores`, con ámbito `indicadores`: la ruta
+- D-6 · Dónde vive el código (para el plan). **Aprobada:** en `feature/indicadores`, con ámbito `indicadores`: la ruta
   ya está registrada en `IndicadoresNavigation.kt`, comparte la regla de D-2 y el prototipo lo pone en «Control del
   área» junto al tablero. No cambia la lista de ámbitos de `CLAUDE.md`. Alternativa: un módulo nuevo
   `feature/historial` con ámbito `historial` (hay que agregarlo a `CLAUDE.md` y mover la ruta).
-- D-7 · Qué muestra cada atención (RF-1617, RF-1620). **Propuesta:** el trabajo realizado del informe (como el
+- D-7 · Qué muestra cada atención (RF-1617, RF-1620). **Aprobada:** el trabajo realizado del informe (como el
   prototipo), no el diagnóstico, y tocar la atención abre su detalle con el informe completo. Alternativa: mostrar
   también el diagnóstico en el historial, que alarga cada fila.
 
+- D-8 · La fila de cada atención (RNF de diseño, RF-1616 a RF-1620). **Aprobada:** una fila propia en
+  `feature/indicadores` con el punto, la línea, los tres niveles de texto del prototipo y el toque al detalle, sin
+  modificar `LineaTiempo`, que usa el detalle con dos niveles. Alternativa descartada: extender `LineaTiempo`, que es un
+  componente compartido.
+
 ## Dudas abiertas
-- ¿Se aprueban D-1 a D-7, en especial D-1 (toca `core/sync`) y D-5 (toca Inicio)?
-- D-3: ¿«Piezas cambiadas» y el promedio sobre todo el historial, o los tres números en 3 meses?
-- D-5: ¿el acceso rápido «Historial» en Inicio lo ven los tres perfiles? Hoy los accesos rápidos solo se muestran a
-  quien puede registrar, que son los tres.
+Ninguna. Respondidas por Nina el 2026-11-16:
+- D-1 a D-7 aprobadas; D-3 con las tres métricas en 3 meses.
+- El acceso «Historial» de Inicio lo ven los tres perfiles.
+- La fila de tres niveles es propia de `feature/indicadores` (D-8).
