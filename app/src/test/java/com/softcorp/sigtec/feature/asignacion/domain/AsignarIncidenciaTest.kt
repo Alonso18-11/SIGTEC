@@ -5,12 +5,15 @@ import com.softcorp.sigtec.core.domain.ErrorDominio
 import com.softcorp.sigtec.core.domain.Resultado
 import com.softcorp.sigtec.core.domain.model.Incidencia
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
+import com.softcorp.sigtec.core.domain.model.Prioridad
 import com.softcorp.sigtec.core.domain.model.Tecnico
+import com.softcorp.sigtec.core.domain.model.TipoFalla
 import com.softcorp.sigtec.core.domain.model.TipoMovimiento
 import com.softcorp.sigtec.core.domain.usecase.VerificarPermiso
 import com.softcorp.sigtec.feature.asignacion.data.AsignacionRepositoryFalso
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Instant
@@ -162,6 +165,55 @@ class AsignarIncidenciaTest {
         comoJefe()
         val r = asignar("no-existe", luis.id, ahora)
         assertTrue(r is Resultado.Error && r.causa is ErrorDominio.Desconocido)
+        assertTrue(nadaGuardado())
+    }
+
+    @Test
+    fun `guarda la clasificacion elegida junto con la asignacion`() = runTest {
+        // HU-14 (RF-1412)
+        comoJefe()
+
+        val r = asignar("i127", luis.id, ahora, ClasificacionElegida(TipoFalla.RED, Prioridad.MEDIA))
+
+        val asignada = (r as Resultado.Exito).valor
+        assertEquals(TipoFalla.RED, asignada.tipoFalla)
+        assertEquals(Prioridad.MEDIA, asignada.prioridad)
+        assertEquals(listOf(asignada), repo.incidencias)
+        assertEquals(TipoMovimiento.ASIGNADA, repo.movimientos.single().tipo)
+    }
+
+    @Test
+    fun `al reasignar el jefe puede corregir o quitar la clasificacion`() = runTest {
+        // HU-14 (RF-1408, D-3): «Sin prioridad» la quita
+        comoJefe(asignadaAAna.copy(tipoFalla = TipoFalla.HARDWARE, prioridad = Prioridad.ALTA))
+
+        val asignada = (asignar("i127", luis.id, ahora, ClasificacionElegida(TipoFalla.RED, null)) as Resultado.Exito).valor
+
+        assertEquals(TipoFalla.RED, asignada.tipoFalla)
+        assertNull(asignada.prioridad)
+    }
+
+    @Test
+    fun `sin clasificacion elegida conserva la que tenia`() = runTest {
+        // HU-14: quien no la muestra no la cambia
+        comoJefe(asignadaAAna.copy(tipoFalla = TipoFalla.SOFTWARE, prioridad = Prioridad.BAJA))
+
+        val asignada = (asignar("i127", luis.id, ahora) as Resultado.Exito).valor
+
+        assertEquals(TipoFalla.SOFTWARE, asignada.tipoFalla)
+        assertEquals(Prioridad.BAJA, asignada.prioridad)
+    }
+
+    @Test
+    fun `si el limite impide asignar tampoco guarda la clasificacion`() = runTest {
+        // HU-14 (RF-1412)
+        comoJefe()
+        repo.fijarSinSubir(mapOf(ana.id to 1))
+
+        val r = asignar("i127", ana.id, ahora, ClasificacionElegida(TipoFalla.RED, Prioridad.ALTA))
+
+        assertEquals(Resultado.Error(ErrorDominio.LimiteAtencionAlcanzado("Ana Torres")), r)
+        assertEquals(listOf(sinAsignar), repo.incidencias)
         assertTrue(nadaGuardado())
     }
 }
