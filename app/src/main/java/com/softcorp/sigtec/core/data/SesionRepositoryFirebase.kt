@@ -37,8 +37,8 @@ class SesionRepositoryFirebase @Inject constructor(
     private val baseLocal: SigtecDatabase,
     private val almacen: AlmacenFotos,
     private val preferencias: PreferenciasSeguridadRepository,
-    @IoDispatcher private val io: CoroutineDispatcher,
-    @ApplicationScope private val scope: CoroutineScope
+    @param:IoDispatcher private val io: CoroutineDispatcher,
+    @param:ApplicationScope private val scope: CoroutineScope
 ) : SesionRepository {
 
     private val usuarios get() = firestore.collection("usuarios")
