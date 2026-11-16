@@ -104,21 +104,27 @@ Alonso abrió ramas o PR de lo mismo, y antes de marcar listo, que todos los com
 | PR-43 | `feat/hu14-lista-prioridad` | `feat(incidencias): la prioridad en cada fila al ordenar por urgencia (HU-14)` | PR-42 | PR-41 | RF-1437 |
 | PR-44 | `docs/hu14-cierre` | `docs(ia): cierre de la HU-14, completa y probada (HU-14)` | el último fusionado | — | — |
 
-**Orden por tandas de 5** (alternando con las tandas de mantenimiento). Se eligen primero los que salen de `main`;
-si la base de un PR ya se fusionó, sale de `main`.
+**Reagrupación (2026-11-16).** Las tandas 2 y 3 salieron como PR de un solo cambio: PR-01 (#167), PR-02 (#168),
+PR-04 (#169), PR-07 (#170), PR-11 (#171), PR-12 (#182), PR-13 (#183), PR-18 (#184), PR-24 (#185) y PR-25 (#186). A
+pedido de Nina, lo que falta se entrega en **pocos PR, uno por bloque**, cada uno con varios commits chicos (los de la
+sección 2 de sus PR originales). Los PR originales quedan como referencia de archivos y commits; su numeración se
+conserva en las tareas.
 
-| Tanda | PR |
-|---|---|
-| 1 (documentación) | spec (#154), este plan, las tareas |
-| 2 | PR-01, PR-02, PR-04, PR-07, PR-11 |
-| 3 | PR-12, PR-13, PR-18, PR-24, PR-25 |
-| 4 | PR-03, PR-05, PR-08, PR-16, PR-31 |
-| 5 | PR-06, PR-09, PR-10, PR-14, PR-15 |
-| 6 | PR-17, PR-19, PR-20, PR-21, PR-22 |
-| 7 | PR-23, PR-26, PR-27, PR-28, PR-29 |
-| 8 | PR-30, PR-32, PR-33, PR-34, PR-35 |
-| 9 | PR-36, PR-37, PR-38, PR-39, PR-40 |
-| 10 | PR-41, PR-42, PR-43, PR-44 |
+| Bloque | Rama | Título | Base | Trae | PR originales | RF |
+|---|---|---|---|---|---|---|
+| A | `feat/hu14-datos-sugerencias` | `feat(core): consultas, prueba y subida de las sugerencias de IA (HU-14)` | PR-04 (#169) | — | PR-05, PR-06, PR-08, PR-09, PR-10 | RF-1405, RF-1424, RF-1427, RF-1429 |
+| B | `feat/hu14-dominio-ia` | `feat(ia): dominio de la IA, sugerir, redactar, decidir y observar (HU-14)` | A | PR-11, PR-12, PR-13 | PR-14 a PR-17, PR-20 a PR-23 | RF-1401 a RF-1407, RF-1413, RF-1415 a RF-1424, RF-1426, RF-1427 |
+| C | `feat/hu14-asistente-gemini` | `feat(ia): asistente con Gemini por Firebase AI Logic (HU-14)` | B | PR-18 | PR-19 | RF-1401, RF-1406, RF-1417, RF-1423 |
+| D | `feat/hu14-asignacion-sugerencia` | `feat(asignacion): clasificación y sugerencia de IA en Asignar (HU-14)` | C | PR-25 | PR-26 a PR-30 | RF-1401, RF-1403 a RF-1413 |
+| E | `feat/hu14-informe-borrador` | `feat(atencion): «Mis notas» y borrador del informe con IA (HU-14)` | C | PR-24 | PR-31 a PR-38 | RF-1414 a RF-1426 |
+| F | `feat/hu14-orden-urgencia` | `feat(incidencias): ordenar por urgencia en Incidencias (HU-14)` | `main` | — | PR-39 a PR-43 | RF-1433 a RF-1437 |
+| G | `refactor/hu14-borrar-ruta-asistente` | `refactor(core): borrar Ruta.Asistente, que ya no se usa (HU-14)` | PR-02 (#168) | — | PR-03 | RF-1432 |
+| Cierre | `docs/hu14-cierre` | `docs(ia): cierre de la HU-14, completa y probada (HU-14)` | el último fusionado | — | PR-44 | — |
+
+Los bloques B a E están apilados porque nada de lo anterior está en `main` todavía; cuando sus bases se fusionen, pasan
+a `main` con `git pull origin main` y se revisa `git log main..<rama>`. Cada bloque compila y pasa
+`./gradlew assembleDebug testDebugUnitTest` por sí mismo, y `lintDebug` corre una vez al final. El cierre se hace
+después de la prueba en un celular real.
 
 **Pasos manuales de Nina** (la spec, «Configuración en la consola»): publicar la regla de `sugerenciasIA` cuando se
 fusione PR-07, y activar Firebase AI Logic con la exigencia de App Check aplazada antes de probar PR-19 en el celular.
