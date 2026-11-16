@@ -30,6 +30,10 @@ interface CatalogoDao {
     @Query("SELECT * FROM equipos WHERE codigo = :codigo")
     suspend fun equipoPorCodigo(codigo: String): EquipoEntity?
 
+    // HU-16 (RF-1607, RF-1608): la cabecera del historial; null si el código no está en el catálogo
+    @Query("SELECT * FROM equipos WHERE codigo = :codigo")
+    fun observarEquipo(codigo: String): Flow<EquipoEntity?>
+
     @Upsert
     suspend fun guardarEquipos(equipos: List<EquipoEntity>)
 }
