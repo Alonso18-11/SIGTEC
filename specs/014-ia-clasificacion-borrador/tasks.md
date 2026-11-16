@@ -21,3 +21,42 @@
 ## PR-03 — borrar `Ruta.Asistente` (base PR-02)
 - [ ] **T05 · Quitar `Asistente` de `Rutas.kt` ⚠️.** RF-1432. Hecho cuando: compila sin referencias a la ruta.
 - [ ] **T06 · «las 18 rutas» en `CLAUDE.md` 🔶.** RF: — Hecho cuando: el número coincide con `Rutas.kt`.
+
+## PR-04 — modelo y entidad de la sugerencia (base `main`)
+- [ ] **T07 · `SugerenciaIA` con `modelo`, `generadaEn`, `decididaPorId` y `decididaEn` ⚠️.** RF-1427.
+  Hecho cuando: compila.
+- [ ] **T08 · `SugerenciaIAEntity` con lo mismo y `actualizadoEn`, y sus `toDomain()`/`toEntity()` ⚠️.** RF-1427.
+  Hecho cuando: compila.
+- [ ] **T09 · `SigtecDatabase` en `version = 7` ⚠️.** RF: — Hecho cuando: el PR dice que se pierde lo no sincronizado.
+
+## PR-05 — consultas del DAO (base PR-04)
+- [ ] **T10 · `observarSinDecidir` (la más reciente por incidencia y tipo) y `contar` ⚠️.** RF-1405, RF-1424.
+  Hecho cuando: compila.
+- [ ] **T11 · `decidir(id, aceptada, decididaPorId, decididaEn, actualizadoEn)`, sin `responder` ⚠️.** RF-1413,
+  RF-1420, RF-1421. Hecho cuando: compila.
+- [ ] **T12 · `pendientesDeSincronizar` (solo decididas), `observarCantidadPendientes` y `marcarSincronizada` ⚠️.**
+  RF-1429. Hecho cuando: compila.
+
+## PR-06 — `SugerenciaIADaoTest` (base PR-05)
+- [ ] **T13 · Sin decidir más reciente y conteo por tipo.** RF-1405, RF-1424.
+  Hecho cuando: `./gradlew connectedDebugAndroidTest` pasa en un celular o emulador.
+- [ ] **T14 · Decidir, solo las decididas por subir y marcar sincronizada.** RF-1427, RF-1429. Hecho cuando: igual.
+
+## PR-07 — regla de `sugerenciasIA` (base `main`)
+- [ ] **T15 · Crear solo con `decididaPorId == uid`, `aceptada is bool` y tipo válido; sin `update` ni `delete` ⚠️.**
+  RF-1430. Hecho cuando: el Rules Playground permite el caso bueno y rechaza los cuatro malos (plan, sección 7).
+- [ ] **T16 · ⏸ Nina publica la regla en la consola** al fusionarse. RF-1430. Hecho cuando: la regla publicada
+  coincide con `firestore.rules`.
+
+## PR-08 — mapeo a Firestore (base PR-04)
+- [ ] **T17 · `SugerenciaIAEntity.aFirestore()` en `MapeoFirestore` 🔶** (fechas como `Timestamp`). RF-1429.
+  Hecho cuando: compila.
+
+## PR-09 — subir las decididas (base PR-08, trae PR-05)
+- [ ] **T18 · Subir con `set` y `marcarSincronizada`; un error permanente no frena al resto 🔶** (plan 4.4). RF-1429.
+  Hecho cuando: compila.
+- [ ] **T19 · Las sugerencias decididas cuentan en `hayPendientes` 🔶.** RF-1429. Hecho cuando: compila.
+
+## PR-10 — programar la subida (base PR-09)
+- [ ] **T20 · Quinto flujo en `vigilarPendientes()` 🔶.** RF-1429.
+  Hecho cuando: en el celular, decidir una sugerencia la sube sola (se comprueba con PR-29).
