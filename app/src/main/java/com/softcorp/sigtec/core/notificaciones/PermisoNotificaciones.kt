@@ -17,11 +17,12 @@ import com.softcorp.sigtec.core.domain.model.Perfil
 import com.softcorp.sigtec.core.domain.model.Permiso
 
 /**
- * HU-07 (RF-708, RF-710): el permiso solo existe desde Android 13 y solo se le pide a quien recibe
- * asignaciones (el técnico); al jefe y al personal de sistemas no.
+ * HU-07 (RF-708, RF-710) y HU-18 (RF-1822, D-9): el permiso solo existe desde Android 13 y solo se le pide a quien
+ * recibe avisos: el técnico (asignaciones) y el jefe (casos demorados y resumen del día). Al personal de sistemas no.
  */
 fun debePedirPermisoNotificaciones(sdk: Int, concedido: Boolean, perfil: Perfil?): Boolean =
-    sdk >= Build.VERSION_CODES.TIRAMISU && !concedido && perfil?.puede(Permiso.ATENDER_INCIDENCIA) == true
+    sdk >= Build.VERSION_CODES.TIRAMISU && !concedido && perfil != null &&
+        (perfil.puede(Permiso.ATENDER_INCIDENCIA) || perfil.puede(Permiso.VER_INDICADORES))
 
 /**
  * Pide el permiso una vez por cada apertura de la app (RF-708). Si la persona lo niega no se hace nada

@@ -9,8 +9,8 @@ import java.time.Instant
 const val DIAS_PARA_CRITICA = 5L
 
 /**
- * HU-15 (RF-1508, D-1): crítica = pendiente hace más de 5 días, o marcada con `critica` (lo hará la HU-18). Una sola
- * regla para Inicio y el tablero, así sus números coinciden.
+ * HU-15 (RF-1508, D-1): crítica = pendiente hace más de 5 días, o marcada con `critica` (hoy nadie la escribe, D-3
+ * de la HU-18). Una sola regla para Inicio, el tablero y los avisos del jefe, así sus números coinciden.
  */
 fun esCritica(incidencia: Incidencia, ahora: Instant): Boolean =
     incidencia.estado == EstadoIncidencia.PENDIENTE &&
