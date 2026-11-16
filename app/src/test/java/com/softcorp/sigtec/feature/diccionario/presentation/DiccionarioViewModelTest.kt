@@ -7,6 +7,7 @@ import com.softcorp.sigtec.core.domain.usecase.VerificarPermiso
 import com.softcorp.sigtec.feature.diccionario.data.DiccionarioRepositoryFalso
 import com.softcorp.sigtec.feature.diccionario.domain.FallasDePrueba
 import com.softcorp.sigtec.feature.diccionario.domain.ObservarDiccionario
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -18,6 +19,8 @@ import org.junit.Rule
 import org.junit.Test
 
 /** HU-13 (RF-1301 a RF-1309): el diccionario según el perfil, con búsqueda, filtro y fallas desplegadas. */
+// UnconfinedTestDispatcher sigue siendo experimental en kotlinx-coroutines-test
+@OptIn(ExperimentalCoroutinesApi::class)
 class DiccionarioViewModelTest {
 
     @get:Rule
