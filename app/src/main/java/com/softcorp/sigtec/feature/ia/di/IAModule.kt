@@ -11,9 +11,11 @@ import com.google.firebase.ai.type.content
 import com.google.firebase.ai.type.generationConfig
 import com.softcorp.sigtec.core.domain.model.Prioridad
 import com.softcorp.sigtec.core.domain.model.TipoFalla
+import com.softcorp.sigtec.feature.ia.data.AsistenteIAGemini
 import com.softcorp.sigtec.feature.ia.data.INSTRUCCIONES_BORRADOR
 import com.softcorp.sigtec.feature.ia.data.INSTRUCCIONES_CLASIFICACION
 import com.softcorp.sigtec.feature.ia.data.SugerenciaIARepositoryImpl
+import com.softcorp.sigtec.feature.ia.domain.AsistenteIA
 import com.softcorp.sigtec.feature.ia.domain.SugerenciaIARepository
 import dagger.Binds
 import dagger.Module
@@ -52,6 +54,10 @@ abstract class IAModule {
     @Binds
     @Singleton
     abstract fun bindSugerenciaIARepository(impl: SugerenciaIARepositoryImpl): SugerenciaIARepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAsistenteIA(impl: AsistenteIAGemini): AsistenteIA
 
     companion object {
 
