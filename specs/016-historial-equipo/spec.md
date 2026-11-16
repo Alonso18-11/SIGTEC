@@ -3,6 +3,10 @@
 > Estado: lista (2026-11-16). Decisiones D-1 a D-8 aprobadas por Nina el 2026-11-16 (D-3 con cambio: las tres métricas
 > en 90 días); dudas respondidas. El cómo está en `plan.md` y las tareas en `tasks.md`.
 
+> Implementación (2026-11-16): RF-1601 a RF-1626 en #214 (bajar informes), #215 (cálculo), #216 (pantalla, sobre #215)
+> y #217 (acceso en Inicio). Revisada en el emulador con `cmendoza`, en claro y oscuro. Falta la prueba en un celular
+> real y las pruebas instrumentadas de los DAO (T17).
+
 > Spec escrita antes del código (principio 2 de la constitución). Los requisitos usan el bloque propio de la HU-16
 > (RF-1601…). Sale de la planificación (`SIGTEC_Planificación.xlsx`, Sprint 4, semana 12, épica EP-07 «Control y
 > seguimiento del área»). Sigue el prototipo 11 «Historial del equipo» de `SIGTEC___Prototipos.pdf`
@@ -76,8 +80,9 @@ el informe de un técnico se vea en los demás celulares, la sincronización emp
 - RF-1615: EL SISTEMA muestra bajo el título «Atenciones recibidas» todas las incidencias del equipo, de la más reciente
   a la más antigua por fecha de registro (D-4), en una línea de tiempo.
 - RF-1616: Cada atención muestra su fecha de registro (dd/MM/aaaa), su código visible (o «Por sincronizar»), su estado
-  en texto («Solucionado» si está cerrada; si no, el nombre de su marca: «Sin asignar», «Asignada», «En atención»,
-  «Esperando repuesto») y la descripción del problema como título.
+  con la misma `EtiquetaIncidencia` de la lista («Solucionado» si está cerrada; si no, su marca, con los días en
+  «Esperando repuesto», o «Crítico, N días» si es crítica con la regla de la HU-15) y la descripción del problema como
+  título.
 - RF-1617: Debajo del título, una incidencia cerrada muestra el trabajo realizado de su informe y el técnico que la
   atendió; una pendiente muestra el técnico asignado o «Sin técnico» (D-7).
 - RF-1618: SI una incidencia cerrada aún no tiene su informe en el celular, ENTONCES muestra «Informe por descargar» en
