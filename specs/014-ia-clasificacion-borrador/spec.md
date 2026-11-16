@@ -115,3 +115,20 @@ etiqueta «IA» y la regla de Firestore de `sugerenciasIA`.
 - RF-1425: El borrador nunca cierra la incidencia ni llena el informe por sí solo: el cierre sigue exigiendo el
   diagnóstico y la confirmación biométrica de la HU-08 (RF-23 del producto) con lo que esté en los campos.
 - RF-1426: CUANDO se confirma el cierre con un borrador sin decidir, EL SISTEMA lo registra como no aceptado.
+
+### Guardar y subir la decisión (D-7, D-8)
+- RF-1427: Cada sugerencia guarda la incidencia, su tipo, el contenido tal como se mostró, el modelo de Gemini que la
+  generó y cuándo se generó; al decidirse, si se aceptó, quién decidió y cuándo; y `actualizadoEn`, como toda entidad.
+- RF-1428: La IA nunca cambia datos por su cuenta: la incidencia y el informe solo cambian cuando la persona toca
+  «Usar» y después asigna o confirma el cierre (principio 5 de la constitución).
+- RF-1429: EL SISTEMA guarda las sugerencias y sus decisiones solo en Room, con `pendienteSincronizar = true` al
+  decidirse. `core/sync` sube a `sugerenciasIA` solo las sugerencias ya decididas, una vez cada una; las que siguen sin
+  decidir no se suben. No se bajan a otros celulares.
+- RF-1430: Firestore acepta crear una sugerencia solo con sesión, a nombre de quien la decidió y con `aceptada`
+  verdadero o falso; no acepta cambiarla ni borrarla.
+- RF-1431: Las sugerencias sin subir no se suman a «registros sin enviar» (D-8). Al cerrar sesión o al entrar otra
+  persona se borran con los demás datos locales.
+
+### Asistente (D-1)
+- RF-1432: EL SISTEMA no ofrece «Abrir asistente» en el menú del detalle de la incidencia. Hoy esa opción navega a
+  `Ruta.Asistente`, que no tiene pantalla desde #144, y el asistente queda fuera de esta HU.
