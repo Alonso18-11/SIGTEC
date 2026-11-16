@@ -6,7 +6,9 @@ import com.softcorp.sigtec.core.data.SesionRepositoryDemo
 import com.softcorp.sigtec.core.domain.ErrorDominio
 import com.softcorp.sigtec.core.domain.model.Incidencia
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
+import com.softcorp.sigtec.core.domain.model.Prioridad
 import com.softcorp.sigtec.core.domain.model.Tecnico
+import com.softcorp.sigtec.core.domain.model.TipoFalla
 import com.softcorp.sigtec.core.domain.usecase.VerificarPermiso
 import com.softcorp.sigtec.feature.asignacion.data.AsignacionRepositoryFalso
 import com.softcorp.sigtec.feature.asignacion.domain.AsignarIncidencia
@@ -159,5 +161,47 @@ class AsignacionViewModelTest {
         assertNotEquals(primera, vm.estado.value.ahora)
         assertEquals(opcionesAntes, vm.estado.value.opciones)
         assertEquals(elegidoAntes, vm.estado.value.elegido)
+    }
+
+    @Test
+    fun `empieza con la clasificacion de la incidencia y la conserva al asignar`() = runTest {
+        // HU-14 (RF-1408)
+        val vm = nuevoVm(incidencia.copy(tipoFalla = TipoFalla.HARDWARE, prioridad = Prioridad.ALTA))
+        assertEquals(TipoFalla.HARDWARE, vm.estado.value.tipoElegido)
+        assertEquals(Prioridad.ALTA, vm.estado.value.prioridadElegida)
+
+        vm.alElegir(luis.id)
+        vm.alAsignar()
+
+        assertEquals(TipoFalla.HARDWARE, repo.incidencias.single().tipoFalla)
+        assertEquals(Prioridad.ALTA, repo.incidencias.single().prioridad)
+    }
+
+    @Test
+    fun `la clasificacion elegida se guarda al asignar`() = runTest {
+        // HU-14 (RF-1411, RF-1412)
+        val vm = nuevoVm()
+        assertNull(vm.estado.value.tipoElegido)
+
+        vm.alElegirTipo(TipoFalla.RED)
+        vm.alElegirPrioridad(Prioridad.MEDIA)
+        vm.alElegir(luis.id)
+        vm.alAsignar()
+
+        assertEquals(TipoFalla.RED, repo.incidencias.single().tipoFalla)
+        assertEquals(Prioridad.MEDIA, repo.incidencias.single().prioridad)
+    }
+
+    @Test
+    fun `clasificar es opcional`() = runTest {
+        // HU-14 (D-3): sin tipo ni prioridad igual se asigna
+        val vm = nuevoVm()
+        vm.alElegir(luis.id)
+        assertTrue(vm.estado.value.puedeAsignar)
+
+        vm.alAsignar()
+
+        assertEquals(luis.id, repo.incidencias.single().tecnicoAsignadoId)
+        assertNull(repo.incidencias.single().tipoFalla)
     }
 }
