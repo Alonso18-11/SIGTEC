@@ -7,6 +7,8 @@ import com.softcorp.sigtec.core.database.entity.InformeTecnicoEntity
 import com.softcorp.sigtec.core.database.entity.MovimientoEntity
 import com.softcorp.sigtec.core.database.entity.SolicitudRepuestoEntity
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
+import com.softcorp.sigtec.core.domain.model.Perfil
+import com.softcorp.sigtec.core.domain.model.Permiso
 import java.time.Instant
 
 internal const val TAREA_SUBIR = "SUBIR_CAMBIOS"
@@ -14,6 +16,9 @@ internal const val TAREA_BAJAR = "BAJAR_INCIDENCIAS"
 
 // HU-17 (D-1): cuándo empezó en este celular la sesión de su dueño; se borra con Room al cerrar sesión
 internal const val TAREA_INICIO_SESION = "INICIO_SESION"
+
+// HU-17 (RF-1717, D-6): cada revisión periódica que consultó al servidor sin error
+internal const val TAREA_REVISAR = "REVISAR_ASIGNACIONES"
 
 internal fun debeReemplazarLocal(local: IncidenciaEntity?, remota: IncidenciaEntity): Boolean =
     local == null ||
@@ -106,3 +111,13 @@ internal fun esAsignacionNuevaPara(
     if (local != null) return local.tecnicoAsignadoId != usuarioId
     return inicioSesion != null && remota.actualizadoEn.isAfter(inicioSesion)
 }
+
+/** HU-17 (RF-1708, D-2): las marcas de una incidencia asignada que todavía no se cierra. */
+internal val MARCAS_ACTIVAS_ASIGNADAS: List<MarcaSeguimiento> =
+    MarcaSeguimiento.entries.filter { it != MarcaSeguimiento.SIN_ASIGNAR && it != MarcaSeguimiento.CERRADA }
+
+/** HU-17 (RF-1708, RF-1716): solo quien recibe asignaciones las consulta; el jefe y sistemas no. */
+internal fun debeConsultarAsignaciones(perfil: Perfil): Boolean = perfil.puede(Permiso.ATENDER_INCIDENCIA)
+
+/** HU-05 (RF-66) y HU-17 (RF-1706): hay algo que subir si alguna de las cantidades de pendientes es mayor que 0. */
+internal fun hayPendientesDeSubir(vararg cantidades: Int): Boolean = cantidades.sum() > 0
