@@ -44,7 +44,8 @@ fun FilaIncidencia(
     fecha: String? = null,
     tecnico: String? = null,                 // con avatar; null si no tiene o no hace falta
     sinTecnico: String? = null,              // cuando la incidencia aún no tiene técnico
-    tecnicoEsUsuarioActual: Boolean = false  // su avatar va en acento
+    tecnicoEsUsuarioActual: Boolean = false, // su avatar va en acento
+    prioridad: String? = null                // HU-14 (RF-1437): «Prioridad alta»… al ordenar por urgencia, con texto
 ) {
     Tarjeta(
         onClick = onClick,
@@ -76,6 +77,9 @@ fun FilaIncidencia(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 EtiquetaIncidencia(marca = marca, critica = critica, diasPendiente = diasPendiente)
                 Spacer(Modifier.width(Espaciado.s))
+                prioridad?.let {
+                    Text(it, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
                 Spacer(Modifier.weight(1f))
                 if (tecnico == null && sinTecnico != null) {
                     Text(sinTecnico, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -103,7 +107,8 @@ private fun FilasDePrueba() {
             FilaIncidencia(
                 "INC-0124", "PC-CONT-014", "No enciende después del corte de luz",
                 MarcaSeguimiento.EN_ATENCION, critica = false, diasPendiente = 0, onClick = {},
-                fecha = "Hoy 10:42", tecnico = "Luis Ramírez", tecnicoEsUsuarioActual = true
+                fecha = "Hoy 10:42", tecnico = "Luis Ramírez", tecnicoEsUsuarioActual = true,
+                prioridad = "Prioridad alta"
             )
             FilaIncidencia(
                 "INC-0121", "LAP-GER-005", "Sin conexión a la red Wi-Fi desde la mañana en la oficina de gerencia",
