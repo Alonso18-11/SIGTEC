@@ -19,7 +19,7 @@ import javax.inject.Inject
 class ObservarIndicadores @Inject constructor(
     private val verificarPermiso: VerificarPermiso,
     private val repo: IndicadoresRepository,
-    @DefaultDispatcher private val calculo: CoroutineDispatcher
+    @param:DefaultDispatcher private val calculo: CoroutineDispatcher
 ) {
     operator fun invoke(reloj: Flow<Instant>, zona: ZoneId = ZoneId.systemDefault()): Resultado<Flow<Indicadores>> =
         when (val r = verificarPermiso(Permiso.VER_INDICADORES)) {
