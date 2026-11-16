@@ -29,7 +29,7 @@ data class Incidencia(
     val prioridad: Prioridad? = null,
     val tecnicoAsignadoId: String? = null,
     val tecnicoAsignadoNombre: String? = null,
-    val critica: Boolean = false          // la marca el worker diario (HU-18)
+    val critica: Boolean = false          // hoy nadie la escribe: «crítica» se calcula con esCritica (HU-18, D-3)
 ) {
     val estado: EstadoIncidencia
         get() = if (marca == MarcaSeguimiento.CERRADA) EstadoIncidencia.SOLUCIONADO

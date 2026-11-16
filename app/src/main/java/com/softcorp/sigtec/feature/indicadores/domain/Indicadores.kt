@@ -74,7 +74,7 @@ fun calcularIndicadores(
     val cierresPorDia = cierrePorIncidencia.values.groupingBy { it.atZone(zona).toLocalDate() }.eachCount()
     val reparadosPorDia = dias.map { ReparadosDia(it, cierresPorDia[it] ?: 0, esHoy = it == hoy) }
 
-    // RF-1507, RF-1508 (D-1): pendientes, y críticas si llevan más de 5 días o las marcó la HU-18
+    // RF-1507, RF-1508 (D-1): pendientes, y críticas si llevan más de 5 días o tienen `critica` (D-3 de la HU-18)
     val pendientes = incidencias.filter { it.estado == EstadoIncidencia.PENDIENTE }
     val criticos = pendientes.count { esCritica(it, ahora) }
 
