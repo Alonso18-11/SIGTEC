@@ -20,5 +20,6 @@ sealed interface ErrorDominio {
     data class YaAsignada(val tecnicoNombre: String) : ErrorDominio   // RF-611
     data object MarcaCambiada : ErrorDominio             // RF-808: la marca cambió por otra vía antes de guardar
     data object LimiteFotosAlcanzado : ErrorDominio      // RF-929: ya hay 10 fotos de la incidencia en el celular
+    data object IANoDisponible : ErrorDominio            // HU-14 (RF-1406, RF-1423): Gemini no respondió o no sirvió
     data class Desconocido(val mensaje: String?) : ErrorDominio
 }

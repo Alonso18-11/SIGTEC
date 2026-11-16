@@ -16,6 +16,7 @@ import com.softcorp.sigtec.core.database.dao.InformeTecnicoDao
 import com.softcorp.sigtec.core.database.dao.MovimientoDao
 import com.softcorp.sigtec.core.database.dao.SincronizacionDao
 import com.softcorp.sigtec.core.database.dao.SolicitudRepuestoDao
+import com.softcorp.sigtec.core.database.dao.SugerenciaIADao
 import com.softcorp.sigtec.core.database.entity.SincronizacionEntity
 import com.softcorp.sigtec.core.database.entity.toDomain
 import com.softcorp.sigtec.core.di.ApplicationScope
@@ -45,6 +46,7 @@ class SincronizacionTiempoReal @Inject constructor(
     private val sincronizacionDao: SincronizacionDao,
     private val solicitudRepuestoDao: SolicitudRepuestoDao,
     private val fallaDiccionarioDao: FallaDiccionarioDao,
+    private val sugerenciaIADao: SugerenciaIADao,
     private val programador: ProgramadorSincronizacion,
     private val reloj: Reloj,
     private val notificador: NotificadorAsignaciones,
@@ -203,14 +205,16 @@ class SincronizacionTiempoReal @Inject constructor(
 
     private fun vigilarPendientes(): Flow<Unit> =
         // HU-11: también las solicitudes, que quedan pendientes solas cuando llega el número de Logística.
-        // HU-13 (RF-1321): y las fallas del diccionario; sin esto, una falla nueva no programaba la subida
+        // HU-13 (RF-1321): y las fallas del diccionario; sin esto, una falla nueva no programaba la subida.
+        // HU-14 (RF-1429): y las sugerencias de IA ya decididas
         combine(
             incidenciaDao.observarPendientes(),
             movimientoDao.observarPendientes(),
             solicitudRepuestoDao.observarPendientes(),
-            fallaDiccionarioDao.observarCantidadPendientes()
-        ) { i, m, s, f ->
-            i + m + s + f > 0
+            fallaDiccionarioDao.observarCantidadPendientes(),
+            sugerenciaIADao.observarCantidadPendientes()
+        ) { i, m, s, f, sug ->
+            i + m + s + f + sug > 0
         }
             .distinctUntilChanged()
             .filter { it }
