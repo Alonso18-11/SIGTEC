@@ -25,4 +25,41 @@ internal val INSTRUCCIONES_CLASIFICACION = """
 internal fun pedidoClasificacion(descripcion: String): String =
     "Descripción del problema:\n${descripcion.recortado()}"
 
+/** HU-14 (RF-1417): instrucciones de sistema para el borrador. Las claves coinciden con `BorradorInforme`. */
+internal val INSTRUCCIONES_BORRADOR = """
+    Eres el asistente del área de Soporte y Sistemas de una empresa. Redacta en español el informe técnico de cierre
+    de una incidencia a partir de las notas del técnico. Escribe en tercera persona y en pasado, con frases cortas.
+    - diagnostico: la causa del problema.
+    - trabajoRealizado: lo que se hizo para resolverlo.
+    - piezasCambiadas: solo las piezas que las notas dicen que se cambiaron.
+    - observaciones: recomendaciones o pendientes que aparezcan en las notas.
+    No inventes piezas, causas, nombres ni datos que no estén en lo enviado; si algo no aparece, deja ese campo vacío.
+    Si el técnico ya escribió un campo, respétalo y solo mejora su redacción.
+    Responde solo con el JSON pedido.
+""".trimIndent()
+
+/**
+ * HU-14 (RF-1417): el pedido del borrador lleva la descripción, las notas y solo los campos del informe que el técnico
+ * ya escribió, cada uno con su nombre. Nada más (RNF de privacidad).
+ */
+internal fun pedidoBorrador(
+    descripcion: String,
+    notas: String,
+    diagnostico: String = "",
+    trabajoRealizado: String = "",
+    piezasCambiadas: String = "",
+    observaciones: String = ""
+): String = buildString {
+    append("Descripción del problema:\n").append(descripcion.recortado())
+    append("\n\nNotas del técnico:\n").append(notas.recortado())
+    listOf(
+        "Diagnóstico" to diagnostico,
+        "Trabajo realizado" to trabajoRealizado,
+        "Piezas cambiadas" to piezasCambiadas,
+        "Observaciones" to observaciones
+    ).filter { it.second.isNotBlank() }.forEach { (nombre, valor) ->
+        append("\n\nLo que el técnico ya escribió en «").append(nombre).append("»:\n").append(valor.recortado())
+    }
+}
+
 internal fun String.recortado(): String = trim().take(MAX_CARACTERES_PEDIDO)
