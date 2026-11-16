@@ -33,7 +33,8 @@ data class InformeTecnicoUiState(
     val cerrada: Boolean = false,
     val evidencias: List<Evidencia> = emptyList(),   // HU-09 (RF-938): las fotos de la incidencia en este celular
     val puedeAgregarFoto: Boolean = false,           // HU-09 (RF-923): el técnico asignado, mientras siga pendiente
-    val codigoIncidencia: String? = null             // HU-10 (RF-1003): para el subtítulo de «Dictar»
+    val codigoIncidencia: String? = null,            // HU-10 (RF-1003): para el subtítulo de «Dictar»
+    val notas: String = ""                           // HU-14 (RF-1414): solo para el borrador; no se guardan
 ) {
     val puedeConfirmar: Boolean
         get() = diagnostico.isNotBlank() && trabajoRealizado.isNotBlank() && !guardando &&
@@ -90,6 +91,8 @@ class InformeTecnicoViewModel : ViewModel {
 
     fun alCambiarObservaciones(valor: String) = _estado.update { it.copy(observaciones = valor, error = null) }
 
+    fun alCambiarNotas(valor: String) = _estado.update { it.copy(notas = valor) }
+
     /**
      * HU-10 (RF-1011): lo dictado se agrega al final de su campo. Con el informe guardándose o ya confirmado, el
      * formulario no es editable y no cambia nada (RF-1002).
@@ -100,7 +103,8 @@ class InformeTecnicoViewModel : ViewModel {
             CampoDictado.DIAGNOSTICO -> it.copy(diagnostico = unirTexto(it.diagnostico, texto), error = null)
             CampoDictado.SOLUCION -> it.copy(trabajoRealizado = unirTexto(it.trabajoRealizado, texto), error = null)
             CampoDictado.OBSERVACIONES -> it.copy(observaciones = unirTexto(it.observaciones, texto), error = null)
-            CampoDictado.DESCRIPCION, CampoDictado.SINTOMAS, CampoDictado.NOTAS -> it   // no son campos del informe
+            CampoDictado.NOTAS -> it.copy(notas = unirTexto(it.notas, texto))                // HU-14 (RF-1414)
+            CampoDictado.DESCRIPCION, CampoDictado.SINTOMAS -> it   // no son campos del informe
         }
     }
 
