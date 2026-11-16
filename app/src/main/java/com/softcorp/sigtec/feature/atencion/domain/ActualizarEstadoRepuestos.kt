@@ -18,7 +18,7 @@ data class ResultadoActualizacion(val actualizadas: Int, val sinRespuesta: Int)
 /**
  * HU-11 (plan 4.5, RF-1123, RF-1124): consulta a Logística el estado de las solicitudes del técnico que todavía no se
  * entregaron y guarda lo que cambió. Con la entrega del último repuesto de una incidencia, la deja otra vez en
- * «En atención» (D-7). Una consulta que falla no frena las demás. La HU-18 llamará a lo mismo una vez al día.
+ * «En atención» (D-7). Una consulta que falla no frena las demás. La HU-18 la corre también una vez al día (`TareaRepuestos`).
  */
 class ActualizarEstadoRepuestos @Inject constructor(
     private val verificarPermiso: VerificarPermiso,

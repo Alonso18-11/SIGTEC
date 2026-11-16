@@ -40,7 +40,7 @@ private data class Consulta(val consultando: Boolean = false, val sinRespuesta: 
 
 /**
  * HU-11 (RF-1121 a RF-1123): las solicitudes del técnico, con un filtro, y la consulta a Logística al abrir la pantalla
- * y al deslizar hacia abajo. Sin conexión muestra lo último guardado. La consulta diaria automática es de la HU-18.
+ * y al deslizar hacia abajo. Sin conexión muestra lo último guardado. La consulta diaria automática la hace la HU-18.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel

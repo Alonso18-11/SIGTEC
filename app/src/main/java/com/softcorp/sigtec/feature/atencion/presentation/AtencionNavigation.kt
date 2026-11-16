@@ -50,7 +50,7 @@ fun NavGraphBuilder.atencionGraph(navController: NavController) {
         )
     }
     composable<Ruta.EstadoRepuestos> {
-        // HU-11 (RF-1121): la consulta diaria automática es de la HU-18
+        // HU-11 (RF-1121): la consulta diaria automática la hace la HU-18 (`TareaRepuestos`)
         EstadoRepuestosRoute(
             alVolver = { navController.popBackStack() },
             alAbrirIncidencia = { id -> navController.navigate(Ruta.DetalleIncidencia(id)) }
