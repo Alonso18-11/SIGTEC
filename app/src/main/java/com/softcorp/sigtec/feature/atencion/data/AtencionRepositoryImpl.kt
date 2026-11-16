@@ -162,7 +162,7 @@ class AtencionRepositoryImpl @Inject constructor(
 
     private companion object {
         const val TAG = "AtencionRepository"
-        // La misma tarea que usará el worker diario de la HU-18
+        // La misma anotación que deja la consulta diaria de la HU-18 (TareaRepuestos, RF-1807)
         const val TAREA_CONSULTAR_LOGISTICA = "CONSULTAR_REPUESTOS"
     }
 }
