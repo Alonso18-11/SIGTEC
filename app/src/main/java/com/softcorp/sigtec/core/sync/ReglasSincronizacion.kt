@@ -10,6 +10,8 @@ import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
 import com.softcorp.sigtec.core.domain.model.Perfil
 import com.softcorp.sigtec.core.domain.model.Permiso
 import java.time.Instant
+import java.time.LocalTime
+import java.time.ZoneId
 
 internal const val TAREA_SUBIR = "SUBIR_CAMBIOS"
 internal const val TAREA_BAJAR = "BAJAR_INCIDENCIAS"
@@ -121,3 +123,13 @@ internal fun debeConsultarAsignaciones(perfil: Perfil): Boolean = perfil.puede(P
 
 /** HU-05 (RF-66) y HU-17 (RF-1706): hay algo que subir si alguna de las cantidades de pendientes es mayor que 0. */
 internal fun hayPendientesDeSubir(vararg cantidades: Int): Boolean = cantidades.sum() > 0
+
+/**
+ * HU-18 (RF-1801, RF-1803): una tarea diaria toca si la hora local ya llegó a la suya y todavía no terminó con éxito
+ * hoy. Lo que no se logró ayer no se recupera: hoy simplemente vuelve a tocar.
+ */
+internal fun tocaTareaDiaria(desde: LocalTime, ahora: Instant, zona: ZoneId, ultimaExitosa: Instant?): Boolean {
+    val local = ahora.atZone(zona)
+    if (local.toLocalTime().isBefore(desde)) return false
+    return ultimaExitosa == null || ultimaExitosa.atZone(zona).toLocalDate() != local.toLocalDate()
+}
