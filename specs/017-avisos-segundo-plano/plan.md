@@ -107,7 +107,7 @@ Leyenda: 🆕 nuevo, ✏️ modificado, ⚠️ compartido de `CLAUDE.md`, 🔶 s
 - Manual (spec, «Criterios de finalización»): con dos cuentas, la app del técnico cerrada, bloqueada y tras reiniciar;
   primer ingreso sin avisos; modo avión; el jefe sin avisos. Forzar el trabajo con `adb shell cmd jobscheduler run`.
 - El worker, `GuardadoIncidencias` y la programación dependen de WorkManager, Firestore y Room reales, igual que
-  `SubirCambiosWorker`: se prueban a mano (RF-98 de la HU-05).
+  `SubirCambiosWorker`: se prueban a mano, como en la HU-05.
 
 ## 5. Riesgos
 - Doze y fabricantes retrasan la revisión (D-4): se documenta, no se combate.
