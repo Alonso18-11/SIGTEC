@@ -24,8 +24,13 @@ class PermisoNotificacionesTest {
     }
 
     @Test
-    fun `al jefe y al personal de sistemas no se les pide porque no reciben asignaciones`() {
-        assertFalse(debePedirPermisoNotificaciones(sdk = 34, concedido = false, perfil = Perfil.JEFE))
+    fun `al jefe se le pide porque recibe los avisos del area (HU-18)`() {
+        assertTrue(debePedirPermisoNotificaciones(sdk = 34, concedido = false, perfil = Perfil.JEFE))
+        assertFalse(debePedirPermisoNotificaciones(sdk = 32, concedido = false, perfil = Perfil.JEFE))
+    }
+
+    @Test
+    fun `al personal de sistemas no se le pide porque no recibe avisos`() {
         assertFalse(debePedirPermisoNotificaciones(sdk = 34, concedido = false, perfil = Perfil.PERSONAL_SISTEMAS))
     }
 
