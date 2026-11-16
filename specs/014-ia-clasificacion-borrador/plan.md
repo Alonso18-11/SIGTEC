@@ -204,3 +204,125 @@ pruebas van en commits `test(...)` propios.
 | PR | Archivos | Commits |
 |---|---|---|
 | PR-44 | ✏️ `spec.md` (estado «completa» y lo que se probó); ✏️ `tasks.md`; ✏️ `MEMORY.md` (línea de la HU-14) | 1. `docs(ia): spec completa` · 2. `docs(ia): tareas marcadas` · 3. `docs(ia): HU-14 completa en MEMORY` |
+
+## 3. Funciones puras de lógica
+
+Kotlin puro, sin `android.*` ni Firebase, con pruebas JVM.
+
+- **3.1 `leerClasificacion(json: String): ClasificacionSugerida?`** (PR-12). Lee `{"tipo": …, "prioridad": …}` con
+  `kotlinx.serialization` (`Json { ignoreUnknownKeys = true }`). Devuelve `null` si no es JSON, si falta un campo o si
+  el valor no es uno de `TipoFalla` o `Prioridad` (sin importar mayúsculas). `comoContenido()` escribe el JSON
+  canónico que se guarda en `SugerenciaIA.contenido`, y `leerClasificacion` también lo lee de vuelta.
+- **3.2 `leerBorrador(json: String): BorradorInforme?`** (PR-13). Lee los cuatro campos; recorta espacios y deja cada
+  campo en `MAX_CARACTERES_CAMPO = 1000`. Devuelve `null` si no es JSON o si el diagnóstico o el trabajo realizado
+  quedan vacíos (RF-1419, RF-1423); las piezas y las observaciones pueden venir vacías.
+- **3.3 `clasificacionAceptada(sugerida, usada, descartada, tipoAsignado, prioridadAsignada): Boolean`** (PR-14).
+  `usada && !descartada && tipoAsignado == sugerida.tipo && prioridadAsignada == sugerida.prioridad` (D-4, RF-1413).
+- **3.4 `List<Incidencia>.ordenar(orden: OrdenIncidencias): List<Incidencia>`** (PR-39). `RECIENTES` devuelve la lista
+  como llega (el orden de la HU-04). `URGENTES`: primero las pendientes, por `prioridad` (ALTA, MEDIA, BAJA, `null`) y
+  luego `fechaRegistro` ascendente; después las solucionadas, por `fechaRegistro` descendente (RF-1434). Solo mira
+  `Incidencia.prioridad`, nunca una sugerencia (RF-1436).
+
+## 4. Algoritmos en pseudocódigo
+
+### 4.1 `SugerirClasificacion(incidencia, ahora): Resultado<SugerenciaIA?>` (RF-1401, RF-1402, RF-1404 a RF-1407)
+```
+VerificarPermiso(ASIGNAR_INCIDENCIA) → Error se propaga (RF-1402)
+si incidencia cerrada, o tipoFalla != null o prioridad != null → Exito(null)   (RF-1407)
+repo.contar(incidencia.id, CLASIFICACION) > 0 → Exito(null)                       (RF-1405: una consulta por celular)
+asistente.clasificar(incidencia.descripcion) → Error(e) → Error(e)               (el ViewModel lo calla, RF-1406)
+leerClasificacion(texto) == null → Error(IANoDisponible)                          (RF-1406)
+sugerencia = SugerenciaIA(UUID, incidencia.id, CLASIFICACION, clasificacion.comoContenido(), asistente.modelo, ahora)
+repo.guardar(sugerencia) → Error se propaga; Exito(sugerencia)                    (RF-1404)
+```
+
+### 4.2 `RedactarBorradorInforme(incidencia, entrada, ahora): Resultado<SugerenciaIA>` (RF-1416, RF-1417, RF-1419, RF-1422, RF-1423)
+```
+usuario = VerificarPermiso(ATENDER_INCIDENCIA) → Error se propaga
+si incidencia.tecnicoAsignadoId != usuario.id o está cerrada → Error(SinPermiso)  (RF-1416)
+si entrada.notas está en blanco → Error(CampoObligatorio)                         (RF-1415, en el dominio también)
+anterior = repo.sinDecidir(incidencia.id, BORRADOR_INFORME)
+asistente.redactarBorrador(entrada) → Error(e) → Error(e)                         (RF-1423)
+borrador = leerBorrador(texto) ?: return Error(IANoDisponible)
+si anterior != null → repo.decidir(anterior.id, false, usuario.id, ahora)        (RF-1422)
+guardar SugerenciaIA(UUID, incidencia.id, BORRADOR_INFORME, borrador.comoContenido(), asistente.modelo, ahora)
+```
+El anterior se decide después de tener el nuevo: si Gemini falla, el anterior sigue a la vista.
+
+### 4.3 `DecidirSugerencia(sugerencia, aceptada, ahora): Resultado<Unit>` (RF-1413, RF-1420, RF-1421, RF-1426)
+```
+permiso = CLASIFICACION → ASIGNAR_INCIDENCIA; BORRADOR_INFORME → ATENDER_INCIDENCIA
+usuario = VerificarPermiso(permiso) → Error se propaga
+si sugerencia.aceptada != null → Exito(Unit)              (ya decidida: no se cambia, como en Firestore)
+repo.decidir(sugerencia.id, aceptada, usuario.id, ahora) → pendienteSincronizar = true (RF-1429)
+```
+
+### 4.4 Subir las sugerencias (RF-1429, PR-08 a PR-10)
+`SincronizadorIncidencias`, después de los movimientos: por cada `sugerenciaIADao.pendientesDeSincronizar()` (solo
+`aceptada IS NOT NULL`), `sugerenciasIA.document(id).set(aFirestore())` y `marcarSincronizada(id)`; un error
+permanente queda en Logcat sin frenar al resto, como las fallas. `vigilarPendientes()` suma
+`observarCantidadPendientes()`. Sin descarga (D-7).
+
+### 4.5 Instrucciones para Gemini (PR-18)
+- Clasificar: «Eres el asistente del área de Soporte y Sistemas. Clasifica la falla en HARDWARE, SOFTWARE o RED y da
+  una prioridad BAJA, MEDIA o ALTA. ALTA: el usuario no puede trabajar o afecta a varias personas; MEDIA: trabaja con
+  dificultad; BAJA: molestia menor.» El pedido es solo la descripción.
+- Borrador: «Redacta en español, en tercera persona y en pasado, el informe técnico a partir de las notas. No agregues
+  piezas, causas ni datos que no estén en lo enviado; si algo no está, deja el campo vacío.» El pedido lleva la
+  descripción, las notas y lo ya escrito en cada campo, con su nombre.
+- Ninguna función recibe nombres, correos, el responsable, el área, el técnico ni el código del equipo (RNF de
+  privacidad); la prueba lo comprueba con una incidencia de prueba que sí los tiene.
+
+### 4.6 `AsistenteIAGemini` (PR-19, P-1 a P-4)
+```
+disponible = monitorConexion.hayConexion
+clasificar(descripcion):
+  si !monitorConexion.hayConexionAhora() → Error(SinConexion)
+  try modeloClasificacion.generateContent(pedido).text ?: Error(IANoDisponible) → Exito(texto)
+  catch CancellationException → relanzar
+  catch Exception → Log.w(TAG, …, e); Error(IANoDisponible)   (cuota, servicio, App Check o límite de tiempo)
+redactarBorrador(entrada): igual, con el modelo del borrador
+```
+
+### 4.7 `AsignacionViewModel` y la sugerencia (PR-26, PR-28, PR-29)
+- Al llegar las primeras `opciones`, `tipoElegido` y `prioridadElegida` toman los de la incidencia (una sola vez, para
+  no pisar lo que el jefe eligió, RF-1408).
+- En la misma primera carga, `viewModelScope.launch`: `estadoSugerencia = GENERANDO` solo si la incidencia está sin
+  clasificar y sin sugerencia; `SugerirClasificacion`; cualquier error → `NINGUNA` sin mensaje (RF-1406). La
+  sugerencia que se muestra sale de `ObservarSugerencia(CLASIFICACION)`, así una guardada antes también aparece
+  (RF-1405).
+- `alUsarSugerencia`: copia tipo y prioridad, `usada = true`, oculta la tarjeta. `alDescartarSugerencia`:
+  `descartada = true`, oculta. La tarjeta oculta no vuelve mientras la pantalla siga abierta.
+- `alAsignar` → `AsignarIncidencia(…, ClasificacionElegida(tipo, prioridad))`; si es `Exito` y hay sugerencia sin
+  decidir → `DecidirSugerencia(s, clasificacionAceptada(…))` antes de `asignadaA` (RF-1413). Si falla la decisión, se
+  registra en Logcat y la asignación sigue hecha.
+
+### 4.8 `InformeTecnicoViewModel` y el borrador (PR-32, PR-34, PR-35)
+- `puedeRedactar = notas no vacías && iaDisponible && borrador != REDACTANDO && !guardando && !cerrada` (RF-1415).
+- `alRedactarBorrador`: `REDACTANDO`; `RedactarBorradorInforme(incidencia, EntradaBorrador(descripción, notas,
+  campos), ahora)`; `Error` → `errorBorrador = IANoDisponible` o el que llegue, y el estado vuelve al borrador que
+  hubiera (RF-1423). El borrador a la vista sale de `ObservarSugerencia(BORRADOR_INFORME)` (RF-1424).
+- `alUsarBorrador`: cada campo no vacío del borrador reemplaza al del informe; `textoDeIA = true`;
+  `DecidirSugerencia(true)` (RF-1420). `alDescartarBorrador`: `DecidirSugerencia(false)` (RF-1421).
+- `alConfirmarCierre`: después del `Exito` del cierre, si queda un borrador sin decidir → `DecidirSugerencia(false)`
+  (RF-1426). Se guarda `textoDeIA` en el `SavedStateHandle` para que el aviso sobreviva a una rotación.
+
+## 5. Cómo se pinta en Compose
+
+- **5.1 «Clasificación» en Asignar** (PR-27). `EncabezadoSeccion("Clasificación")` y dos `PestanasSegmentadas`:
+  tipo con `listOf(null) + TipoFalla.entries` («Sin clasificar», «Hardware», «Software», «Red») y prioridad con
+  `listOf(null) + Prioridad.entries` («Sin prioridad», «Baja», «Media», «Alta»), P-6. Va entre el resumen y «Elige un
+  técnico».
+- **5.2 Tarjeta de la sugerencia** (PR-30). `GENERANDO`: `TarjetaSugerenciaIA(texto = "Generando sugerencia")` sin
+  botones. Lista: `TarjetaSugerenciaIA(titulo = "Sugerencia de IA", texto = "Red, prioridad media\nGenerada
+  automáticamente. Tú decides la clasificación.", alUsar, alDescartar)`. `NINGUNA`: nada, sin reservar espacio.
+- **5.3 Borrador en el informe** (PR-33, PR-36 a PR-38). Orden: «Mis notas» (`CampoTexto` con `MicrofonoCampo`), el
+  botón «Redactar borrador con IA» (`BotonSecundario` con el ícono de destello) y, debajo, «La IA necesita conexión a
+  internet.» si no hay red; la tarjeta («Redactando borrador», o el borrador con «Diagnóstico: …», «Trabajo realizado:
+  …», «Piezas cambiadas: …», «Observaciones: …» y `textoUsar = "Usar borrador"`); el error de `error.mensaje()`; los
+  cuatro campos; «Texto redactado por IA: revísalo antes de confirmar el cierre.» con `bodySmall` y
+  `onSurfaceVariant` cuando `textoDeIA`.
+- **5.4 Orden en Incidencias** (PR-42, PR-43). Un `FiltroDesplegable("Orden", …)` antes de «Etapa», con «Más
+  recientes» y «Más urgentes»; «Limpiar» no lo toca. Con «Más urgentes», `FilaIncidencia(prioridad = …)` muestra la
+  etiqueta de la prioridad en cada pendiente.
+- Todas las pantallas cambiadas suman vistas previas en claro y oscuro de cada estado nuevo, dentro de `SigtecTheme`.
