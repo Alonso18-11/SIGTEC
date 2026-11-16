@@ -18,7 +18,9 @@ fun NavGraphBuilder.inicioGraph(navController: NavController) {
                 navController.navigate(Ruta.RegistroIncidencia)
                 navController.navigate(Ruta.EscanearEtiqueta)
             },
-            alAbrirRepuestos = { navController.navigate(Ruta.EstadoRepuestos) }
+            alAbrirRepuestos = { navController.navigate(Ruta.EstadoRepuestos) },
+            // HU-16 (RF-1603, RF-1606): sin código, el historial pide uno escrito o escaneado
+            alAbrirHistorial = { navController.navigate(Ruta.HistorialEquipo()) }
         )
     }
 }
