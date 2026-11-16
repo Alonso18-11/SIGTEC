@@ -26,7 +26,7 @@ Paquete raíz `com.softcorp.sigtec`. Los paquetes técnicos van en inglés y los
 - `core/theme/`: paleta v2 (ver `DESIGN.md`), `ColoresEstado.kt` (`SigtecTheme.estados.*`), tipografía Inter (`res/font`), `Shapes.kt`, `Dimens.kt` (`Espaciado`, `AreaTactilMinima`) y `TemaPreview`.
 - `core/ui/`: `MensajesError.kt` y `components/` (v2, ver `DESIGN.md` 4): `BarraSuperior`, `BotonPrincipal`/`BotonSecundario`/`BotonTexto`/`BotonPeligro`, `EncabezadoSeccion`/`Seccion`, `Tarjeta`, `FilaIncidencia`, `Avatar`, `EtiquetaEstado`, `EtiquetaIncidencia`, `AvisoConexion`, `CabeceraHero`, `TarjetaMetrica`, `AvanceIncidencia`, `SeguimientoRepuesto`, `LineaTiempo`, `FiltrosChips`, `PestanasSegmentadas`, `CampoTexto`, `FabExtendido`, `BarraAccionInferior`, `BarraNavegacion`, `TarjetaSugerenciaIA`/`EtiquetaIA`, `FilaCargaTecnico` y `PantallaEnConstruccion`, esta última temporal.
 - `core/di/`: módulos de Dispatchers, Firebase, Database, Sesion, DataStore y Sincronizacion.
-- `feature/<modulo>/{domain,data,di,presentation}`: acceso, inicio, incidencias, asignacion, atencion, captura, diccionario e indicadores. Las pantallas sin HU implementada siguen con `PantallaEnConstruccion`.
+- `feature/<modulo>/{domain,data,di,presentation}`: acceso, inicio, incidencias, asignacion, atencion, captura, diccionario, indicadores e ia (Gemini por Firebase AI Logic y las sugerencias, HU-14). Las pantallas sin HU implementada siguen con `PantallaEnConstruccion`.
 - `firebase/firestore.rules`: reglas del servidor. Se cambian aquí, se revisan en el PR y después se publican a mano en la consola.
 - `app/src/test/`: pruebas JVM y dobles de prueba (`SesionRepositoryDemo`, `IncidenciaRepositoryFalso`, `MainDispatcherRule`). `app/src/androidTest/`: pruebas de DAO con Room en memoria.
 
