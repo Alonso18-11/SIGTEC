@@ -363,4 +363,42 @@ class ReglasSincronizacionTest {
         assertTrue(hayPendientesDeSubir(0, 0, 0, 0, 1))
         assertTrue(hayPendientesDeSubir(2, 0, 0, 0, 0))
     }
+
+    // ---------- HU-18: cuándo toca una tarea diaria (RF-1801, RF-1803) ----------
+
+    private val lima = java.time.ZoneId.of("America/Lima")
+    private val ocho = java.time.LocalTime.of(8, 0)
+    private fun enLima(texto: String): Instant = java.time.LocalDateTime.parse(texto).atZone(lima).toInstant()
+
+    @Test
+    fun `antes de su hora no toca`() {
+        assertFalse(tocaTareaDiaria(ocho, enLima("2026-11-16T07:59"), lima, ultimaExitosa = null))
+    }
+
+    @Test
+    fun `desde su hora toca si nunca termino`() {
+        assertTrue(tocaTareaDiaria(ocho, enLima("2026-11-16T08:00"), lima, ultimaExitosa = null))
+    }
+
+    @Test
+    fun `si ya termino hoy no toca otra vez`() {
+        assertFalse(tocaTareaDiaria(ocho, enLima("2026-11-16T15:00"), lima, enLima("2026-11-16T08:05")))
+    }
+
+    @Test
+    fun `una consulta hecha hoy antes de la hora tambien cuenta`() {
+        assertFalse(tocaTareaDiaria(ocho, enLima("2026-11-16T08:15"), lima, enLima("2026-11-16T07:30")))
+    }
+
+    @Test
+    fun `si termino ayer toca hoy`() {
+        assertTrue(tocaTareaDiaria(ocho, enLima("2026-11-16T08:15"), lima, enLima("2026-11-15T23:50")))
+    }
+
+    @Test
+    fun `el dia se cuenta en la zona del celular y no en UTC`() {
+        // 20:00 en Lima ya es el día siguiente en UTC: la tarea de las 18:00 hecha a las 18:30 sigue siendo de hoy
+        val resumen = java.time.LocalTime.of(18, 0)
+        assertFalse(tocaTareaDiaria(resumen, enLima("2026-11-16T20:00"), lima, enLima("2026-11-16T18:30")))
+    }
 }
