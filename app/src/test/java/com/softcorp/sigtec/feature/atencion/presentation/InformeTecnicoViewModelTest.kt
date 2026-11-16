@@ -265,4 +265,15 @@ class InformeTecnicoViewModelTest {
         val vm = nuevoVm()
         assertEquals("INC-0127", vm.estado.value.codigoIncidencia)
     }
+
+    @Test
+    fun `las notas se escriben y se dictan al final`() = runTest {
+        // HU-14 (RF-1414)
+        val vm = nuevoVm()
+        vm.alCambiarNotas("cambie la fuente")
+        vm.alRecibirDictado(CampoDictado.NOTAS, "ahora prende")
+
+        assertEquals("cambie la fuente ahora prende", vm.estado.value.notas)
+        assertEquals("", vm.estado.value.diagnostico)
+    }
 }
