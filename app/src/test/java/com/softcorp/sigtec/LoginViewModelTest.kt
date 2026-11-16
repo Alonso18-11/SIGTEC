@@ -30,7 +30,6 @@ import org.junit.Test
 import java.time.Instant
 
 // HU-01 (specs/001-inicio-sesion)
-// UnconfinedTestDispatcher sigue siendo experimental en kotlinx-coroutines-test
 @OptIn(ExperimentalCoroutinesApi::class)
 class LoginViewModelTest {
 
