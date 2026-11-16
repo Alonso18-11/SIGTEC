@@ -27,6 +27,10 @@ interface InformeTecnicoDao {
     @Query("SELECT * FROM informes_tecnicos WHERE id = :id")
     suspend fun porId(id: String): InformeTecnicoEntity?
 
+    // HU-16 (RF-1624): al bajar un informe, el que ya tiene el celular para esa incidencia no se pisa
+    @Query("SELECT * FROM informes_tecnicos WHERE incidenciaId = :incidenciaId")
+    suspend fun porIncidencia(incidenciaId: String): InformeTecnicoEntity?
+
     @Query("UPDATE informes_tecnicos SET pendienteSincronizar = 0 WHERE id = :id")
     suspend fun marcarSincronizado(id: String)
 
