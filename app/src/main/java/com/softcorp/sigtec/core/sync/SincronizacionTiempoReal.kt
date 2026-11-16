@@ -205,7 +205,7 @@ class SincronizacionTiempoReal @Inject constructor(
             fallaDiccionarioDao.observarCantidadPendientes(),
             sugerenciaIADao.observarCantidadPendientes()
         ) { i, m, s, f, sug ->
-            i + m + s + f + sug > 0
+            hayPendientesDeSubir(i, m, s, f, sug)
         }
             .distinctUntilChanged()
             .filter { it }
