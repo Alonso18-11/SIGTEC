@@ -144,3 +144,33 @@ respaldo de la subida.
 - Dos asignaciones en la misma revisión: dos avisos, uno por incidencia (cada una con su id).
 - La persona negó el permiso de notificaciones: las asignaciones aparecen en su lista al abrir la app, sin aviso.
 - Cerrar sesión con registros sin enviar: lo cubre el aviso de la HU-01 (RF-13); la revisión se cancela al cerrar.
+
+## Fuera de alcance
+- Bajar con la app cerrada los cambios de los demás que no son asignaciones propias (cierres, otras incidencias,
+  movimientos, solicitudes, fallas): siguen llegando por la escucha en tiempo real al abrir la app (D-2).
+- Consulta diaria del estado de los repuestos, resumen del día y alerta de casos demorados al jefe: son la HU-18, que
+  podrá reutilizar la forma de programar y el canal de avisos de esta HU.
+- Avisar al jefe o al personal de sistemas de cualquier evento, y pedirles el permiso de notificaciones: HU-18.
+- Pedir quitar la optimización de batería o guiar a la persona por los ajustes del fabricante (D-4).
+- Una pantalla o ajuste para activar, desactivar o cambiar la frecuencia de la revisión.
+- Notificaciones push con FCM, que exigen un servidor (plan Spark).
+
+## Criterios de finalización
+- RF-1701 a RF-1717 implementados, y RF-703 de la spec 007 reemplazado por la referencia a RF-1713.
+- Pruebas JVM: la regla de aviso (no estaba, estaba sin asignar, asignada a otro, ya era suya, cerrada, asignada antes
+  del inicio de sesión), la regla de quién consulta (técnico, jefe, personal de sistemas, sin sesión), la de cuándo
+  programar el respaldo (con y sin pendientes) y la de la red sin validar. Lo que depende de WorkManager, Firestore o
+  `NotificationManager` reales se prueba a mano, como en la HU-05 y la HU-07.
+- `./gradlew assembleDebug testDebugUnitTest lintDebug` en verde y sin advertencias nuevas de lint.
+- Prueba manual en un celular real con el técnico (`lramirez`) y el jefe (`cmendoza`) en otro celular o emulador:
+  - Con la app del técnico cerrada (quitada de recientes), el jefe registra y asigna una incidencia: el aviso llega en
+    15 minutos o menos con la pantalla encendida; tocarlo abre el detalle.
+  - Lo mismo con la sesión bloqueada: el aviso se ve sin detalles y pide la huella.
+  - Reiniciar el celular sin abrir la app y repetir la asignación: el aviso llega.
+  - Iniciar sesión en un celular limpio con incidencias ya asignadas: no hay avisos.
+  - Registrar una incidencia en modo avión, cerrar la app y quitar el modo avión: el jefe la ve sin que el técnico abra
+    la app.
+  - Como jefe, comprobar que nunca recibe avisos de asignación.
+  - Para no esperar 15 minutos en cada intento, se puede forzar el trabajo con
+    `adb shell cmd jobscheduler run -f com.softcorp.sigtec <id>` (el id sale de `adb shell dumpsys jobscheduler`).
+- La línea de la HU-17 en `MEMORY.md` dice «completa».
