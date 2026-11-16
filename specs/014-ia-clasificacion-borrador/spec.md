@@ -1,7 +1,7 @@
 # Spec 014 — Clasificación, prioridad y borrador del informe con IA (HU-14)
 
-> Estado: borrador para revisión (2026-11-15). Las decisiones D-1 a D-10 son propuestas y las dudas abiertas están sin
-> responder; el plan y las tareas se escriben después de que se respondan.
+> Estado: aprobada (2026-11-15), RF-1401 a RF-1437. Decisiones D-1 a D-11 aprobadas por Nina el 2026-11-15 y dudas
+> respondidas (ver «Decisiones» y «Dudas abiertas»). El cómo está en `plan.md` y las tareas en `tasks.md`.
 
 > Spec escrita antes del código (principio 2 de la constitución). Los requisitos usan el bloque propio de la HU-14
 > (RF-1401…). Sale de la planificación (`SIGTEC_Planificación.xlsx`, épica EP-06 «Gestión del conocimiento e
@@ -233,39 +233,39 @@ etiqueta «IA» y la regla de Firestore de `sugerenciasIA`.
 - La línea de la HU-14 en `MEMORY.md` dice «completa».
 
 ## Decisiones
-Todas propuestas el 2026-11-15, pendientes de aprobación.
-- D-1 · Asistente conversacional (RF-1432). **Propuesta:** fuera de la HU-14, y se quita «Abrir asistente» del detalle,
+Todas aprobadas por Nina el 2026-11-15.
+- D-1 · Asistente conversacional (RF-1432). **Aprobada:** fuera de la HU-14, y se quita «Abrir asistente» del detalle,
   que hoy navega a una ruta sin pantalla. No está en el criterio de la planificación; multiplica las llamadas contra
   una cuota gratuita que comparte todo el proyecto; necesita una pestaña nueva, historial de la conversación y decidir
   qué se guarda; y lo que muestra el prototipo ya lo cubren las «Fallas parecidas» de la HU-13 («¿Qué pruebo
   primero?») y el borrador de esta HU («Redacta el informe»). Alternativa: hacerlo como bloque aparte al final, si
   sobra tiempo.
-- D-2 · Dónde se pide la clasificación (RF-1401, RF-1405). **Propuesta:** en «Asignar», en el celular del jefe, una
+- D-2 · Dónde se pide la clasificación (RF-1401, RF-1405). **Aprobada:** en «Asignar», en el celular del jefe, una
   sola vez por incidencia. Quien decide es quien la ve, no hay que bajar sugerencias de otros celulares y una incidencia
   registrada sin conexión igual la recibe. Alternativa descartada: pedirla al registrar (prototipo 04), que gasta una
   consulta en cada registro y obliga a bajar las sugerencias al celular del jefe.
-- D-3 · Clasificar al asignar (RF-1411). **Propuesta:** opcional. No cambia las reglas de la HU-06 ni bloquea la
+- D-3 · Clasificar al asignar (RF-1411). **Aprobada:** opcional. No cambia las reglas de la HU-06 ni bloquea la
   asignación si Gemini falla. Alternativa: exigir el tipo y la prioridad para asignar.
-- D-4 · Cuándo una clasificación cuenta como aceptada (RF-1413). **Propuesta:** solo con «Usar» y asignando sin
+- D-4 · Cuándo una clasificación cuenta como aceptada (RF-1413). **Aprobada:** solo con «Usar» y asignando sin
   cambios. Alternativa: comparar lo asignado con lo sugerido sin mirar los botones (descartar y elegir lo mismo
   contaría como aceptada).
-- D-5 · Cómo se pide el borrador (RF-1414 a RF-1426). **Propuesta:** a pedido, desde «Mis notas» (como el prototipo 9
+- D-5 · Cómo se pide el borrador (RF-1414 a RF-1426). **Aprobada:** a pedido, desde «Mis notas» (como el prototipo 9
   del PDF), y «Usar borrador» reemplaza los campos que el borrador trae. Las notas no se guardan. Alternativa: pedirlo
   solo al abrir el informe, que gasta cuota antes de que haya notas.
-- D-6 · Modelo (RNF de costo). **Propuesta:** `gemini-3.5-flash-lite`, en una sola constante. Al 2026-11-15 es estable,
+- D-6 · Modelo (RNF de costo). **Aprobada:** `gemini-3.5-flash-lite`, en una sola constante. Al 2026-11-15 es estable,
   no exige facturación, no tiene fecha de retiro publicada y es el modelo al que Google redirige `gemini-2.5-flash`
   desde el 2026-12-01. Alternativa: `gemini-3.8-flash`, también estable y sin facturación, más capaz y probablemente
   con menos cuota gratuita.
-- D-7 · Qué se sube (RF-1429, RF-1430). **Propuesta:** solo las sugerencias decididas, una vez, sin bajarlas; la regla
+- D-7 · Qué se sube (RF-1429, RF-1430). **Aprobada:** solo las sugerencias decididas, una vez, sin bajarlas; la regla
   de `sugerenciasIA` pasa a «solo crear», como los movimientos. La regla actual (actualizar solo `aceptada`) chocaría
   con `actualizadoEn`. Alternativa: subirlas al generarse y actualizarlas al decidir.
-- D-8 · «Registros sin enviar» (RF-1431). **Propuesta:** no contar las sugerencias: la asignación o el cierre que las
+- D-8 · «Registros sin enviar» (RF-1431). **Aprobada:** no contar las sugerencias: la asignación o el cierre que las
   decide ya se cuenta, y «1 sugerencia sin enviar» no le dice nada a quien cierra sesión.
-- D-9 · App Check (RF-1406). **Propuesta:** opción (a) de la configuración (aplazar la exigencia hasta el 2027-01-21
+- D-9 · App Check (RF-1406). **Aprobada:** opción (a) de la configuración (aplazar la exigencia hasta el 2027-01-21
   como máximo) para desarrollar y probar ya, y decidir la (b) antes de publicar en Google Play. La (b) agrega dos
   dependencias (`firebase-appcheck-playintegrity` y `firebase-appcheck-debug`) en su propio PR (principio 1) y cambia
   `SigtecApp.kt`. La (c), dejarla «sin exigir (solo monitoreo)», la documentación la desaconseja.
-- D-10 · Dónde vive el código (para el plan). **Propuesta:** un módulo nuevo `feature/ia/{domain,data,di}` con el
+- D-10 · Dónde vive el código (para el plan). **Aprobada:** un módulo nuevo `feature/ia/{domain,data,di}` con el
   cliente de Gemini, la validación de las respuestas, el repositorio de sugerencias y los casos de uso; «Asignar» e
   «Informe técnico» los usan, como el detalle usa los del diccionario. Ámbito de commit `ia`, que hay que agregar a
   la lista de `CLAUDE.md`. Alternativa: repartirlo entre `asignacion` y `atencion`, con el cliente de Gemini en `core`.
