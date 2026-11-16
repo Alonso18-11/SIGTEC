@@ -40,7 +40,7 @@ private data class Filtros(val texto: String = "", val tipo: TipoFalla? = null, 
 @HiltViewModel
 class DiccionarioViewModel @Inject constructor(
     observarDiccionario: ObservarDiccionario,
-    @DefaultDispatcher private val calculo: CoroutineDispatcher
+    @param:DefaultDispatcher private val calculo: CoroutineDispatcher
 ) : ViewModel() {
 
     private val filtros = MutableStateFlow(Filtros())

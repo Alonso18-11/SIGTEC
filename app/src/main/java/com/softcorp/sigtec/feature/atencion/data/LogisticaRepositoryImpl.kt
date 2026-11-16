@@ -15,7 +15,7 @@ import javax.inject.Inject
 /** HU-11 (plan 4.4): Logística con Retrofit, siempre en una corrutina fuera del hilo principal (sección 14). */
 class LogisticaRepositoryImpl @Inject constructor(
     private val api: LogisticaApi,
-    @IoDispatcher private val io: CoroutineDispatcher
+    @param:IoDispatcher private val io: CoroutineDispatcher
 ) : LogisticaRepository {
 
     override suspend fun buscarPiezas(texto: String): ResultadoLogistica<List<PiezaLogistica>> =
