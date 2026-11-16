@@ -17,6 +17,8 @@ fun ErrorDominio.mensaje(): String = when (this) {
     is ErrorDominio.YaAsignada -> "La incidencia ya está asignada a $tecnicoNombre."
     ErrorDominio.MarcaCambiada -> "Esta incidencia ya cambió de estado. Vuelve a abrirla para ver su situación actual."
     ErrorDominio.LimiteFotosAlcanzado -> "Llegaste al máximo de 10 fotos por incidencia."
+    // HU-14: solo se muestra al pedir el borrador del informe (RF-1423); la clasificación falla en silencio (RF-1406)
+    ErrorDominio.IANoDisponible -> "No se pudo redactar el borrador. Puedes escribir el informe a mano."
     is ErrorDominio.LimiteAtencionAlcanzado -> "$tecnicoNombre alcanzó su límite de atención."
     is ErrorDominio.Desconocido -> "Ocurrió un error inesperado. Inténtalo de nuevo."
 }
