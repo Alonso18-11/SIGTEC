@@ -5,10 +5,18 @@ import com.softcorp.sigtec.core.domain.Resultado
 import com.softcorp.sigtec.core.domain.model.Incidencia
 import com.softcorp.sigtec.core.domain.model.Movimiento
 import com.softcorp.sigtec.core.domain.model.Permiso
+import com.softcorp.sigtec.core.domain.model.Prioridad
+import com.softcorp.sigtec.core.domain.model.TipoFalla
 import com.softcorp.sigtec.core.domain.usecase.VerificarPermiso
 import java.time.Instant
 import java.util.UUID
 import javax.inject.Inject
+
+/**
+ * HU-14 (RF-1408, RF-1412): la clasificación que el jefe deja al asignar, aceptando o corrigiendo la sugerencia de la IA
+ * o eligiéndola a mano. Un valor null deja la incidencia sin ese dato (D-3: clasificar es opcional).
+ */
+data class ClasificacionElegida(val tipo: TipoFalla?, val prioridad: Prioridad?)
 
 /**
  * HU-06: el jefe asigna o reasigna una incidencia pendiente a un técnico con cupo (RF-05, RF-06 del
@@ -18,7 +26,13 @@ class AsignarIncidencia @Inject constructor(
     private val verificarPermiso: VerificarPermiso,
     private val repo: AsignacionRepository
 ) {
-    suspend operator fun invoke(incidenciaId: String, tecnicoId: String, ahora: Instant): Resultado<Incidencia> {
+    /** [clasificacion] null deja la clasificación como está (por ejemplo, desde una pantalla que no la muestra). */
+    suspend operator fun invoke(
+        incidenciaId: String,
+        tecnicoId: String,
+        ahora: Instant,
+        clasificacion: ClasificacionElegida? = null
+    ): Resultado<Incidencia> {
         // RF-608: en el dominio, aunque el detalle solo muestre el botón al jefe
         val jefe = when (val r = verificarPermiso(Permiso.ASIGNAR_INCIDENCIA)) {
             is Resultado.Exito -> r.valor
@@ -41,7 +55,10 @@ class AsignarIncidencia @Inject constructor(
         val actualizada = incidencia.copy(
             marca = marcaAlAsignar(incidencia.marca),                          // RF-614, RF-625
             tecnicoAsignadoId = tecnico.id,
-            tecnicoAsignadoNombre = tecnico.nombre
+            tecnicoAsignadoNombre = tecnico.nombre,
+            // HU-14 (RF-1412): en la misma transacción que la asignación y su movimiento
+            tipoFalla = if (clasificacion != null) clasificacion.tipo else incidencia.tipoFalla,
+            prioridad = if (clasificacion != null) clasificacion.prioridad else incidencia.prioridad
         )
         val movimiento = Movimiento(
             id = UUID.randomUUID().toString(),
