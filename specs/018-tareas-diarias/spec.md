@@ -185,3 +185,53 @@ demorados» y «Resumen del día».
     con la app del jefe cerrada.
   - Como personal de sistemas, comprobar que no recibe avisos ni se le pide el permiso.
 - La línea de la HU-18 en `MEMORY.md` dice «completa».
+
+## Decisiones
+Propuestas el 2026-11-16, pendientes de aprobación de Nina.
+- D-1 · Dónde corren las tareas (RF-1801, RF-1803). **Propuesta:** dentro de la revisión de 15 minutos de la HU-17,
+  que ya se programa con la sesión, corre con la app cerrada y se cancela al cerrar sesión. Cada tarea tiene una hora
+  desde la que puede correr y se anota en `sincronizaciones` al terminar con éxito, así no se repite ese día. Llega a
+  su hora con un margen de 15 minutos. Alternativa: un trabajo periódico de 24 horas por tarea, con un retraso inicial
+  hasta su hora; WorkManager no garantiza la hora de un trabajo de 24 horas (se corre con cada ejecución) y habría que
+  programar y cancelar tres trabajos más.
+- D-2 · Las horas (RF-1801). **Propuesta:** repuestos y casos demorados desde las 8:00; el resumen desde las 18:00,
+  todos los días. Alternativas: solo de lunes a viernes, u otras horas según la jornada del área (ver dudas).
+- D-3 · «Caso crítico» sin escribir `critica` (RF-1815). **Propuesta:** se sigue usando `esCritica` (HU-15), que ya
+  marca como crítica toda pendiente de más de 5 días en Inicio, la lista y el tablero; la tarea solo avisa. Escribir
+  `critica` desde el celular del jefe cambiaría incidencias que el técnico puede estar editando (conflictos de RF-62),
+  pediría revisar `firestore.rules` y guardaría un dato que ya se calcula. Se corrigen los comentarios y la nota de
+  RF-1508 que dicen que la HU-18 lo marcaría. Alternativa: escribir `critica = true` en Room y subirlo.
+- D-4 · Un solo aviso de demorados por mañana (RF-1813, RF-1814). **Propuesta:** un aviso con el número, que
+  reemplaza al del día anterior. Alternativas: un aviso por incidencia (una avalancha con varios casos) o avisar solo
+  de las que se volvieron críticas ese día (el jefe no vería las que siguen demoradas).
+- D-5 · El resumen del día es un aviso, no un dato guardado (RF-1816 a RF-1818). **Propuesta:** el tablero ya muestra
+  lo del día al abrirlo, que es lo que pide el criterio; la tarea solo avisa al jefe al cierre con los tres números.
+  Alternativa: guardar un resumen por día en Room (entidad nueva, sube `version`) o agregar una tarjeta «Hoy» al
+  tablero.
+- D-6 · Bajar los datos antes de avisar al jefe (RF-1810, RF-1811). **Propuesta:** con la app cerrada, el Room del
+  jefe solo se actualiza cuando la abre (la HU-17 baja solo las asignaciones del técnico), así que antes de contar se
+  bajan todas las incidencias y los movimientos del día, con las reglas de conflicto de siempre. Alternativa: contar
+  con lo que haya en Room, que puede avisar de casos que ya se cerraron.
+- D-7 · Sin aviso al técnico por los repuestos (RF-1809). **Propuesta:** el criterio solo pide que el estado se refleje
+  en la incidencia; el técnico lo ve en «Estado de repuestos» y la incidencia vuelve sola a «En atención».
+  Alternativa: avisar al técnico cuando se entrega el último repuesto de una incidencia.
+- D-8 · Un canal propio para los avisos del jefe (RF-1819). **Propuesta:** «Avisos del área», con el mismo notificador
+  y la misma privacidad que el de «Asignaciones», pero aparte, para que se pueda silenciar sin perder las asignaciones
+  (lo mismo que buscó RF-706). Alternativa: usar el mismo canal «Asignaciones».
+- D-9 · Pedir el permiso de notificaciones al jefe (RF-1822). **Propuesta:** se amplía la regla de la HU-07 a quien
+  tiene `VER_INDICADORES`, como dejó anotado su spec («Dependencia para la HU-18»). Toca `core/notificaciones`.
+- D-10 · Dónde vive el código (para el plan). **Propuesta:** una interfaz de tarea diaria en `core/sync` (tipo, hora,
+  quién la corre y qué hace), con una implementación en `feature/atencion` (repuestos) y dos en
+  `feature/indicadores` (demorados y resumen), que se registran con Hilt (`@IntoSet`) y la revisión de la HU-17 corre
+  en orden. Así `core/sync` no depende de los módulos de negocio. Archivos compartidos que toca: `core/sync`
+  (`RevisarAsignacionesWorker.kt`, `ReglasSincronizacion.kt`, la descarga de RF-1810), `core/notificaciones` y los
+  `di` de los dos módulos. Alternativa: escribir las tres tareas dentro de `core/sync`, que haría depender el núcleo de
+  `feature/atencion` y `feature/indicadores`.
+
+## Dudas abiertas
+- ¿Apruebas D-1 a D-10?
+- Horas y días (D-2): ¿8:00 y 18:00 todos los días, o solo en días laborables? ¿El área trabaja los sábados?
+- Canal (D-8): pediste reutilizar «el canal de avisos de la HU-17». Propongo reutilizar el mecanismo de aviso, pero
+  con un canal aparte para el jefe. ¿Te sirve, o prefieres el mismo canal «Asignaciones»?
+- Esta HU se apoya en la HU-17 (#219 y #220). Si Alonso no los fusiona antes, el código de la HU-18 irá apilado sobre
+  #220.
