@@ -326,3 +326,83 @@ redactarBorrador(entrada): igual, con el modelo del borrador
   recientes» y «Más urgentes»; «Limpiar» no lo toca. Con «Más urgentes», `FilaIncidencia(prioridad = …)` muestra la
   etiqueta de la prioridad en cada pendiente.
 - Todas las pantallas cambiadas suman vistas previas en claro y oscuro de cada estado nuevo, dentro de `SigtecTheme`.
+
+## 6. Decisiones técnicas
+
+| # | Decisión | Por qué |
+|---|---|---|
+| P-1 | `Firebase.ai(backend = GenerativeBackend.googleAI())` y los dos `GenerativeModel` se proveen en `IAModule` (`@Provides @Singleton`, calificadores `@ModeloClasificacion` y `@ModeloBorrador`). | `CLAUDE.md`: nada de `getInstance()` ni dependencias armadas a mano dentro de las clases. |
+| P-2 | Salida estructurada: `responseMimeType = "application/json"`, `responseSchema` (`Schema.enumeration` para tipo y prioridad; cuatro `Schema.string()`, con piezas y observaciones opcionales) y `temperature = 0.2f`. | Menos respuestas inválidas. Igual el dominio valida (3.1, 3.2): el esquema no reemplaza la validación. |
+| P-3 | Límite de tiempo con `RequestOptions(timeoutInMillis = 15_000)` para clasificar y `30_000` para el borrador. | RF-1406 y RF-1423. |
+| P-4 | `MODELO_GEMINI = "gemini-3.5-flash-lite"` en una sola constante de `IAModule`; cada sugerencia guarda `asistente.modelo`. | D-6 y RF-1427: cambiar de modelo es una línea, y se sabe qué modelo propuso cada cosa. |
+| P-5 | `SugerenciaIA.contenido` guarda el JSON canónico de 3.1 y 3.2. | Se vuelve a leer igual al reabrir (RF-1405, RF-1424) y sube tal como se mostró. |
+| P-6 | Los selectores de «Clasificación» tienen la opción nula («Sin clasificar», «Sin prioridad»). | `PestanasSegmentadas` exige una opción elegida; así puede empezar vacío (RF-1408) y el jefe puede quitar una clasificación. |
+| P-7 | `SugerenciaIARepository`: `observarSinDecidir(incidenciaId, tipo): Flow<SugerenciaIA?>`, `sinDecidir(…)`, `contar(…)`, `guardar(…)` y `decidir(id, aceptada, decididaPorId, ahora)`, todos con `Resultado`. | Lo mínimo que piden 4.1 a 4.3. |
+| P-8 | La decisión se registra después del éxito de la asignación o del cierre, desde el `ViewModel`, no dentro de su transacción. | `asignacion` y `atencion` siguen escribiendo solo sus tablas, y si la decisión falla no deshace la asignación. Si la app muere entre ambos pasos, la sugerencia queda sin decidir y no se sube; no cambia ningún dato. |
+| P-9 | Los calificadores de Hilt en las clases nuevas van con `@param:` (`@param:IoDispatcher private val io`). | No suma al aviso de Kotlin que ya existe en `main` (la lista de mantenimiento lo corrige en el resto). |
+| P-10 | `AsistenteIA.disponible` envuelve `MonitorConexion.hayConexion`. | El `ViewModel` del informe no depende de `core/sync` (RF-1415). |
+| P-11 | La incidencia, su entidad y su regla no cambian; solo `SugerenciaIAEntity` (versión 7). | La clasificación usa campos que ya existen (sección 0). |
+| P-12 | No se reintenta solo dentro de la misma pantalla, y el borrador es solo a pedido. | La cuota gratuita es por proyecto (RNF de cuota). |
+
+## 7. Estrategia de pruebas
+
+- **JVM, funciones puras:** `ClasificacionTest` (válida, mayúsculas, tipo o prioridad fuera de los permitidos, falta
+  un campo, texto suelto, lee su propio contenido), `BorradorTest` (completo, sin piezas, sin diagnóstico, recorte a
+  1000, texto suelto), `ReglasSugerenciaTest` (usada sin cambios, usada y corregida, descartada, sin usar),
+  `OrdenIncidenciasTest` (las tres prioridades, sin prioridad al final, empate por antigüedad, solucionadas al final,
+  `RECIENTES` sin cambios), `InstruccionesGeminiTest` (lleva la descripción y las notas, no lleva nombre, área,
+  técnico ni código del equipo).
+- **JVM, casos de uso** con `SesionRepositoryDemo`, `AsistenteIAFalso` y `SugerenciaIARepositoryFalso`:
+  `SugerirClasificacionTest` (sin sesión, personal de sistemas, cerrada, ya clasificada, ya sugerida, Gemini falla,
+  respuesta inválida, camino feliz con el modelo y la fecha), `RedactarBorradorInformeTest` (otro técnico, cerrada,
+  sin notas, falla con un anterior a la vista, anterior sin decidir queda no aceptado, camino feliz),
+  `DecidirSugerenciaTest` (permiso según el tipo, ya decidida, quién y cuándo), `ObservarSugerenciaTest`,
+  `AsignarIncidenciaTest` (con clasificación, `null` no cambia, límite).
+- **JVM, ViewModels** con `MainDispatcherRule`: `AsignacionViewModelTest` (clasificación inicial, generando, lista,
+  sin sugerencia, ya clasificada, usar, descartar, corregir, decisión al asignar), `InformeTecnicoViewModelTest`
+  (notas, dictado de notas, `puedeRedactar`, redactando, listo, error, sin conexión, usar, descartar, otro borrador,
+  decisión al cerrar, el aviso tras rotar), `ListaIncidenciasViewModelTest` (orden con filtros, limpiar no lo cambia).
+- **Instrumentada:** `SugerenciaIADaoTest` (sin decidir más reciente, conteo por tipo, decidir, solo las decididas por
+  subir, marcar sincronizada) en un celular, con `version` 7.
+- **Firestore:** Rules Playground con la regla de PR-07 (crear a nombre propio y con `aceptada`: permite; a nombre de
+  otro, sin `aceptada`, tipo inválido, actualizar o borrar: rechaza).
+- **Ninguna prueba llama a Gemini.** `AsistenteIAGemini` se prueba en el celular (spec, «Criterios de finalización»).
+- **Manual en el celular:** los puntos de la spec, con capturas en claro y oscuro en el scratchpad, nunca en el repo.
+
+## 8. Cobertura de RF
+
+| RF | PR |
+|---|---|
+| RF-1401 a RF-1407 | PR-12, PR-15, PR-18 a PR-20, PR-23, PR-28, PR-30 |
+| RF-1408 a RF-1413 | PR-14, PR-22, PR-25 a PR-27, PR-29, PR-30 |
+| RF-1414 a RF-1426 | PR-13, PR-15, PR-18, PR-19, PR-21 a PR-24, PR-31 a PR-38 |
+| RF-1427 a RF-1431 | PR-04 a PR-10, PR-16, PR-17, PR-22 (RF-1431 no pide código: `clearAllTables()` ya borra la tabla y `EstadoDatosRepositoryImpl` no la cuenta) |
+| RF-1432 | PR-02, PR-03 |
+| RF-1433 a RF-1437 | PR-39 a PR-43 |
+
+## 9. Respeto a la constitución
+
+1. **Stack cerrado:** sin dependencias nuevas; `firebase-ai` y `kotlinx-serialization-json` ya están. App Check queda
+   para un PR propio si se decide antes de publicar (D-9).
+2. **Spec antes que código:** spec #154 aprobada; si el código cambia algo, la spec se actualiza en el mismo PR.
+3. **Lógica fuera de la pantalla:** validación, aceptación y orden son funciones puras en `domain`; los permisos van
+   en los casos de uso.
+4. **Toda regla tiene prueba:** sección 7; cada PR pasa `assembleDebug testDebugUnitTest`, y `lintDebug` corre en
+   cada tanda.
+5. **Datos protegidos:** sin claves (Firebase AI Logic autoriza con su cuenta de servicio); a Gemini solo va el texto
+   del problema; la IA no cambia nada sin «Usar» y la decisión de la persona; el cierre sigue con huella.
+6. **Español en el negocio:** clases, funciones, textos y comentarios en español.
+
+## 10. Resumen: archivos compartidos y Room por PR
+
+| PR | Compartido (⚠️) o sensible (🔶) | Room |
+|---|---|---|
+| PR-01, PR-03 | 🔶 `CLAUDE.md` | — |
+| PR-03 | ⚠️ `Rutas.kt` | — |
+| PR-04 | ⚠️ `core/domain/model/TipoSugerencia.kt`, `SugerenciaIAEntity.kt`, `SigtecDatabase.kt` | `version` 6 → 7 (se dice en el PR: se pierde lo no sincronizado) |
+| PR-05 | ⚠️ `SugerenciaIADao.kt` | consultas nuevas, sin cambio de esquema |
+| PR-07 | ⚠️ `firestore.rules` (Nina la publica al fusionarse) | — |
+| PR-08 a PR-10 | 🔶 `core/sync/` | — |
+| PR-11 | ⚠️ `Resultado.kt`, `MensajesError.kt` | — |
+| PR-24, PR-41 | 🔶 `core/ui/components/` | — |
+| PR-44 | `MEMORY.md` (solo la línea de la HU-14) | — |
