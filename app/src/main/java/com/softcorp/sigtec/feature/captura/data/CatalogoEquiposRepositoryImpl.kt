@@ -12,7 +12,7 @@ import javax.inject.Inject
 /** Solo lee el catálogo que `core/sync` ya bajó a Room; nunca habla con Firestore. */
 class CatalogoEquiposRepositoryImpl @Inject constructor(
     private val catalogoDao: CatalogoDao,
-    @IoDispatcher private val io: CoroutineDispatcher
+    @param:IoDispatcher private val io: CoroutineDispatcher
 ) : CatalogoEquiposRepository {
 
     // Si Room falla, el código se ofrece como fuera del catálogo: el registro lo vuelve a validar (RF-907)
