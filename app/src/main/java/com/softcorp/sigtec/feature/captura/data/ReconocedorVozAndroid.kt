@@ -27,7 +27,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class ReconocedorVozAndroid @Inject constructor(
-    @ApplicationContext private val contexto: Context
+    @param:ApplicationContext private val contexto: Context
 ) : ReconocedorVoz {
 
     // Solo se toca desde el hilo principal: el flujo corre ahí y detener() lo llama la pantalla
