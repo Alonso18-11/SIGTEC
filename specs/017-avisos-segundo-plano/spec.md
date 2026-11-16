@@ -4,7 +4,7 @@
 > El cómo está en `plan.md` y las tareas en `tasks.md`.
 
 > Implementación (2026-11-16): RF-1709 a RF-1713 en #219 (regla de aviso y guardado compartido) y RF-1701 a RF-1708 y
-> RF-1714 a RF-1717 en #220 (revisión periódica, sobre #219). Revisada en el emulador con `cmendoza`: la revisión queda
+> RF-1714 a RF-1717 en #226 (revisión periódica; reemplaza a #220, que no llegó a `main`). Revisada en el emulador con `cmendoza`: la revisión queda
 > programada cada 15 minutos y se anota el inicio de sesión. Falta la prueba en un celular real con el técnico.
 
 > Spec escrita antes del código (principio 2 de la constitución). Los requisitos usan el bloque propio de la HU-17

@@ -11,7 +11,7 @@
 >
 > ⚠️ = compartido de `CLAUDE.md`; 🔶 = sensible fuera de esa lista.
 
-> **Estado (2026-11-16).** PR-A en #219, PR-B en #220 (sobre #219) y PR-C en este PR (sobre #218). T09 revisada en el
+> **Estado (2026-11-16).** PR-A en #219, PR-B en #226 (reemplaza a #220, que no llegó a `main`) y PR-C en #221. T09 revisada en el
 > emulador con `cmendoza`: la base de WorkManager tiene `revisar-asignaciones` en cola cada 15 minutos; la cancelación
 > al cerrar sesión no se probó para no dejar el emulador sin sesión. Falta T12.
 
