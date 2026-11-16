@@ -29,7 +29,7 @@ class EvidenciaRepositoryImpl @Inject constructor(
     private val incidenciaDao: IncidenciaDao,
     private val evidenciaDao: EvidenciaDao,
     private val almacen: AlmacenFotos,
-    @IoDispatcher private val io: CoroutineDispatcher
+    @param:IoDispatcher private val io: CoroutineDispatcher
 ) : EvidenciaRepository {
 
     override fun observarIncidencia(incidenciaId: String): Flow<Incidencia?> =
