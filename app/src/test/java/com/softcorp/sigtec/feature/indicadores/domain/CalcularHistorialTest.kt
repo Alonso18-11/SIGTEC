@@ -106,6 +106,21 @@ class CalcularHistorialTest {
     }
 
     @Test
+    fun `una pendiente de mas de cinco dias es critica como en la lista y una cerrada no`() {
+        val h = calcular(
+            incidencias = listOf(
+                incidencia("demorada", hace(6), MarcaSeguimiento.ASIGNADA),
+                incidencia("reciente", hace(2), MarcaSeguimiento.ASIGNADA),
+                incidencia("cerrada", hace(30))
+            )
+        )
+        val porId = h.atenciones.associateBy { it.incidenciaId }
+        assertTrue(porId.getValue("demorada").critica)
+        assertFalse(porId.getValue("reciente").critica)
+        assertFalse(porId.getValue("cerrada").critica)
+    }
+
+    @Test
     fun `una cerrada cuyo informe no llego queda como informe por descargar`() {
         val h = calcular(incidencias = listOf(incidencia("a", hace(3))))
         assertNull(h.atenciones.single().trabajoRealizado)

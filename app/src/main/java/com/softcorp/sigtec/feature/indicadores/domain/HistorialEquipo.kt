@@ -7,6 +7,7 @@ import com.softcorp.sigtec.core.domain.model.InformeTecnico
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
 import com.softcorp.sigtec.core.domain.model.Movimiento
 import com.softcorp.sigtec.core.domain.model.TipoMovimiento
+import com.softcorp.sigtec.feature.incidencias.domain.esCritica
 import java.time.Duration
 import java.time.Instant
 
@@ -23,7 +24,8 @@ data class AtencionEquipo(
     val descripcion: String,
     val marca: MarcaSeguimiento,
     val tecnicoNombre: String?,          // el asignado; se conserva al cerrar
-    val trabajoRealizado: String?
+    val trabajoRealizado: String?,
+    val critica: Boolean = false         // la misma regla que la lista (HU-15, D-1), para su `EtiquetaIncidencia`
 ) {
     val cerrada: Boolean get() = marca == MarcaSeguimiento.CERRADA
     val informeDescargado: Boolean get() = !cerrada || trabajoRealizado != null
@@ -77,7 +79,8 @@ fun calcularHistorial(
                 informePorIncidencia[inc.id]?.trabajoRealizado
             } else {
                 null
-            }
+            },
+            critica = esCritica(inc, ahora)
         )
     }
 
