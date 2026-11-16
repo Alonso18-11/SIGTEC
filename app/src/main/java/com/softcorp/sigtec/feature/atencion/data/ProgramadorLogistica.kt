@@ -18,7 +18,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class ProgramadorLogistica @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) {
     fun registrarPendientes() {
         val trabajo = OneTimeWorkRequestBuilder<RegistrarEnLogisticaWorker>()
