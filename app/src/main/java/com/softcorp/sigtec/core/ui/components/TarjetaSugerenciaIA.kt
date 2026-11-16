@@ -31,7 +31,8 @@ private val TamanoNumero = 32.dp
 /**
  * Sugerencia generada por IA (DESIGN.md principio 5 y sección 4): contenedor `tertiaryContainer`, ícono de destello y
  * etiqueta «IA», para que nunca se confunda con un dato. La IA solo sugiere: con [alUsar] y [alDescartar] la persona
- * acepta o descarta (la decisión se guarda en `SugerenciaIA.aceptada`). [textoDescartar] puede ser «Pedir cambios».
+ * acepta o descarta (la decisión se guarda en `SugerenciaIA.aceptada`). [textoUsar] puede ser «Usar borrador» (HU-14,
+ * RF-1419) y [textoDescartar], «Pedir cambios».
  * Con [numero] se muestra como una opción numerada, como en «Qué probar primero».
  */
 @Composable
@@ -42,7 +43,8 @@ fun TarjetaSugerenciaIA(
     numero: Int? = null,
     alUsar: (() -> Unit)? = null,
     alDescartar: (() -> Unit)? = null,
-    textoDescartar: String = "Descartar"
+    textoDescartar: String = "Descartar",
+    textoUsar: String = "Usar"
 ) {
     val c = MaterialTheme.colorScheme
     Surface(color = c.tertiaryContainer, contentColor = c.onTertiaryContainer, shape = MaterialTheme.shapes.medium, modifier = modifier.fillMaxWidth()) {
@@ -67,7 +69,7 @@ fun TarjetaSugerenciaIA(
             if (alUsar != null || alDescartar != null) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     alDescartar?.let { BotonTexto(onClick = it, color = c.onTertiaryContainer) { Text(textoDescartar) } }
-                    alUsar?.let { BotonTexto(onClick = it, color = c.tertiary) { Text("Usar") } }
+                    alUsar?.let { BotonTexto(onClick = it, color = c.tertiary) { Text(textoUsar) } }
                 }
             }
         }
@@ -98,7 +100,8 @@ private fun SugerenciasDePrueba() {
             )
             TarjetaSugerenciaIA(
                 texto = "Se reemplazó la fuente de poder y el equipo enciende con normalidad.",
-                alUsar = {}, alDescartar = {}, textoDescartar = "Pedir cambios"
+                titulo = "Borrador generado automáticamente",
+                alUsar = {}, alDescartar = {}, textoUsar = "Usar borrador"
             )
         }
     }
