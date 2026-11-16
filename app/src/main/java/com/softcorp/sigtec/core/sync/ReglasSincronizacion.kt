@@ -3,6 +3,7 @@ package com.softcorp.sigtec.core.sync
 import com.softcorp.sigtec.core.database.entity.FallaDiccionarioEntity
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.softcorp.sigtec.core.database.entity.IncidenciaEntity
+import com.softcorp.sigtec.core.database.entity.InformeTecnicoEntity
 import com.softcorp.sigtec.core.database.entity.MovimientoEntity
 import com.softcorp.sigtec.core.database.entity.SolicitudRepuestoEntity
 import com.softcorp.sigtec.core.domain.model.MarcaSeguimiento
@@ -41,6 +42,12 @@ internal fun atencionAlBajar(local: IncidenciaEntity?, remota: IncidenciaEntity)
 
 internal fun debeGuardarMovimiento(local: MovimientoEntity?): Boolean =
     local == null || !local.pendienteSincronizar
+
+/**
+ * HU-16 (RF-1624): un informe que baja se guarda solo si el celular no tiene ya uno para esa incidencia. Los informes no
+ * se editan (la regla de Firestore solo permite crearlos), así que el local, subido o no, es el mismo y nunca se pisa.
+ */
+internal fun debeGuardarInforme(local: InformeTecnicoEntity?): Boolean = local == null
 
 internal fun cambiosDeCarga(
     tecnicoServidor: String?,

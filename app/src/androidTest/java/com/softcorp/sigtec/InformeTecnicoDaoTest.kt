@@ -99,6 +99,15 @@ class InformeTecnicoDaoTest {
         assertEquals("inf-normal", dao.porId("inf-normal")!!.id)
     }
 
+    @Test
+    fun por_incidencia_encuentra_el_informe_aunque_su_id_sea_otro() = runTest {
+        dao.guardar(informe("uuid-local", "inc-1"))
+
+        // HU-16 (RF-1624): el celular que lo escribió le puso otro id; la incidencia es la que manda
+        assertEquals("uuid-local", dao.porIncidencia("inc-1")!!.id)
+        assertNull(dao.porIncidencia("inc-2"))
+    }
+
     private fun incidencia(
         id: String,
         pendiente: Boolean,
